@@ -1,0 +1,289 @@
+/* Gaya sementara untuk irisan S0 dan S1.
+   Tampilan final mengikuti design system di 02-ux-design, jadi warna dan
+   tipografi di berkas ini belum keputusan desain. */
+
+:root {
+  --latar: #f8fafc;
+  --garis: #e2e8f0;
+  --teks: #0f172a;
+  --teks-lembut: #64748b;
+  --aksen: #1b7a9c;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--teks);
+  background: var(--latar);
+  -webkit-font-smoothing: antialiased;
+}
+
+.aplikasi {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.kepala {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--garis);
+  background: #fff;
+}
+
+.kepala h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+}
+
+.tagline {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: var(--teks-lembut);
+}
+
+.pemilih {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--teks-lembut);
+}
+
+.pemilih select {
+  font: inherit;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--garis);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--teks);
+}
+
+.isi {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.peta {
+  flex: 1;
+  min-width: 0;
+  background: #dbeafe;
+}
+
+.panel {
+  width: 320px;
+  flex: 0 0 320px;
+  overflow-y: auto;
+  padding: 1rem;
+  border-left: 1px solid var(--garis);
+  background: #fff;
+  position: relative;
+}
+
+.panel h2 {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 1.05rem;
+  line-height: 1.3;
+}
+
+.meta {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--teks-lembut);
+}
+
+.tenang {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: var(--teks-lembut);
+}
+
+.galat {
+  margin: 0;
+  padding: 0.75rem;
+  border-radius: 6px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 0.85rem;
+}
+
+.angka-besar,
+.angka-besar {
+  margin: 1rem 0 0.25rem;
+  font-size: 2rem;
+  font-weight: 650;
+  color: var(--aksen);
+}
+
+.angka-besar span {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--teks-lembut);
+}
+
+.label-data {
+  display: inline-block;
+  margin: 0 0 1rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  background: #ecfeff;
+  color: #155e75;
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+}
+
+.ringkas {
+  margin: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.ringkas div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--garis);
+  font-size: 0.82rem;
+}
+
+.ringkas dt {
+  color: var(--teks-lembut);
+}
+
+.ringkas dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.riwayat {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.riwayat th,
+.riwayat td {
+  padding: 0.2rem 0;
+  text-align: left;
+  font-weight: 400;
+  color: var(--teks-lembut);
+}
+
+.riwayat td {
+  text-align: right;
+  color: var(--teks);
+}
+
+.riwayat tr.aktif th,
+.riwayat tr.aktif td {
+  font-weight: 650;
+  color: var(--aksen);
+}
+
+.tutup {
+  font: inherit;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--garis);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--teks-lembut);
+  cursor: pointer;
+}
+
+.legenda {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--garis);
+}
+
+.legenda-judul {
+  margin: 0 0 0.5rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--teks-lembut);
+}
+
+.legenda-baris {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.7rem;
+  font-size: 0.7rem;
+  color: var(--teks-lembut);
+  font-variant-numeric: tabular-nums;
+}
+
+.butir {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.contoh {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 2px;
+}
+
+.kaki {
+  padding: 0.4rem 1.25rem;
+  border-top: 1px solid var(--garis);
+  background: #fff;
+}
+
+.kaki p {
+  margin: 0;
+  font-size: 0.7rem;
+  color: var(--teks-lembut);
+}
+
+/* Leaflet: hilangkan latar bawaan supaya warna wilayah yang menonjol. */
+.leaflet-container {
+  background: #dbeafe;
+  font: inherit;
+}
+
+.leaflet-control-attribution {
+  font-size: 10px;
+}
+
+@media (max-width: 800px) {
+  .isi {
+    flex-direction: column;
+  }
+
+  .peta {
+    flex: 1 1 auto;
+    min-height: 55vh;
+  }
+
+  .panel {
+    width: auto;
+    flex: 0 0 auto;
+    max-height: 45vh;
+    border-left: none;
+    border-top: 1px solid var(--garis);
+  }
+}
