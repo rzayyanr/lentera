@@ -119,35 +119,151 @@ body {
   line-height: 1.4;
 }
 
-.pemilih {
+.penggeser {
+  position: absolute;
+  z-index: 500;
   top: var(--tepi);
   right: var(--tepi);
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-}
-
-.pemilih span {
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--redup);
-}
-
-.pemilih select {
-  font: inherit;
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-  padding: 5px 8px;
+  gap: 12px;
+  width: 320px;
+  padding: 10px 14px;
+  background: var(--kartu);
   border: 1px solid var(--garis);
-  border-radius: 3px;
+  border-radius: 4px;
+  box-shadow: var(--bayangan-kartu);
+}
+
+.putar {
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--garis);
+  border-radius: 999px;
   background: var(--kartu);
   color: var(--tinta);
+  cursor: pointer;
 }
 
-.pemilih select:focus-visible,
+.putar:hover {
+  border-color: var(--tinta);
+}
+
+.putar svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.penggeser-isi {
+  flex: 1;
+  min-width: 0;
+}
+
+.penggeser-kepala {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tahun-besar {
+  font-family: "Newsreader", Georgia, serif;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.tahun-rentang {
+  font-size: 10px;
+  color: var(--redup);
+  font-variant-numeric: tabular-nums;
+}
+
+.rel {
+  position: relative;
+  margin-top: 2px;
+}
+
+/* Area sentuh 44 piksel, sedangkan gagangnya 22 piksel. */
+.rel input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.rel input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--garis);
+}
+
+.rel input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  margin-top: -9px;
+  border-radius: 50%;
+  background: var(--tinta);
+  border: 2px solid var(--kartu);
+  box-shadow: 0 1px 4px rgba(60, 50, 30, 0.3);
+}
+
+.rel input[type="range"]::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--garis);
+}
+
+.rel input[type="range"]::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--tinta);
+  border: 2px solid var(--kartu);
+}
+
+.rel input[type="range"]:focus-visible {
+  outline: 2px solid var(--aksen);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* Goresan penanda tiap tahun. Wadahnya diinset 11 piksel supaya posisinya
+   sejajar dengan titik tengah gagang. */
+.gores {
+  position: absolute;
+  left: 11px;
+  right: 11px;
+  top: 20px;
+  height: 6px;
+  pointer-events: none;
+}
+
+.gores span {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 4px;
+  background: #cfc8b8;
+  transform: translateX(-50%);
+}
+
+.gores span.gores-aktif {
+  height: 6px;
+  background: var(--aksen);
+}
+
+.putar:focus-visible,
 .ukuran button:focus-visible,
 .tutup:focus-visible {
   outline: 2px solid var(--aksen);
@@ -449,15 +565,20 @@ body {
     display: none;
   }
 
-  .pemilih {
-    top: auto;
-    bottom: var(--tepi);
+  .penggeser {
+    top: 158px;
+    left: var(--tepi);
     right: var(--tepi);
-    padding: 10px 12px;
+    width: auto;
+    padding: 8px 12px;
+  }
+
+  .tahun-besar {
+    font-size: 20px;
   }
 
   .ukuran {
-    top: 62px;
+    top: 108px;
     padding: 8px 10px;
   }
 
