@@ -17,6 +17,7 @@ import {
   type DataLentera,
   type Wilayah,
 } from "./lib/data";
+import Tentang from "./components/Tentang";
 import "./App.css";
 
 interface FiturPeta {
@@ -47,6 +48,11 @@ export default function App() {
   const [ukuran, setUkuran] = useState<string>("kejadian");
   const [tahun, setTahun] = useState<number | null>(null);
   const [dipilih, setDipilih] = useState<Wilayah | null>(null);
+  const [halaman, setHalaman] = useState<"peta" | "tentang">(
+    new URLSearchParams(window.location.search).get("hal") === "tentang"
+      ? "tentang"
+      : "peta",
+  );
 
   // Dibaca sekali sebelum efek lain berjalan, karena efek berikutnya menulis
   // ulang alamat halaman.
@@ -98,8 +104,10 @@ export default function App() {
     else url.searchParams.delete("kode");
     if (ukuran !== "kejadian") url.searchParams.set("ukuran", ukuran);
     else url.searchParams.delete("ukuran");
+    if (halaman === "tentang") url.searchParams.set("hal", "tentang");
+    else url.searchParams.delete("hal");
     window.history.replaceState({}, "", url);
-  }, [dipilih, siap, ukuran]);
+  }, [dipilih, siap, ukuran, halaman]);
 
   const ambang = useMemo(() => {
     if (!siap || tahun === null) return [1, 2, 3, 4, 5];
@@ -114,9 +122,10 @@ export default function App() {
   const labelUkuran = UKURAN_UTAMA.find((u) => u.id === ukuran)?.label ?? "Kejadian";
   const satuan = UKURAN_UTAMA.find((u) => u.id === ukuran)?.satuan ?? "";
 
-  // Siapkan peta sekali.
+  // Siapkan peta. Bergantung pada halaman, karena wadah peta dilepas saat
+  // pengguna membuka halaman Tentang dan harus dibuat ulang saat kembali.
   useEffect(() => {
-    if (!wadahPeta.current || peta.current) return;
+    if (halaman !== "peta" || !wadahPeta.current || peta.current) return;
 
     const m = L.map(wadahPeta.current, {
       zoomControl: false,
@@ -145,7 +154,7 @@ export default function App() {
       peta.current = null;
       lapisan.current = null;
     };
-  }, []);
+  }, [halaman]);
 
   const warnai = useCallback(
     (nilai: number | null) => {
@@ -157,7 +166,7 @@ export default function App() {
 
   // Gambar ulang lapisan setiap data, ukuran, atau tahun berubah.
   useEffect(() => {
-    if (!peta.current || !siap || tahun === null) return;
+    if (halaman !== "peta" || !peta.current || !siap || tahun === null) return;
 
     // Kalau efek berjalan dua kali sebelum unduhan selesai, lapisan bisa
     // tergambar dobel. Penanda ini menghentikan hasil yang sudah basi.
@@ -224,7 +233,7 @@ export default function App() {
     return () => {
       basi = true;
     };
-  }, [siap, tahun, ukuran, warnai, satuan]);
+  }, [halaman, siap, tahun, ukuran, warnai, satuan]);
 
   const provinsiDipilih =
     dipilih && siap ? siap.provinsi.find((p) => p.kode === dipilih.prov) : undefined;
@@ -246,15 +255,43 @@ export default function App() {
   }, [dipilih, siap, daftarTahun, ukuran]);
 
   return (
-    <div className={dipilih ? "aplikasi panel-terbuka" : "aplikasi"}>
-      <div className="peta" ref={wadahPeta} />
+    <div
+      className={
+        dipilih && halaman === "peta" ? "aplikasi panel-terbuka" : "aplikasi"
+      }
+    >
+      {halaman === "peta" && <div className="peta" ref={wadahPeta} />}
 
       <div className="merek">
         <h1>Lentera</h1>
         <p>Dampak bencana Indonesia, dengan asal data yang bisa ditelusuri</p>
+        <nav className="nav-halaman" aria-label="Halaman">
+          <button
+            aria-current={halaman === "peta" ? "page" : undefined}
+            onClick={() => setHalaman("peta")}
+          >
+            Peta
+          </button>
+          <button disabled title="Belum dikerjakan">
+            Lapor
+          </button>
+          <button disabled title="Belum dikerjakan">
+            Bantuan
+          </button>
+          <button
+            aria-current={halaman === "tentang" ? "page" : undefined}
+            onClick={() => setHalaman("tentang")}
+          >
+            Tentang
+          </button>
+        </nav>
       </div>
 
-      <nav className="ukuran" aria-label="Ukuran yang ditampilkan">
+      {halaman === "tentang" && <Tentang />}
+
+      {halaman === "peta" && (
+        <>
+          <nav className="ukuran" aria-label="Ukuran yang ditampilkan">
         {UKURAN_UTAMA.map((u) => (
           <button
             key={u.id}
@@ -407,14 +444,17 @@ export default function App() {
         )}
       </aside>
 
-      {siap && (
-        <footer className="kaki">
-          <p>
-            Sumber: {siap.meta.sumber.nama}, diambil {siap.meta.sumber.diambil}.
-            Angka kejadian dari tabel agregat, angka korban dan kerusakan dari
-            berkas statistik wilayah. Kedua tabel BNPB bisa berbeda.
-          </p>
-        </footer>
+          {siap && (
+            <footer className="kaki">
+              <p>
+                Sumber: {siap.meta.sumber.nama}, diambil{" "}
+                {siap.meta.sumber.diambil}. Angka kejadian dari tabel agregat,
+                angka korban dan kerusakan dari berkas statistik wilayah. Kedua
+                tabel BNPB bisa berbeda.
+              </p>
+            </footer>
+          )}
+        </>
       )}
     </div>
   );

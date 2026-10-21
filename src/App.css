@@ -100,7 +100,7 @@ body {
   top: var(--tepi);
   left: var(--tepi);
   padding: 14px 20px;
-  max-width: 320px;
+  max-width: 360px;
 }
 
 .merek h1 {
@@ -489,6 +489,195 @@ body {
   }
 
   .kaki {
+    display: none;
+  }
+}
+
+
+/* ---------- navigasi halaman ---------- */
+
+.nav-halaman {
+  display: flex;
+  gap: 2px;
+  margin-top: 10px;
+}
+
+.nav-halaman button {
+  font: inherit;
+  font-size: 11.5px;
+  padding: 5px 10px;
+  min-height: 28px;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  color: var(--redup);
+  cursor: pointer;
+}
+
+.nav-halaman button[aria-current] {
+  background: var(--tinta);
+  color: #fff;
+}
+
+.nav-halaman button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.nav-halaman button:focus-visible {
+  outline: 2px solid var(--aksen);
+  outline-offset: 2px;
+}
+
+/* ---------- halaman Tentang ---------- */
+
+.halaman {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  background: var(--kartu);
+}
+
+.kolom {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 130px 26px 90px;
+}
+
+.remah {
+  margin: 0 0 10px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--redup);
+}
+
+.halaman h1 {
+  margin: 0 0 14px;
+  font-family: "Newsreader", Georgia, serif;
+  font-size: 40px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.halaman h2 {
+  margin: 38px 0 12px;
+  font-family: "Newsreader", Georgia, serif;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.halaman h3 {
+  margin: 0 0 6px;
+  font-family: "Newsreader", Georgia, serif;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.halaman p {
+  margin: 0 0 12px;
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+
+.pembuka {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #3a3a36;
+  margin-bottom: 26px;
+}
+
+.tabel-sumber {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  margin-bottom: 10px;
+}
+
+.tabel-sumber th {
+  text-align: left;
+  padding: 0 12px 8px 0;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--redup);
+  border-bottom: 1px solid var(--garis);
+}
+
+.tabel-sumber td {
+  padding: 10px 12px 10px 0;
+  vertical-align: top;
+  border-bottom: 1px solid var(--garis);
+  line-height: 1.5;
+}
+
+.tabel-sumber a {
+  color: var(--aksen);
+}
+
+.catatan-kecil {
+  font-size: 11.5px;
+  color: var(--redup);
+}
+
+.langkah {
+  margin: 0 0 12px;
+  padding-left: 20px;
+}
+
+.langkah li {
+  margin-bottom: 8px;
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+
+.temuan {
+  margin-bottom: 14px;
+  padding: 14px 18px;
+  border-left: 2px solid var(--aksen);
+  background: #f4f8f7;
+}
+
+.temuan p:last-child {
+  margin-bottom: 0;
+}
+
+.lapisan {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.lapisan li {
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.halaman .label-lapisan {
+  margin: 0 8px 0 0;
+}
+
+.label-lapisan.komunitas {
+  color: var(--lapisan-komunitas);
+}
+
+@media (max-width: 820px) {
+  .kolom {
+    padding: 96px var(--tepi-panel) 70px;
+  }
+
+  .halaman h1 {
+    font-size: 30px;
+  }
+
+  .tabel-sumber th:nth-child(3),
+  .tabel-sumber td:nth-child(3) {
     display: none;
   }
 }
