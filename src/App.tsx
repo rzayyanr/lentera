@@ -6,8 +6,8 @@ import {
   hitungAmbang,
   warnaUntuk,
   WARNA_KELAS,
-  WARNA_NOL,
   WARNA_TANPA_CATATAN,
+  KELAS_TANPA_CATATAN,
   tahunUntuk,
   ambilNilai,
   rincianDampak,
@@ -25,11 +25,22 @@ interface FiturPeta {
   geometry: GeoJSON.Geometry;
 }
 
+/** Pola garis miring untuk wilayah tanpa catatan, sesuai design system. */
+const POLA_SVG = `
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+  <defs>
+    <pattern id="lentera-garis" width="7" height="7" patternUnits="userSpaceOnUse"
+             patternTransform="rotate(45)">
+      <rect width="7" height="7" fill="${WARNA_TANPA_CATATAN}"></rect>
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#b9b2a0" stroke-width="1.7"></line>
+    </pattern>
+  </defs>
+</svg>`;
+
 export default function App() {
   const wadahPeta = useRef<HTMLDivElement | null>(null);
   const peta = useRef<L.Map | null>(null);
   const lapisan = useRef<L.GeoJSON | null>(null);
-  const data = useRef<DataLentera | null>(null);
 
   const [siap, setSiap] = useState<DataLentera | null>(null);
   const [galat, setGalat] = useState<string | null>(null);
@@ -47,7 +58,6 @@ export default function App() {
     muatData()
       .then((d) => {
         if (batal) return;
-        data.current = d;
         setSiap(d);
         const minta = ukuranAwal.current;
         if (minta && UKURAN_UTAMA.some((u) => u.id === minta)) setUkuran(minta);
@@ -61,13 +71,11 @@ export default function App() {
     };
   }, []);
 
-  // Daftar tahun bergantung pada ukuran yang dipilih, karena sumbernya berbeda.
   const daftarTahun = useMemo(
     () => (siap ? tahunUntuk(siap, ukuran) : []),
     [siap, ukuran],
   );
 
-  // Kalau tahun terpilih tidak ada di daftar baru, pindah ke tahun terakhir.
   useEffect(() => {
     if (daftarTahun.length === 0) return;
     if (tahun === null || !daftarTahun.includes(tahun)) {
@@ -82,7 +90,7 @@ export default function App() {
     if (kode && siap.perKode.has(kode)) setDipilih(siap.perKode.get(kode) ?? null);
   }, [siap]);
 
-  // Simpan wilayah terpilih di alamat halaman.
+  // Simpan wilayah dan ukuran terpilih di alamat halaman supaya bisa dibagikan.
   useEffect(() => {
     if (!siap) return;
     const url = new URL(window.location.href);
@@ -94,7 +102,7 @@ export default function App() {
   }, [dipilih, siap, ukuran]);
 
   const ambang = useMemo(() => {
-    if (!siap || tahun === null) return [1, 2, 3, 4];
+    if (!siap || tahun === null) return [1, 2, 3, 4, 5];
     const nilai: number[] = [];
     for (const w of siap.wilayah) {
       const v = ambilNilai(siap, w.kode, tahun, ukuran);
@@ -103,15 +111,15 @@ export default function App() {
     return hitungAmbang(nilai);
   }, [siap, tahun, ukuran]);
 
-  const labelUkuran =
-    UKURAN_UTAMA.find((u) => u.id === ukuran)?.label ?? "Kejadian";
+  const labelUkuran = UKURAN_UTAMA.find((u) => u.id === ukuran)?.label ?? "Kejadian";
   const satuan = UKURAN_UTAMA.find((u) => u.id === ukuran)?.satuan ?? "";
 
   // Siapkan peta sekali.
   useEffect(() => {
     if (!wadahPeta.current || peta.current) return;
+
     const m = L.map(wadahPeta.current, {
-      zoomControl: true,
+      zoomControl: false,
       minZoom: 3,
       maxZoom: 9,
       zoomSnap: 0.25,
@@ -119,10 +127,17 @@ export default function App() {
       // bisa dipakai tanpa jaringan.
     }).setView([-2.5, 118], 4);
 
+    L.control.zoom({ position: "bottomleft" }).addTo(m);
     m.attributionControl.setPrefix(false);
     m.attributionControl.addAttribution(
       'Batas wilayah: <a href="https://www.geoboundaries.org/">geoBoundaries</a> | Data: <a href="https://data.bnpb.go.id/">BNPB</a>',
     );
+
+    // Pola garis miring ditaruh di dokumen, bukan di dalam peta, supaya bisa
+    // dipanggil dari gaya wilayah.
+    const pola = document.createElement("div");
+    pola.innerHTML = POLA_SVG;
+    document.body.appendChild(pola.firstElementChild as Element);
 
     peta.current = m;
     return () => {
@@ -167,9 +182,12 @@ export default function App() {
             const nilai = kode ? ambilNilai(siap, kode, tahun, ukuran) : null;
             return {
               fillColor: warnai(nilai),
-              fillOpacity: 0.95,
-              color: "#94a3b8",
-              weight: 0.4,
+              fillOpacity: 1,
+              color: "#fbfaf7",
+              weight: 0.7,
+              // Kelas ini membuat wilayah tanpa catatan memakai pola garis
+              // miring, karena aturan CSS mengalahkan atribut bawaan Leaflet.
+              className: nilai === null ? KELAS_TANPA_CATATAN : undefined,
             };
           },
           onEachFeature: (fitur, ly) => {
@@ -178,9 +196,7 @@ export default function App() {
             const nilai = p.kode ? ambilNilai(siap, p.kode, tahun, ukuran) : null;
 
             const isiNilai =
-              nilai === null
-                ? "Tidak ada catatan"
-                : `${fmt(nilai)} ${satuan} (${tahun})`;
+              nilai === null ? "Tidak ada catatan" : `${fmt(nilai)} ${satuan} (${tahun})`;
 
             ly.bindTooltip(`<strong>${p.nama}</strong><br/>${isiNilai}`, {
               sticky: true,
@@ -189,10 +205,10 @@ export default function App() {
             if (wilayah) {
               ly.on("click", () => setDipilih(wilayah));
               ly.on("mouseover", () => {
-                (ly as L.Path).setStyle({ weight: 2, color: "#0f172a" });
+                (ly as L.Path).setStyle({ weight: 2.4, color: "#16181c" });
               });
               ly.on("mouseout", () => {
-                (ly as L.Path).setStyle({ weight: 0.4, color: "#94a3b8" });
+                (ly as L.Path).setStyle({ weight: 0.7, color: "#fbfaf7" });
               });
             }
           },
@@ -230,36 +246,20 @@ export default function App() {
   }, [dipilih, siap, daftarTahun, ukuran]);
 
   return (
-    <div className="aplikasi">
-      <header className="kepala">
-        <div>
-          <h1>Lentera</h1>
-          <p className="tagline">
-            Dampak bencana Indonesia, dengan asal data yang bisa ditelusuri
-          </p>
-        </div>
+    <div className={dipilih ? "aplikasi panel-terbuka" : "aplikasi"}>
+      <div className="peta" ref={wadahPeta} />
 
-        <label className="pemilih">
-          <span>Tahun</span>
-          <select
-            value={tahun ?? ""}
-            onChange={(e) => setTahun(Number(e.target.value))}
-            disabled={!siap}
-          >
-            {daftarTahun.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-        </label>
-      </header>
+      <div className="merek">
+        <h1>Lentera</h1>
+        <p>Dampak bencana Indonesia, dengan asal data yang bisa ditelusuri</p>
+      </div>
 
-      <nav className="ukuran">
+      <nav className="ukuran" aria-label="Ukuran yang ditampilkan">
         {UKURAN_UTAMA.map((u) => (
           <button
             key={u.id}
             className={u.id === ukuran ? "aktif" : undefined}
+            aria-pressed={u.id === ukuran}
             onClick={() => setUkuran(u.id)}
             disabled={!siap}
           >
@@ -268,121 +268,144 @@ export default function App() {
         ))}
       </nav>
 
-      <main className="isi">
-        <div className="peta" ref={wadahPeta} />
+      <label className="pemilih">
+        <span>Tahun</span>
+        <select
+          value={tahun ?? ""}
+          onChange={(e) => setTahun(Number(e.target.value))}
+          disabled={!siap}
+        >
+          {daftarTahun.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
+        </select>
+      </label>
 
-        <aside className="panel">
-          {galat && <p className="galat">{galat}</p>}
+      <aside className="panel">
+        {galat && <p className="galat">{galat}</p>}
 
-          {!galat && !siap && <p className="tenang">Memuat data...</p>}
+        {!galat && !siap && <p className="tenang">Memuat data...</p>}
 
-          {siap && !dipilih && (
-            <>
-              <p className="tenang">Klik satu wilayah untuk melihat angkanya.</p>
-              <dl className="ringkas">
-                <div>
-                  <dt>Wilayah</dt>
-                  <dd>{siap.meta.jumlahWilayah} kabupaten/kota</dd>
-                </div>
-                <div>
-                  <dt>Provinsi</dt>
-                  <dd>{siap.meta.jumlahProvinsi}</dd>
-                </div>
-                <div>
-                  <dt>Tahun tersedia</dt>
-                  <dd>
-                    {daftarTahun[0]} sampai {daftarTahun[daftarTahun.length - 1]}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Sumber angka</dt>
-                  <dd>{sumberUntuk(ukuran)}</dd>
-                </div>
-              </dl>
-            </>
-          )}
+        {siap && !dipilih && (
+          <>
+            <p className="tenang">
+              Pilih satu wilayah di peta untuk melihat angkanya. Peta bisa
+              digeser dan diperbesar.
+            </p>
+            <dl className="ringkas">
+              <div>
+                <dt>Wilayah</dt>
+                <dd>{siap.meta.jumlahWilayah} kabupaten/kota</dd>
+              </div>
+              <div>
+                <dt>Provinsi</dt>
+                <dd>{siap.meta.jumlahProvinsi}</dd>
+              </div>
+              <div>
+                <dt>Tahun tersedia</dt>
+                <dd>
+                  {daftarTahun[0]} sampai {daftarTahun[daftarTahun.length - 1]}
+                </dd>
+              </div>
+              <div>
+                <dt>Sumber angka</dt>
+                <dd>{sumberUntuk(ukuran)}</dd>
+              </div>
+            </dl>
+          </>
+        )}
 
-          {dipilih && siap && (
-            <>
-              <button className="tutup" onClick={() => setDipilih(null)}>
-                Tutup
-              </button>
-              <h2>{dipilih.nama}</h2>
-              <p className="meta">
-                {provinsiDipilih?.nama ?? "Provinsi tidak diketahui"} | Kode BPS{" "}
-                {dipilih.kode}
+        {dipilih && siap && (
+          <>
+            <button className="tutup" onClick={() => setDipilih(null)}>
+              Tutup
+            </button>
+            <h2>{dipilih.nama}</h2>
+            <p className="meta">
+              {provinsiDipilih?.nama ?? "Provinsi tidak diketahui"} | Kode BPS{" "}
+              {dipilih.kode}
+            </p>
+
+            {nilaiDipilih === null ? (
+              <p className="angka-besar kosong">
+                Tidak ada catatan untuk {tahun}
               </p>
-
+            ) : (
               <p className="angka-besar">
-                {nilaiDipilih === null ? "Tidak ada catatan" : fmt(nilaiDipilih)}
-                {nilaiDipilih !== null && <span> {satuan} pada {tahun}</span>}
+                {fmt(nilaiDipilih)}
+                <span>
+                  {satuan} pada {tahun}
+                </span>
               </p>
+            )}
 
-              <p className="label-data">{labelUkuran} | {sumberUntuk(ukuran)}</p>
+            <p className="label-lapisan resmi">Data resmi BNPB</p>
 
-              {rincian.length > 0 && (
-                <table className="riwayat rinci">
-                  <caption>Rincian dampak {tahun}</caption>
-                  <tbody>
-                    {rincian.map((r) => (
-                      <tr key={r.id}>
-                        <th scope="row">{r.label}</th>
-                        <td>{fmt(r.nilai)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-
+            {rincian.length > 0 && (
               <table className="riwayat">
-                <caption>Riwayat {labelUkuran.toLowerCase()}</caption>
+                <caption>Rincian dampak {tahun}</caption>
                 <tbody>
-                  {riwayat.map((r) => (
-                    <tr key={r.tahun} className={r.tahun === tahun ? "aktif" : undefined}>
-                      <th scope="row">{r.tahun}</th>
-                      <td>{r.nilai === null ? "tidak ada catatan" : fmt(r.nilai)}</td>
+                  {rincian.map((r) => (
+                    <tr key={r.id}>
+                      <th scope="row">{r.label}</th>
+                      <td>{fmt(r.nilai)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </>
-          )}
+            )}
 
-          {siap && (
-            <div className="legenda">
-              <p className="legenda-judul">{labelUkuran} per tahun</p>
-              <div className="legenda-baris">
-                <span className="butir">
-                  <span className="contoh" style={{ background: WARNA_NOL }} />0
-                </span>
-                {ambang.map((a, i) => (
-                  <span className="butir" key={`${a}-${i}`}>
-                    <span className="contoh" style={{ background: WARNA_KELAS[i] }} />
-                    {i === 0 ? `1-${fmt(ambang[0])}` : `${fmt(ambang[i - 1] + 1)}-${fmt(a)}`}
-                  </span>
+            <table className="riwayat">
+              <caption>Riwayat {labelUkuran.toLowerCase()}</caption>
+              <tbody>
+                {riwayat.map((r) => (
+                  <tr key={r.tahun} className={r.tahun === tahun ? "aktif" : undefined}>
+                    <th scope="row">{r.tahun}</th>
+                    <td>{r.nilai === null ? "tidak ada catatan" : fmt(r.nilai)}</td>
+                  </tr>
                 ))}
-                <span className="butir">
+              </tbody>
+            </table>
+          </>
+        )}
+
+        {siap && (
+          <div className="legenda">
+            <p className="legenda-judul">{labelUkuran} per tahun</p>
+            <div className="legenda-baris">
+              <span className="butir">
+                <span className="contoh bergaris" />
+                data tidak tersedia
+              </span>
+              <span className="butir">
+                <span className="contoh" style={{ background: WARNA_KELAS[0] }} />0
+              </span>
+              {ambang.map((a, i) => (
+                <span className="butir" key={`${a}-${i}`}>
                   <span
                     className="contoh"
-                    style={{
-                      background:
-                        WARNA_KELAS[Math.min(ambang.length, WARNA_KELAS.length - 1)],
-                    }}
+                    style={{ background: WARNA_KELAS[i + 1] }}
                   />
-                  {fmt(ambang[ambang.length - 1] + 1)}+
+                  {i === 0
+                    ? `1 sampai ${fmt(a)}`
+                    : `${fmt(ambang[i - 1] + 1)} sampai ${fmt(a)}`}
                 </span>
-                <span className="butir">
-                  <span
-                    className="contoh"
-                    style={{ background: WARNA_TANPA_CATATAN }}
-                  />
-                  tanpa catatan
-                </span>
-              </div>
+              ))}
+              <span className="butir">
+                <span
+                  className="contoh"
+                  style={{
+                    background: WARNA_KELAS[Math.min(ambang.length + 1, WARNA_KELAS.length - 1)],
+                  }}
+                />
+                {fmt(ambang[ambang.length - 1] + 1)} atau lebih
+              </span>
             </div>
-          )}
-        </aside>
-      </main>
+          </div>
+        )}
+      </aside>
 
       {siap && (
         <footer className="kaki">

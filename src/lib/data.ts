@@ -172,21 +172,35 @@ export function rincianDampak(
  */
 export function hitungAmbang(nilai: number[]): number[] {
   const urut = nilai.filter((n) => n > 0).sort((a, b) => a - b);
-  if (urut.length === 0) return [1, 2, 3, 4];
+  if (urut.length === 0) return [1, 2, 3, 4, 5];
   const kuantil = (p: number) => urut[Math.min(urut.length - 1, Math.floor(p * urut.length))];
   // Banyak nilai yang sama membuat beberapa kuantil bertumpuk. Ambang yang
   // kembar dibuang supaya legenda tidak menampilkan rentang palsu.
-  const mentah = [kuantil(0.2), kuantil(0.4), kuantil(0.6), kuantil(0.8)];
+  const mentah = [0.16, 0.33, 0.5, 0.66, 0.83].map(kuantil);
   const unik = [...new Set(mentah)].filter((n) => n > 0).sort((a, b) => a - b);
   return unik.length > 0 ? unik : [1];
 }
 
-export const WARNA_KELAS = ["#e8f4f8", "#b8e2ec", "#7fc9dc", "#3fa5c4", "#1b7a9c"];
-export const WARNA_NOL = "#f1f5f9";
-export const WARNA_TANPA_CATATAN = "#cbd5e1";
+/**
+ * Skala peta dari design system. Indeks 0 adalah kelas nol kejadian,
+ * indeks berikutnya adalah kelas bertingkat.
+ */
+export const WARNA_KELAS = [
+  "#e4e1d4",
+  "#dbdfd2",
+  "#c9d8cb",
+  "#a8c8b1",
+  "#7db095",
+  "#226a52",
+];
+/** Wilayah tanpa catatan digambar dengan pola garis miring, bukan warna. */
+export const WARNA_TANPA_CATATAN = "#ede9dc";
+export const KELAS_TANPA_CATATAN = "tanpa-catatan";
+/** Warna negara tetangga, dibedakan agar tidak tertukar dengan Indonesia. */
+export const WARNA_LUAR = "#d9d2c1";
 
 export function warnaUntuk(nilai: number, ambang: number[]): string {
-  if (nilai <= 0) return WARNA_NOL;
+  if (nilai <= 0) return WARNA_KELAS[0];
   let kelas = 0;
   for (let i = 0; i < ambang.length; i++) {
     if (nilai > ambang[i]) kelas = i + 1;

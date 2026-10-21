@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "data": "tsx scripts/pipeline.ts",
     "dampak:unduh": "tsx scripts/unduh-dampak.ts",
-    "dampak:olah": "tsx scripts/olah-dampak.ts"
+    "dampak:olah": "tsx scripts/olah-dampak.ts",
+    "dampak:verifikasi": "tsx scripts/verifikasi-dampak.ts"
   },
   "dependencies": {
     "leaflet": "^1.9.4",
