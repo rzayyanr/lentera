@@ -81,6 +81,52 @@ body {
   display: flex;
 }
 
+.ukuran {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.5rem 1.25rem;
+  border-bottom: 1px solid var(--garis);
+  background: #fff;
+  overflow-x: auto;
+}
+
+.ukuran button {
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--garis);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--teks-lembut);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ukuran button.aktif {
+  background: var(--aksen);
+  border-color: var(--aksen);
+  color: #fff;
+}
+
+.ukuran button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.riwayat caption {
+  caption-side: top;
+  text-align: left;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--teks-lembut);
+  padding: 0.6rem 0 0.35rem;
+}
+
+.riwayat.rinci {
+  margin-bottom: 0.5rem;
+}
+
 .peta {
   flex: 1;
   min-width: 0;

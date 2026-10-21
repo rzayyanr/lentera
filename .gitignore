@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Unduhan mentah data dampak, hasil olahannya ada di public/data
+.cache
