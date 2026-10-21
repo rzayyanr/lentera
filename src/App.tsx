@@ -17,6 +17,7 @@ import {
 } from "./lib/data";
 import PenggeserTahun from "./components/PenggeserTahun";
 import Tentang from "./components/Tentang";
+import RiwayatJatim from "./components/RiwayatJatim";
 import "./App.css";
 
 interface FiturPeta {
@@ -58,11 +59,10 @@ export default function App() {
   const [tahun, setTahun] = useState<number | null>(null);
   const [dipilih, setDipilih] = useState<Wilayah | null>(null);
   const [sedangMain, setSedangMain] = useState(false);
-  const [halaman, setHalaman] = useState<"peta" | "tentang">(
-    new URLSearchParams(window.location.search).get("hal") === "tentang"
-      ? "tentang"
-      : "peta",
-  );
+  const [halaman, setHalaman] = useState<"peta" | "riwayat" | "tentang">(() => {
+    const hal = new URLSearchParams(window.location.search).get("hal");
+    return hal === "tentang" || hal === "riwayat" ? hal : "peta";
+  });
 
   const kodeAwal = useRef(new URLSearchParams(window.location.search).get("kode"));
   const ukuranAwal = useRef(new URLSearchParams(window.location.search).get("ukuran"));
@@ -115,7 +115,7 @@ export default function App() {
     else url.searchParams.delete("kode");
     if (ukuran !== "kejadian") url.searchParams.set("ukuran", ukuran);
     else url.searchParams.delete("ukuran");
-    if (halaman === "tentang") url.searchParams.set("hal", "tentang");
+    if (halaman !== "peta") url.searchParams.set("hal", halaman);
     else url.searchParams.delete("hal");
     if (tahun !== null) url.searchParams.set("tahun", String(tahun));
     window.history.replaceState({}, "", url);
@@ -345,6 +345,12 @@ export default function App() {
           >
             Peta
           </button>
+          <button
+            aria-current={halaman === "riwayat" ? "page" : undefined}
+            onClick={() => setHalaman("riwayat")}
+          >
+            Riwayat
+          </button>
           <button disabled title="Belum dikerjakan">
             Lapor
           </button>
@@ -360,6 +366,7 @@ export default function App() {
         </nav>
       </div>
 
+      {halaman === "riwayat" && <RiwayatJatim />}
       {halaman === "tentang" && <Tentang />}
 
       {halaman === "peta" && (

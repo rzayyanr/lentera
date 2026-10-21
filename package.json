@@ -11,7 +11,9 @@
     "data": "tsx scripts/pipeline.ts",
     "dampak:unduh": "tsx scripts/unduh-dampak.ts",
     "dampak:olah": "tsx scripts/olah-dampak.ts",
-    "dampak:verifikasi": "tsx scripts/verifikasi-dampak.ts"
+    "dampak:verifikasi": "tsx scripts/verifikasi-dampak.ts",
+    "kejadian:unduh": "tsx scripts/unduh-kejadian.ts",
+    "kejadian:olah": "tsx scripts/olah-kejadian.ts"
   },
   "dependencies": {
     "leaflet": "^1.9.4",
