@@ -49,6 +49,8 @@ npm run dev
 
 Buka alamat yang muncul di terminal, biasanya `http://localhost:5173`.
 
+Kalau muncul galat bahwa `tsc` atau `vite` tidak ditemukan, kemungkinan lingkunganmu disetel ke mode produksi sehingga paket pengembangan ikut dilewati. Jalankan `npm install --include=dev` sebagai gantinya, lalu ulangi.
+
 Perintah lain:
 
 ```bash
