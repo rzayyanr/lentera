@@ -14,25 +14,28 @@ Tahap pengerjaan berjalan. Yang sudah berfungsi:
 - Peta bisa digeser dan diperbesar, tanpa basemap, sehingga tetap berjalan tanpa jaringan.
 - Enam ukuran yang bisa dipilih: kejadian, meninggal, luka, terdampak, mengungsi, rumah rusak berat.
 - Data dampak 22 tahun, 2002 sampai 2023, dari berkas statistik wilayah BNPB.
+- Penggeser tahun dengan tombol putar, dan tahun aktif selalu tertulis besar sebagai angka.
 - Panel wilayah: nama, provinsi, kode BPS, angka tahun terpilih, rincian 14 ukuran, dan riwayat seluruh tahun.
 - Tautan langsung per wilayah dan ukuran, misalnya `?kode=3507&ukuran=menderita`.
 - Legenda dengan ambang yang dihitung dari sebaran data, bukan angka karangan.
 - Wilayah yang tidak punya catatan digambar dengan pola garis miring, bukan dianggap nol.
+- Riwayat 24.190 kejadian Jawa Timur tahun 2020 sampai 2025, dengan saringan tahun dan jenis bencana, serta tautan ke catatan aslinya.
+- Halaman Tentang dan sumber data, termasuk daftar selisih angka yang ditemukan saat pengolahan.
+- Tampilan mengikuti design system, dengan font Newsreader dan Public Sans yang disimpan sendiri.
 
 Yang belum dikerjakan:
 
-- Riwayat kejadian Jawa Timur per tanggal.
-- Formulir laporan warga dan halaman moderator.
+- Formulir laporan warga beserta halaman status laporan.
+- Halaman transparansi bantuan.
+- Halaman moderator untuk memeriksa laporan masuk.
 - Halaman bantuan.
-- Halaman Tentang dan sumber data.
-- Tampilan final sesuai design system.
 
 ## Teknologi
 
 - React 19 + Vite 8 + TypeScript
 - Leaflet untuk peta, tanpa basemap tile
 - Data statis hasil pipeline, bukan API saat pengguna membuka situs
-- Supabase untuk laporan warga, direncanakan pada tahap berikutnya
+- Penyimpanan laporan warga akan memakai layanan basis data terkelola. Pilihannya belum final.
 - Vercel untuk hosting
 
 ## Cara menjalankan
@@ -68,12 +71,16 @@ data/                     tabel pemetaan wilayah dan peta folder dampak
 scripts/pipeline.ts       penarik data agregat BNPB
 scripts/unduh-dampak.ts   pengunduh berkas dampak per provinsi
 scripts/olah-dampak.ts    pengolah berkas dampak menjadi JSON
+scripts/unduh-kejadian.ts pengunduh riwayat kejadian Jawa Timur
+scripts/olah-kejadian.ts  pengolah riwayat kejadian, sekaligus pemotong alamat
 scripts/verifikasi-dampak.ts  pemeriksa hasil olahan
 public/data/              JSON untuk aplikasi
 public/geo/               batas wilayah, sudah ditempeli kode BPS
 public/fonts/             Newsreader dan Public Sans, disimpan sendiri
 src/lib/data.ts           tipe, pemuat, dan skala warna
 src/App.tsx               halaman peta
+src/components/RiwayatJatim.tsx  halaman riwayat kejadian
+src/components/Tentang.tsx       halaman tentang dan sumber data
 ```
 
 ## Sumber data
