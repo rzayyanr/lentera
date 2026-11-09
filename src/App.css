@@ -85,11 +85,23 @@ body {
 
 /* ---------- kartu mengapung ---------- */
 
-.merek,
-.pemilih,
-.ukuran {
+/* Merek dan pemilih ukuran berbagi satu kolom. Dulu keduanya diposisikan
+   absolut dengan jarak tetap, sehingga baris navigasi halaman membuat kartu
+   ukuran menimpa kartu merek. */
+.kartu-kiri {
   position: absolute;
   z-index: 500;
+  top: var(--tepi);
+  left: var(--tepi);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: calc(100% - var(--lebar-panel) - var(--tepi) * 2);
+}
+
+.merek,
+.ukuran {
   background: var(--kartu);
   border: 1px solid var(--garis);
   border-radius: 4px;
@@ -97,8 +109,6 @@ body {
 }
 
 .merek {
-  top: var(--tepi);
-  left: var(--tepi);
   padding: 14px 20px;
   max-width: 360px;
 }
@@ -271,12 +281,10 @@ body {
 }
 
 .ukuran {
-  top: calc(var(--tepi) + 74px);
-  left: var(--tepi);
   display: flex;
   gap: 8px;
   padding: 10px 12px;
-  max-width: calc(100% - var(--tepi) * 2);
+  max-width: 100%;
   overflow-x: auto;
 }
 
@@ -528,7 +536,9 @@ body {
 .kaki {
   position: absolute;
   z-index: 400;
-  left: var(--tepi);
+  /* Digeser ke kanan sejauh lebar kontrol zoom Leaflet di kiri bawah,
+     supaya keterangan sumber tidak bertumpuk dengan tombol + dan -. */
+  left: calc(var(--tepi) + 34px);
   bottom: var(--tepi);
   max-width: 460px;
   padding: 10px 14px;
@@ -554,7 +564,11 @@ body {
 
   .merek {
     padding: 11px 14px;
-    max-width: calc(100% - 28px);
+    max-width: 100%;
+  }
+
+  .kartu-kiri {
+    max-width: calc(100% - var(--tepi) * 2);
   }
 
   .merek h1 {
@@ -566,7 +580,8 @@ body {
   }
 
   .penggeser {
-    top: 158px;
+    /* Di bawah kolom merek + pemilih ukuran (berakhir di 160 px). */
+    top: 170px;
     left: var(--tepi);
     right: var(--tepi);
     width: auto;
@@ -578,7 +593,6 @@ body {
   }
 
   .ukuran {
-    top: 108px;
     padding: 8px 10px;
   }
 

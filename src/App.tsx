@@ -335,42 +335,41 @@ export default function App() {
     >
       {halaman === "peta" && <div className="peta" ref={wadahPeta} />}
 
-      <div className="merek">
-        <h1>Lentera</h1>
-        <p>Dampak bencana Indonesia, dengan asal data yang bisa ditelusuri</p>
-        <nav className="nav-halaman" aria-label="Halaman">
-          <button
-            aria-current={halaman === "peta" ? "page" : undefined}
-            onClick={() => setHalaman("peta")}
-          >
-            Peta
-          </button>
-          <button
-            aria-current={halaman === "riwayat" ? "page" : undefined}
-            onClick={() => setHalaman("riwayat")}
-          >
-            Riwayat
-          </button>
-          <button disabled title="Belum dikerjakan">
-            Lapor
-          </button>
-          <button disabled title="Belum dikerjakan">
-            Bantuan
-          </button>
-          <button
-            aria-current={halaman === "tentang" ? "page" : undefined}
-            onClick={() => setHalaman("tentang")}
-          >
-            Tentang
-          </button>
-        </nav>
-      </div>
+      {/* Merek dan pemilih ukuran ditumpuk dalam satu kolom supaya kartu
+          tidak saling menimpa ketika baris navigasi halaman ikut tampil. */}
+      <div className="kartu-kiri">
+        <div className="merek">
+          <h1>Lentera</h1>
+          <p>Dampak bencana Indonesia, dengan asal data yang bisa ditelusuri</p>
+          <nav className="nav-halaman" aria-label="Halaman">
+            <button
+              aria-current={halaman === "peta" ? "page" : undefined}
+              onClick={() => setHalaman("peta")}
+            >
+              Peta
+            </button>
+            <button
+              aria-current={halaman === "riwayat" ? "page" : undefined}
+              onClick={() => setHalaman("riwayat")}
+            >
+              Riwayat
+            </button>
+            <button disabled title="Belum dikerjakan">
+              Lapor
+            </button>
+            <button disabled title="Belum dikerjakan">
+              Bantuan
+            </button>
+            <button
+              aria-current={halaman === "tentang" ? "page" : undefined}
+              onClick={() => setHalaman("tentang")}
+            >
+              Tentang
+            </button>
+          </nav>
+        </div>
 
-      {halaman === "riwayat" && <RiwayatJatim />}
-      {halaman === "tentang" && <Tentang />}
-
-      {halaman === "peta" && (
-        <>
+        {halaman === "peta" && (
           <nav className="ukuran" aria-label="Ukuran yang ditampilkan">
             {UKURAN_UTAMA.map((u) => (
               <button
@@ -384,7 +383,14 @@ export default function App() {
               </button>
             ))}
           </nav>
+        )}
+      </div>
 
+      {halaman === "riwayat" && <RiwayatJatim />}
+      {halaman === "tentang" && <Tentang />}
+
+      {halaman === "peta" && (
+        <>
           <PenggeserTahun
             tahun={tahun ?? daftarTahun[0] ?? 0}
             daftarTahun={daftarTahun}
