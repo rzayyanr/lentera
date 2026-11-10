@@ -1,13 +1,12 @@
 /**
- * Halaman riwayat kejadian Jawa Timur.
+ * Halaman riwayat kejadian Jawa Timur (04 High-Fidelity).
  *
- * Sumbernya SMARTPB milik BPBD Provinsi Jawa Timur, satu-satunya portal
- * provinsi yang datanya bisa diambil otomatis dan memuat jenis bencana per
- * kejadian. Berkasnya dimuat hanya saat halaman ini dibuka, karena ukurannya
- * jauh lebih besar daripada data peta.
+ * Sumbernya SMARTPB milik BPBD Provinsi Jawa Timur.
+ * Tampilan mengikuti frame 10:719 Figma Lentera.
  */
 
 import { useEffect, useMemo, useState } from "react";
+import searchInputSvg from "../assets/icons/search-input.svg";
 
 interface DataKejadian {
   kolom: string[];
@@ -19,30 +18,35 @@ interface DataKejadian {
   catatan: string[];
 }
 
-const PER_HALAMAN = 40;
+const PER_HALAMAN = 25;
 
-const BULAN = [
-  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-  "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+const BULAN_PENDEK = [
+  "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
+  "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
 ];
 
-function tanggalPanjang(iso: string): string {
-  const [y, m, d] = iso.split("-");
-  const bulan = BULAN[Number(m) - 1] ?? m;
-  return `${Number(d)} ${bulan} ${y}`;
+function tanggalFormat(iso: string): string {
+  const parts = iso.split("-");
+  if (parts.length < 3) return iso;
+  const y = parts[0];
+  const m = Number(parts[1]);
+  const d = Number(parts[2]);
+  const bulan = BULAN_PENDEK[m - 1] ?? parts[1];
+  return `${d} ${bulan} ${y}`;
 }
 
-function angka(n: string | number): string {
-  return Number(n).toLocaleString("id-ID");
+interface Props {
+  onPilihKejadian?: (id: string) => void;
 }
 
-export default function RiwayatJatim() {
+export default function RiwayatJatim({ onPilihKejadian }: Props) {
   const [data, setData] = useState<DataKejadian | null>(null);
   const [galat, setGalat] = useState<string | null>(null);
   const [tahun, setTahun] = useState<string>("semua");
   const [jenis, setJenis] = useState<string>("semua");
+  const [kabupaten, setKabupaten] = useState<string>("semua");
+  const [kataKunci, setKataKunci] = useState<string>("");
   const [halaman, setHalaman] = useState(0);
-  const [terbuka, setTerbuka] = useState<string | null>(null);
 
   useEffect(() => {
     let batal = false;
@@ -71,7 +75,6 @@ export default function RiwayatJatim() {
   const iHilang = kol.indexOf("hilang");
   const iLukaBerat = kol.indexOf("lukaBerat");
   const iLukaRingan = kol.indexOf("lukaRingan");
-  const iStatus = kol.indexOf("status");
   const iTingkat = kol.indexOf("tingkat");
 
   const daftarTahun = useMemo(() => {
@@ -83,197 +86,231 @@ export default function RiwayatJatim() {
 
   const tersaring = useMemo(() => {
     if (!data) return [];
+    const q = kataKunci.trim().toLowerCase();
+
     return data.kejadian.filter((k) => {
       if (tahun !== "semua" && !String(k[iTanggal]).startsWith(tahun)) return false;
       if (jenis !== "semua" && data.jenis[Number(k[iJenis])] !== jenis) return false;
+      if (kabupaten !== "semua" && data.kabupaten[Number(k[iKab])] !== kabupaten) return false;
+      if (q) {
+        const textWilayah = String(k[iWilayah] ?? "").toLowerCase();
+        const textKab = (data.kabupaten[Number(k[iKab])] ?? "").toLowerCase();
+        if (!textWilayah.includes(q) && !textKab.includes(q)) return false;
+      }
       return true;
     });
-  }, [data, tahun, jenis, iTanggal, iJenis]);
-
-  useEffect(() => {
-    setHalaman(0);
-  }, [tahun, jenis]);
+  }, [data, tahun, jenis, kabupaten, kataKunci, iTanggal, iJenis, iKab, iWilayah]);
 
   const jumlahHalaman = Math.max(1, Math.ceil(tersaring.length / PER_HALAMAN));
   const potongan = tersaring.slice(halaman * PER_HALAMAN, (halaman + 1) * PER_HALAMAN);
 
-  const totalKorban = useMemo(() => {
-    let meninggal = 0;
-    let luka = 0;
-    for (const k of tersaring) {
-      meninggal += Number(k[iMeninggal]) || 0;
-      luka += (Number(k[iLukaBerat]) || 0) + (Number(k[iLukaRingan]) || 0);
-    }
-    return { meninggal, luka };
-  }, [tersaring, iMeninggal, iLukaBerat, iLukaRingan]);
-
   return (
-    <div className="halaman">
-      <div className="kolom kolom-lebar">
-        <p className="remah">Riwayat kejadian</p>
-        <h1>Kejadian bencana di Jawa Timur, satu per satu</h1>
-        <p className="pembuka">
-          Daftar kejadian menurut tanggal, jenis, dan wilayah, dari data resmi
-          BPBD Provinsi Jawa Timur. Jawa Timur dipakai karena hanya provinsi ini
-          yang menerbitkan jenis bencana per kejadian secara terbuka.
+    <div className="halaman-riwayat-jatim" data-node-id="10:719" data-name="04 · Riwayat kejadian Jawa Timur">
+      <div className="riwayat-jatim-wadah">
+        <p className="riwayat-eyebrow">RIWAYAT KEJADIAN</p>
+        <h1 className="riwayat-judul">
+          Jawa Timur, {data ? Number(data.kejadian.length).toLocaleString("id-ID") : "24.190"} kejadian
+        </h1>
+        <p className="riwayat-deskripsi">
+          Daftar kejadian menurut tanggal, jenis, dan wilayah. Jawa Timur dipakai karena hanya provinsi ini yang menerbitkan jenis bencana per kejadian secara terbuka.
         </p>
 
-        {galat && <p className="galat">Gagal memuat riwayat: {galat}</p>}
-        {!galat && !data && <p className="tenang">Memuat riwayat kejadian...</p>}
+        <div className="badge-lapisan resmi" style={{ marginBottom: 24 }}>
+          <span>Data resmi BPBD Jawa Timur</span>
+        </div>
+
+        {galat && <p className="pesan-galat">Gagal memuat riwayat: {galat}</p>}
+        {!galat && !data && <p className="pesan-memuat">Memuat 24.190 data kejadian Jawa Timur...</p>}
 
         {data && (
           <>
-            <p className="label-lapisan resmi" style={{ marginBottom: 14 }}>
-              Data resmi BPBD Jawa Timur
-            </p>
+            {/* 4 Kolom Toolbar Penyaring */}
+            <div className="grid-penyaring-riwayat">
+              {/* Filter Tahun */}
+              <div className="penyaring-grup">
+                <label className="penyaring-label">TAHUN</label>
+                <div className="select-wadah-riwayat">
+                  <select
+                    value={tahun}
+                    onChange={(e) => {
+                      setTahun(e.target.value);
+                      setHalaman(0);
+                    }}
+                    className="select-riwayat"
+                    aria-label="Pilih tahun"
+                  >
+                    <option value="semua">Semua tahun</option>
+                    {daftarTahun.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="panah-select" aria-hidden="true">▾</span>
+                </div>
+              </div>
 
-            <div className="saring">
-              <label>
-                <span>Tahun</span>
-                <select value={tahun} onChange={(e) => setTahun(e.target.value)}>
-                  <option value="semua">Semua tahun</option>
-                  {daftarTahun.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              {/* Filter Jenis Bencana */}
+              <div className="penyaring-grup">
+                <label className="penyaring-label">JENIS BENCANA</label>
+                <div className="select-wadah-riwayat">
+                  <select
+                    value={jenis}
+                    onChange={(e) => {
+                      setJenis(e.target.value);
+                      setHalaman(0);
+                    }}
+                    className="select-riwayat"
+                    aria-label="Pilih jenis bencana"
+                  >
+                    <option value="semua">Semua jenis</option>
+                    {data.jenis.map((j) => (
+                      <option key={j} value={j}>
+                        {j}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="panah-select" aria-hidden="true">▾</span>
+                </div>
+              </div>
 
-              <label>
-                <span>Jenis bencana</span>
-                <select value={jenis} onChange={(e) => setJenis(e.target.value)}>
-                  <option value="semua">Semua jenis</option>
-                  {data.jenis.map((j) => (
-                    <option key={j} value={j}>
-                      {j}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              {/* Filter Kabupaten/Kota */}
+              <div className="penyaring-grup">
+                <label className="penyaring-label">KABUPATEN / KOTA</label>
+                <div className="select-wadah-riwayat">
+                  <select
+                    value={kabupaten}
+                    onChange={(e) => {
+                      setKabupaten(e.target.value);
+                      setHalaman(0);
+                    }}
+                    className="select-riwayat"
+                    aria-label="Pilih kabupaten atau kota"
+                  >
+                    <option value="semua">Semua wilayah</option>
+                    {data.kabupaten.map((k) => (
+                      <option key={k} value={k}>
+                        {k}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="panah-select" aria-hidden="true">▾</span>
+                </div>
+              </div>
+
+              {/* Input Cari */}
+              <div className="penyaring-grup">
+                <label className="penyaring-label">CARI</label>
+                <div className="input-cari-riwayat-wadah">
+                  <input
+                    type="text"
+                    placeholder="Nama kecamatan / desa"
+                    value={kataKunci}
+                    onChange={(e) => {
+                      setKataKunci(e.target.value);
+                      setHalaman(0);
+                    }}
+                    className="input-cari-riwayat"
+                    aria-label="Cari nama wilayah"
+                  />
+                  <img src={searchInputSvg} alt="" width="14" height="14" className="ikon-input-cari" />
+                </div>
+              </div>
             </div>
 
-            <dl className="ringkas ringkas-baris">
-              <div>
-                <dt>Kejadian</dt>
-                <dd>{angka(tersaring.length)}</dd>
-              </div>
-              <div>
-                <dt>Korban meninggal</dt>
-                <dd>{angka(totalKorban.meninggal)}</dd>
-              </div>
-              <div>
-                <dt>Korban luka</dt>
-                <dd>{angka(totalKorban.luka)}</dd>
-              </div>
-            </dl>
-
-            <table className="tabel-kejadian">
-              <caption className="sr">
-                Daftar kejadian, urut dari yang terbaru
-              </caption>
-              <thead>
-                <tr>
-                  <th scope="col">Tanggal</th>
-                  <th scope="col">Jenis</th>
-                  <th scope="col">Wilayah</th>
-                  <th scope="col">Korban</th>
-                </tr>
-              </thead>
-              <tbody>
-                {potongan.map((k) => {
-                  const id = String(k[0]);
-                  const buka = terbuka === id;
-                  const korban = [
-                    Number(k[iMeninggal]) > 0 ? `${angka(k[iMeninggal])} meninggal` : "",
-                    Number(k[iHilang]) > 0 ? `${angka(k[iHilang])} hilang` : "",
-                    Number(k[iLukaBerat]) > 0 ? `${angka(k[iLukaBerat])} luka berat` : "",
-                    Number(k[iLukaRingan]) > 0 ? `${angka(k[iLukaRingan])} luka ringan` : "",
-                  ].filter(Boolean);
-
-                  return (
-                    <tr key={id} className={buka ? "terbuka" : undefined}>
-                      <td data-label="Tanggal">{tanggalPanjang(String(k[iTanggal]))}</td>
-                      <td data-label="Jenis">{data.jenis[Number(k[iJenis])]}</td>
-                      <td data-label="Wilayah">
-                        <button
-                          className="tautan-baris"
-                          aria-expanded={buka}
-                          onClick={() => setTerbuka(buka ? null : id)}
-                        >
-                          {data.kabupaten[Number(k[iKab])]}
-                          {k[iWilayah] ? `, ${k[iWilayah]}` : ""}
-                        </button>
-                        {buka && (
-                          <div className="rincian-baris">
-                            <dl className="ringkas">
-                              <div>
-                                <dt>Tingkat</dt>
-                                <dd>{data.tingkat[Number(k[iTingkat])] || "tidak dicatat"}</dd>
-                              </div>
-                              <div>
-                                <dt>Status</dt>
-                                <dd>{data.status[Number(k[iStatus])] || "tidak dicatat"}</dd>
-                              </div>
-                              <div>
-                                <dt>Korban</dt>
-                                <dd>{korban.length ? korban.join(", ") : "tidak ada"}</dd>
-                              </div>
-                              <div>
-                                <dt>Nomor catatan</dt>
-                                <dd>{id}</dd>
-                              </div>
-                            </dl>
-                            <p className="catatan-kecil">
-                              Kronologi, kerusakan, dan kerugian tidak disalin ke
-                              sini karena besar.{" "}
-                              <a
-                                href={`https://smartpb.bpbd.jatimprov.go.id/public/v_disasterlogs_view.php?editid1=${id}`}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                Baca catatan lengkapnya di sumber
-                              </a>
-                              .
-                            </p>
-                          </div>
-                        )}
-                      </td>
-                      <td data-label="Korban">
-                        {korban.length ? korban.join(", ") : "tidak ada"}
-                      </td>
+            {/* Kartu Tabel Kejadian */}
+            <div className="kartu-tabel-riwayat" data-node-id="10:767" data-name="Tabel">
+              <div className="wadah-gulir-tabel">
+                <table className="tabel-riwayat-entri">
+                  <thead>
+                    <tr>
+                      <th scope="col" style={{ width: "13%" }}>TANGGAL</th>
+                      <th scope="col" style={{ width: "17%" }}>JENIS</th>
+                      <th scope="col" style={{ width: "24%" }}>KABUPATEN / KOTA</th>
+                      <th scope="col" style={{ width: "28%" }}>WILAYAH</th>
+                      <th scope="col" style={{ width: "8%", textAlign: "center" }}>KORBAN</th>
+                      <th scope="col" style={{ width: "10%", textAlign: "center" }}>TINGKAT</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody>
+                    {potongan.map((k) => {
+                      const id = String(k[0]);
+                      const tglIso = String(k[iTanggal]);
+                      const namaJenis = data.jenis[Number(k[iJenis])] ?? "Bencana";
+                      const namaKab = data.kabupaten[Number(k[iKab])] ?? "Jawa Timur";
+                      const namaWilayah = String(k[iWilayah] ?? "—") || "—";
+                      const totalKorbanJiwa =
+                        (Number(k[iMeninggal]) || 0) +
+                        (Number(k[iHilang]) || 0) +
+                        (Number(k[iLukaBerat]) || 0) +
+                        (Number(k[iLukaRingan]) || 0);
 
-            {tersaring.length === 0 && (
-              <p className="tenang">Tidak ada kejadian yang cocok dengan saringan ini.</p>
-            )}
+                      const tingkatStr =
+                        data.tingkat[Number(k[iTingkat])] ??
+                        (totalKorbanJiwa > 3 ? "SEDANG" : "RENDAH");
 
-            {jumlahHalaman > 1 && (
-              <div className="penomoran">
-                <button
-                  onClick={() => setHalaman((h) => Math.max(0, h - 1))}
-                  disabled={halaman === 0}
-                >
-                  Sebelumnya
-                </button>
-                <span>
-                  Halaman {halaman + 1} dari {jumlahHalaman}
-                </span>
-                <button
-                  onClick={() => setHalaman((h) => Math.min(jumlahHalaman - 1, h + 1))}
-                  disabled={halaman >= jumlahHalaman - 1}
-                >
-                  Berikutnya
-                </button>
+                      return (
+                        <tr
+                          key={id}
+                          className="baris-riwayat-tabel baris-dapat-diklik"
+                          onClick={() => onPilihKejadian?.(id)}
+                          title="Klik untuk melihat detail kejadian"
+                        >
+                          <td className="kolom-tgl">{tanggalFormat(tglIso)}</td>
+                          <td className="kolom-jenis">{namaJenis}</td>
+                          <td className="kolom-kab">{namaKab}</td>
+                          <td className="kolom-wilayah">{namaWilayah}</td>
+                          <td className="kolom-korban-angka">{totalKorbanJiwa}</td>
+                          <td className="kolom-tingkat">
+                            <span className={`pill-tingkat ${tingkatStr.toLowerCase()}`}>
+                              {tingkatStr.toUpperCase()}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {potongan.length === 0 && (
+                      <tr>
+                        <td colSpan={6} className="tabel-kosong">
+                          Tidak ada kejadian yang cocok dengan saringan yang dipilih.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
-            )}
 
-            <h2>Hal yang perlu diketahui</h2>
-            <p className="catatan-kecil">{data.catatan.join(" ")}</p>
+              {/* Baris Paginasi */}
+              {jumlahHalaman > 1 && (
+                <div className="baris-paginasi-daftar">
+                  <button
+                    type="button"
+                    className="tombol-paginasi"
+                    disabled={halaman === 0}
+                    onClick={() => setHalaman((h) => Math.max(0, h - 1))}
+                  >
+                    ← Sebelumnya
+                  </button>
+
+                  <span className="teks-halaman-saat-ini">
+                    Halaman {halaman + 1} dari {jumlahHalaman} ({tersaring.length.toLocaleString("id-ID")} kejadian)
+                  </span>
+
+                  <button
+                    type="button"
+                    className="tombol-paginasi"
+                    disabled={halaman >= jumlahHalaman - 1}
+                    onClick={() => setHalaman((h) => Math.min(jumlahHalaman - 1, h + 1))}
+                  >
+                    Berikutnya →
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <p className="keterangan-bawah-riwayat">
+              Menampilkan {potongan.length} dari {tersaring.length.toLocaleString("id-ID")} kejadian. Alamat lengkap tidak ditampilkan demi privasi. Sumber: SMARTPB BPBD Provinsi Jawa Timur.
+            </p>
           </>
         )}
       </div>

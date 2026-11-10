@@ -1,248 +1,409 @@
-/**
- * Halaman Tentang dan sumber data.
- *
- * Halaman ini bukan pelengkap. Produk ini menjanjikan setiap angka bisa
- * ditelusuri, jadi tempat asal angkanya harus dijelaskan terbuka, termasuk
- * hal-hal yang belum sempurna.
- */
+import { useState } from "react";
+import arrowLeftSvg from "../assets/icons/arrow-left.svg";
+import arrowUpRightSvg from "../assets/icons/arrow-up-right.svg";
 
-interface BarisSumber {
-  data: string;
-  sumber: string;
-  cakupan: string;
-  tautan?: string;
+interface Props {
+  subHalamanAwal?: "utama" | "sumber" | "integritas" | "keterbatasan";
 }
 
-const SUMBER: BarisSumber[] = [
-  {
-    data: "Jumlah kejadian per kabupaten/kota",
-    sumber: "Data Bencana Indonesia, BNPB",
-    cakupan: "510 kabupaten/kota, 2010 sampai 2024",
-    tautan: "https://data.bnpb.go.id/dataset/data-bencana-indonesia",
-  },
-  {
-    data: "Korban dan kerusakan per kabupaten/kota",
-    sumber: "Jumlah kejadian dan Dampak Bencana Tahun, BNPB",
-    cakupan: "22 tahun, 2002 sampai 2023, 836 berkas",
-    tautan: "https://data.bnpb.go.id/dataset/jumlah-kejadian-dan-dampak-bencana-tahun-2023",
-  },
-  {
-    data: "Batas wilayah kabupaten/kota",
-    sumber: "geoBoundaries, ADM2 Indonesia",
-    cakupan: "514 bentuk, 510 berpasangan dengan data BNPB",
-    tautan: "https://www.geoboundaries.org/",
-  },
-];
+export default function Tentang({ subHalamanAwal = "utama" }: Props) {
+  const [subHalaman, setSubHalaman] = useState<
+    "utama" | "sumber" | "integritas" | "keterbatasan"
+  >(subHalamanAwal);
 
-export default function Tentang() {
   return (
-    <div className="halaman">
-      <div className="kolom">
-        <p className="remah">Tentang dan sumber data</p>
-        <h1>Setiap angka di Lentera bisa ditelusuri</h1>
-        <p className="pembuka">
-          Lentera menampilkan dampak bencana di Indonesia pada tingkat
-          kabupaten/kota. Halaman ini menjelaskan dari mana angkanya datang,
-          bagaimana ia diolah, dan bagian mana yang belum sempurna.
-        </p>
+    <div className="halaman-tentang-data">
+      <div className="wadah-konten-lebar">
+        {/* ==============================================================
+            12 · Tentang dan sumber data — Tampilan Utama
+            ============================================================== */}
+        {subHalaman === "utama" && (
+          <div data-node-id="12:412" data-name="12 · Tentang dan sumber data">
+            <p className="remah-kategori">TENTANG DAN SUMBER DATA</p>
+            <h1 className="judul-halaman-utama">Setiap angka di Lentera bisa ditelusuri</h1>
+            <p className="deskripsi-halaman-utama">
+              Halaman ini menjelaskan dari mana angkanya datang, bagaimana ia diolah, dan bagian mana yang belum sempurna.
+            </p>
 
-        <h2>Sumber data</h2>
-        <table className="tabel-sumber">
-          <thead>
-            <tr>
-              <th scope="col">Data</th>
-              <th scope="col">Sumber</th>
-              <th scope="col">Cakupan</th>
-            </tr>
-          </thead>
-          <tbody>
-            {SUMBER.map((s) => (
-              <tr key={s.data}>
-                <td>{s.data}</td>
-                <td>
-                  {s.tautan ? (
-                    <a href={s.tautan} target="_blank" rel="noreferrer">
-                      {s.sumber}
-                    </a>
-                  ) : (
-                    s.sumber
-                  )}
-                </td>
-                <td>{s.cakupan}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <p className="catatan-kecil">
-          Data BNPB dipakai dengan lisensi ODC-BY. Lentera tidak menambahkan
-          angka apa pun ke dalamnya, dan tidak merata-ratakan data resmi dengan
-          laporan warga.
-        </p>
+            {/* 3 Kartu Tautan Bagian */}
+            <div className="grid-tiga-tautan-bagian">
+              <div
+                className="kartu-tautan-seksi"
+                onClick={() => setSubHalaman("sumber")}
+                role="button"
+                tabIndex={0}
+                data-name="Tautan bagian"
+              >
+                <h2 className="judul-kartu-tautan">Daftar sumber</h2>
+                <p className="deskripsi-kartu-tautan">
+                  Enam sumber data, lisensi, dan cakupannya.
+                </p>
+                <span className="tautan-aksi-panah">13 · Daftar sumber →</span>
+              </div>
 
-        <h2>Cara angka disusun</h2>
-        <ol className="langkah">
-          <li>
-            Skrip menarik data dari portal BNPB, lalu menyimpannya sebagai berkas
-            di dalam aplikasi. Pengguna tidak menunggu server BNPB saat membuka
-            halaman.
-          </li>
-          <li>
-            Nama wilayah dari BNPB dan nama wilayah pada data batas dicocokkan
-            satu per satu, sebanyak 510 wilayah. Kode BPS yang menjadi kunci,
-            bukan nama.
-          </li>
-          <li>
-            Bentuk peta disederhanakan dan ditempeli kode wilayah, supaya
-            pewarnaan tidak perlu menebak nama lagi.
-          </li>
-          <li>
-            Hasilnya diperiksa sebelum dipakai. Pemeriksaan menolak data yang
-            tahunnya kosong, jumlah ukurannya salah, atau totalnya berbeda dari
-            hitungan manual.
-          </li>
-        </ol>
+              <div
+                className="kartu-tautan-seksi"
+                onClick={() => setSubHalaman("integritas")}
+                role="button"
+                tabIndex={0}
+                data-name="Tautan bagian"
+              >
+                <h2 className="judul-kartu-tautan">Arti label dan integritas</h2>
+                <p className="deskripsi-kartu-tautan">
+                  Apa yang dimaksud data resmi, laporan warga, dan catatan komunitas.
+                </p>
+                <span className="tautan-aksi-panah">14 · Arti label →</span>
+              </div>
 
-        <h2>Hal yang perlu diketahui tentang data ini</h2>
-        <p>
-          Bagian ini sengaja ditulis, bukan disembunyikan. Semuanya ditemukan
-          saat mengolah data, dan sudah diperiksa langsung ke berkas aslinya.
-        </p>
+              <div
+                className="kartu-tautan-seksi"
+                onClick={() => setSubHalaman("keterbatasan")}
+                role="button"
+                tabIndex={0}
+                data-name="Tautan bagian"
+              >
+                <h2 className="judul-kartu-tautan">Keterbatasan data</h2>
+                <p className="deskripsi-kartu-tautan">
+                  Delapan hal yang perlu diketahui sebelum memakai angka ini.
+                </p>
+                <span className="tautan-aksi-panah">15 · Keterbatasan →</span>
+              </div>
+            </div>
 
-        <div className="temuan">
-          <h3>Dua tabel BNPB tidak selalu cocok</h3>
-          <p>
-            Untuk tahun 2023, berkas per wilayah mencatat 5.388 kejadian,
-            sedangkan tabel agregat mencatat 5.519. Selisihnya 131 kejadian.
-            Penyebabnya, berkas per wilayah tidak memuat seluruh kabupaten.
-            Sebagai contoh, Jawa Timur hanya memuat 30 baris dari 38
-            kabupaten/kota yang seharusnya ada.
-          </p>
-          <p>
-            Hal serupa terjadi pada 2024, ketika penjumlahan kabupaten berbeda
-            dari tabel provinsi BNPB di tujuh provinsi, dengan total selisih 46
-            kejadian. Aplikasi ini memakai penjumlahan kabupaten untuk angka
-            provinsi, supaya angka di layar selalu konsisten.
-          </p>
-        </div>
+            {/* Seksi Prinsip: Tiga aturan yang tidak dilanggar */}
+            <section className="kartu-prinsip-integritas" data-name="Prinsip">
+              <h2 className="judul-seksi-kartu">Tiga aturan yang tidak dilanggar</h2>
+              <div className="grid-dua-kolom-prinsip">
+                <div className="kolom-prinsip">
+                  <p className="item-prinsip">
+                    Data resmi tidak pernah dicampur dengan laporan warga.
+                  </p>
+                  <p className="item-prinsip">
+                    Angka agregat tidak digambarkan sebagai titik kejadian.
+                  </p>
+                </div>
+                <div className="kolom-prinsip">
+                  <p className="item-prinsip">
+                    Setiap angka menyebut sumber dan tahunnya.
+                  </p>
+                  <p className="item-prinsip">
+                    Wilayah tanpa catatan dibiarkan kosong, bukan diisi nol.
+                  </p>
+                </div>
+              </div>
 
-        <div className="temuan">
-          <h3>Wilayah yang tidak muncul bukan berarti nol</h3>
-          <p>
-            Berkas BNPB hanya memuat wilayah yang punya catatan pada tahun itu.
-            Karena itu, wilayah tanpa catatan digambar dengan pola garis miring
-            dan diberi keterangan tidak ada catatan, bukan diwarnai seperti nilai
-            nol.
-          </p>
-          <p>
-            Cakupan datanya juga tumbuh dari tahun ke tahun. Tahun 2002 hanya
-            memuat 98 kabupaten, sedangkan tahun 2023 memuat 451. Kenaikan ini
-            lebih menggambarkan membaiknya pelaporan daerah daripada naiknya
-            jumlah bencana.
-          </p>
-        </div>
+              <div className="badge-wrapper-prinsip">
+                <span className="badge-lapisan resmi">Lisensi data BNPB: ODC-BY</span>
+              </div>
+            </section>
+          </div>
+        )}
 
-        <div className="temuan">
-          <h3>Empat wilayah tidak ada di daftar BNPB</h3>
-          <p>
-            Kaimana, Konawe Kepulauan, Nduga, dan Yalimo ada di data batas
-            wilayah, tetapi tidak ada di daftar kabupaten BNPB. Keempatnya tetap
-            ditampilkan di peta sebagai wilayah tanpa data, bukan dihilangkan,
-            supaya peta tidak berlubang.
-          </p>
-        </div>
+        {/* ==============================================================
+            13 · Daftar sumber
+            ============================================================== */}
+        {subHalaman === "sumber" && (
+          <div data-node-id="12:462" data-name="13 · Daftar sumber">
+            <button
+              type="button"
+              className="tombol-kembali-teks"
+              onClick={() => setSubHalaman("utama")}
+            >
+              <img src={arrowLeftSvg} alt="" width="14" height="14" />
+              <span>Tentang dan sumber data</span>
+            </button>
 
-        <div className="temuan">
-          <h3>Sebagian wilayah lama tidak bisa digambar</h3>
-          <p>
-            31 kode wilayah pada berkas dampak adalah wilayah Papua sebelum
-            pemekaran, dengan 411 kejadian sepanjang 22 tahun. Kode itu tidak
-            punya bentuk di peta sekarang, jadi datanya tersimpan tetapi belum
-            bisa ditampilkan. Sebaliknya, 16 kabupaten di provinsi Papua yang
-            baru punya angka tetapi belum punya data dampak, total 104 kejadian.
-          </p>
-        </div>
+            <p className="remah-kategori">DAFTAR SUMBER</p>
+            <h1 className="judul-halaman-utama">Enam sumber, satu lisensi terbuka</h1>
+            <p className="deskripsi-halaman-utama">
+              Semua berkas diambil dari portal resmi dan disimpan bersama aplikasi, sehingga situs tetap berjalan tanpa memanggil server sumber.
+            </p>
 
-        <div className="temuan">
-          <h3>Kode 91 dan 92 mengikuti BNPB, bukan BPS</h3>
-          <p>
-            BNPB menulis kode 91 sebagai Papua dan 92 sebagai Papua Barat,
-            kebalikan dari konvensi BPS. Lentera mengikuti penamaan BNPB supaya
-            angkanya tetap bisa dicocokkan dengan sumber aslinya.
-          </p>
-        </div>
+            <div className="kartu-tabel-lapisan" data-name="Tabel">
+              <div className="wadah-gulir-tabel">
+                <table className="tabel-bantuan-resmi">
+                  <thead>
+                    <tr>
+                      <th scope="col" style={{ width: "25%" }}>DATA</th>
+                      <th scope="col" style={{ width: "25%" }}>SUMBER</th>
+                      <th scope="col" style={{ width: "24%" }}>CAKUPAN</th>
+                      <th scope="col" style={{ width: "12%" }}>LISENSI</th>
+                      <th scope="col" style={{ width: "14%" }}>TAUTAN</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="tebal-teks">Jumlah kejadian per kabupaten</td>
+                      <td>Data Bencana Indonesia, BNPB</td>
+                      <td>510 kabupaten/kota, 2010–2024</td>
+                      <td>ODC-BY</td>
+                      <td>
+                        <a
+                          href="https://data.bnpb.go.id/dataset/data-bencana-indonesia"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="tautan-tabel-dokumen"
+                        >
+                          <span>data.bnpb.go.id</span>
+                          <img src={arrowUpRightSvg} alt="" width="12" height="12" />
+                        </a>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="tebal-teks">Korban dan kerusakan</td>
+                      <td>Jumlah Kejadian dan Dampak Bencana, BNPB</td>
+                      <td>22 tahun, 2002–2023, 836 berkas</td>
+                      <td>ODC-BY</td>
+                      <td>
+                        <a
+                          href="https://data.bnpb.go.id/dataset/jumlah-kejadian-dan-dampak-bencana-tahun-2023"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="tautan-tabel-dokumen"
+                        >
+                          <span>data.bnpb.go.id</span>
+                          <img src={arrowUpRightSvg} alt="" width="12" height="12" />
+                        </a>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="tebal-teks">Batas wilayah kabupaten</td>
+                      <td>geoBoundaries ADM2 Indonesia</td>
+                      <td>514 bentuk, 510 berpasangan</td>
+                      <td>CC-BY 4.0</td>
+                      <td>
+                        <a
+                          href="https://www.geoboundaries.org/"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="tautan-tabel-dokumen"
+                        >
+                          <span>geoboundaries.org</span>
+                          <img src={arrowUpRightSvg} alt="" width="12" height="12" />
+                        </a>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="tebal-teks">Riwayat kejadian Jawa Timur</td>
+                      <td>SMARTPB, BPBD Provinsi Jawa Timur</td>
+                      <td>24.190 kejadian, 2020–2025</td>
+                      <td>Terbuka</td>
+                      <td>
+                        <a
+                          href="https://smartpb.jatimprov.go.id/"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="tautan-tabel-dokumen"
+                        >
+                          <span>smartpb.jatimprov.go.id</span>
+                          <img src={arrowUpRightSvg} alt="" width="12" height="12" />
+                        </a>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="tebal-teks">Bantuan pemerintah daerah</td>
+                      <td>Pemerintah Kota Surabaya</td>
+                      <td>Contoh isi, belum terhubung</td>
+                      <td>Terbuka</td>
+                      <td>
+                        <a
+                          href="https://surabaya.go.id"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="tautan-tabel-dokumen"
+                        >
+                          <span>surabaya.go.id</span>
+                          <img src={arrowUpRightSvg} alt="" width="12" height="12" />
+                        </a>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="tebal-teks">Peta dasar</td>
+                      <td>Tidak dipakai</td>
+                      <td>Peta digambar dari batas wilayah sendiri</td>
+                      <td>—</td>
+                      <td>—</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
-        <div className="temuan">
-          <h3>Lima entri pada data batas bukan wilayah</h3>
-          <p>
-            Data batas memuat entri bernama Danau, Danau Toba, Hutan, Waduk
-            Cirata, dan Wadung Kedungombo. Kelimanya bukan wilayah
-            administratif, jadi dibuang supaya tidak muncul sebagai kabupaten di
-            peta.
-          </p>
-        </div>
+            <p className="catatan-kaki-tabel">
+              Data BNPB dipakai apa adanya. Lentera tidak menambahkan, merata-ratakan, atau menebak angka yang tidak diterbitkan.
+            </p>
+          </div>
+        )}
 
-        <div className="temuan">
-          <h3>Pencocokan nama pernah salah</h3>
-          <p>
-            Pencocokan otomatis pernah memasangkan TOBA ke Tuban, padahal
-            keduanya kabupaten berbeda di provinsi berbeda. Karena itu 57 entri
-            diputuskan manual, dan hasilnya diperiksa satu per satu. Aturannya,
-            nama wilayah tidak pernah dipakai sebagai kunci tanpa pemeriksaan.
-          </p>
-        </div>
+        {/* ==============================================================
+            14 · Arti label dan integritas data
+            ============================================================== */}
+        {subHalaman === "integritas" && (
+          <div data-node-id="12:535" data-name="14 · Arti label dan integritas data">
+            <button
+              type="button"
+              className="tombol-kembali-teks"
+              onClick={() => setSubHalaman("utama")}
+            >
+              <img src={arrowLeftSvg} alt="" width="14" height="14" />
+              <span>Tentang dan sumber data</span>
+            </button>
 
-        <div className="temuan">
-          <h3>DIBI tidak dipakai</h3>
-          <p>
-            DIBI adalah basis data bencana Indonesia milik BNPB. Saat diperiksa
-            pada Oktober 2026, dasbor publiknya sudah diubah pihak lain dan
-            menampilkan tulisan yang tidak semestinya. Karena itu Lentera tidak
-            mengambil data dari sana.
-          </p>
-        </div>
+            <p className="remah-kategori">ARTI LABEL DAN INTEGRITAS DATA</p>
+            <h1 className="judul-halaman-utama">Tiga lapisan, tiga arti yang berbeda</h1>
+            <p className="deskripsi-halaman-utama">
+              Label bukan hiasan. Ia menentukan apakah angka boleh dipakai untuk mengambil keputusan.
+            </p>
 
-        <h2>Tiga lapisan informasi</h2>
-        <p>
-          Lentera memisahkan informasi menurut asalnya, dan tidak pernah
-          menggabungkannya menjadi satu angka.
-        </p>
-        <ul className="lapisan">
-          <li>
-            <span className="label-lapisan resmi">Data resmi</span>
-            Berasal dari instansi. Setiap baris menyebut sumber dan tanggal
-            pengambilannya.
-          </li>
-          <li>
-            <span className="label-lapisan warga">Laporan warga</span>
-            Dikirim masyarakat, belum diperiksa instansi. Selalu diberi label
-            belum diverifikasi.
-          </li>
-          <li>
-            <span className="label-lapisan komunitas">Catatan komunitas</span>
-            Dicatat pengelola posko atau relawan, bukan angka resmi.
-          </li>
-        </ul>
-        <p>
-          Status laporan warga hanya sampai menunggu ditinjau atau ditinjau
-          pengelola. Lentera tidak pernah menyatakan sebuah laporan sudah
-          ditindaklanjuti instansi, karena itu bukan hal yang bisa dijamin.
-        </p>
+            <div className="grid-formulir-dan-sidebar">
+              {/* Kolom Kiri: 3 Lapisan */}
+              <div className="kolom-tiga-lapisan-arti">
+                <div className="kartu-arti-lapisan" data-name="Lapisan">
+                  <div className="kepala-arti-lapisan">
+                    <span className="badge-lapisan resmi">Data resmi</span>
+                    <span className="sumber-lapisan-teks">BNPB, BPBD, pemerintah daerah</span>
+                  </div>
+                  <p className="isi-arti-lapisan">
+                    Diterbitkan instansi dengan dokumen dan tanggal terbit. Boleh dipakai sebagai rujukan.
+                  </p>
+                </div>
 
-        <h2>Privasi</h2>
-        <p>
-          Formulir laporan tidak meminta nama, nomor telepon, atau alamat rumah.
-          Lokasi laporan dipotong sampai kecamatan atau kelurahan, dan alamat
-          lengkap tidak pernah ditampilkan. Laporan darurat tidak diterima di
-          sini, melainkan diarahkan ke kanal darurat resmi.
-        </p>
+                <div className="kartu-arti-lapisan" data-name="Lapisan">
+                  <div className="kepala-arti-lapisan">
+                    <span className="badge-lapisan warga">Laporan warga</span>
+                    <span className="sumber-lapisan-teks">Formulir laporan, antrean moderasi</span>
+                  </div>
+                  <p className="isi-arti-lapisan">
+                    Dikirim warga atau relawan, belum tentu diverifikasi. Dipakai sebagai petunjuk awal, bukan angka final.
+                  </p>
+                </div>
 
-        <h2>Keadaan halaman ini</h2>
-        <p>
-          Lentera masih dalam pengerjaan untuk MIA 2026. Halaman peta, pemilih
-          tahun dan ukuran, panel wilayah, serta halaman ini sudah berfungsi.
-          Riwayat kejadian per tanggal, laporan warga, dan halaman bantuan
-          sedang dikerjakan.
-        </p>
+                <div className="kartu-arti-lapisan" data-name="Lapisan">
+                  <div className="kepala-arti-lapisan">
+                    <span className="badge-lapisan komunitas">Catatan komunitas</span>
+                    <span className="sumber-lapisan-teks">Posko, relawan, warga</span>
+                  </div>
+                  <p className="isi-arti-lapisan">
+                    Informasi lapangan tanpa kewenangan resmi. Selalu menyebut penulis dan status verifikasi.
+                  </p>
+                </div>
+              </div>
+
+              {/* Kolom Kanan: Aturan integritas */}
+              <div className="kolom-sidebar-laporan">
+                <section className="kartu-panduan-laporan" data-name="Integritas">
+                  <h2 className="judul-seksi-kartu">Aturan integritas</h2>
+                  <ul className="daftar-titik-panduan">
+                    <li>
+                      <span className="titik-simbol">•</span>
+                      <span>Satu angka, satu sumber, satu tahun.</span>
+                    </li>
+                    <li>
+                      <span className="titik-simbol">•</span>
+                      <span>Tidak ada penggabungan antar lapisan.</span>
+                    </li>
+                    <li>
+                      <span className="titik-simbol">•</span>
+                      <span>Angka yang hilang dibiarkan kosong.</span>
+                    </li>
+                    <li>
+                      <span className="titik-simbol">•</span>
+                      <span>Setiap perubahan dicatat di halaman ini.</span>
+                    </li>
+                  </ul>
+                </section>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ==============================================================
+            15 · Keterbatasan dan ketepatan data
+            ============================================================== */}
+        {subHalaman === "keterbatasan" && (
+          <div data-node-id="12:590" data-name="15 · Keterbatasan dan ketepatan data">
+            <button
+              type="button"
+              className="tombol-kembali-teks"
+              onClick={() => setSubHalaman("utama")}
+            >
+              <img src={arrowLeftSvg} alt="" width="14" height="14" />
+              <span>Tentang dan sumber data</span>
+            </button>
+
+            <p className="remah-kategori">KETERBATASAN DATA</p>
+            <h1 className="judul-halaman-utama">Delapan hal yang perlu diketahui</h1>
+            <p className="deskripsi-halaman-utama">
+              Semua temuan ini muncul saat pengolahan dan sudah diperiksa ke berkas aslinya. Ditulis terbuka, bukan disembunyikan.
+            </p>
+
+            <div className="grid-delapan-temuan" data-name="Temuan">
+              <div className="kartu-temuan-keterbatasan">
+                <span className="nomor-temuan">01</span>
+                <h2 className="judul-temuan">Dua tabel BNPB tidak selalu cocok</h2>
+                <p className="deskripsi-temuan">
+                  2024: selisih 46 kejadian di tujuh provinsi. Aplikasi memakai penjumlahan kabupaten.
+                </p>
+              </div>
+
+              <div className="kartu-temuan-keterbatasan">
+                <span className="nomor-temuan">02</span>
+                <h2 className="judul-temuan">Kode 91 dan 92 mengikuti BNPB</h2>
+                <p className="deskripsi-temuan">
+                  BNPB menulis 91 untuk Papua dan 92 untuk Papua Barat, kebalikan konvensi BPS.
+                </p>
+              </div>
+
+              <div className="kartu-temuan-keterbatasan">
+                <span className="nomor-temuan">03</span>
+                <h2 className="judul-temuan">Empat wilayah tanpa data</h2>
+                <p className="deskripsi-temuan">
+                  Kaimana, Konawe Kepulauan, Nduga, dan Yalimo tampil kosong, tidak dihilangkan.
+                </p>
+              </div>
+
+              <div className="kartu-temuan-keterbatasan">
+                <span className="nomor-temuan">04</span>
+                <h2 className="judul-temuan">Cakupan dampak tumbuh</h2>
+                <p className="deskripsi-temuan">
+                  2002 hanya 98 kabupaten, 2023 sebanyak 451. Kosong bukan berarti nol.
+                </p>
+              </div>
+
+              <div className="kartu-temuan-keterbatasan">
+                <span className="nomor-temuan">05</span>
+                <h2 className="judul-temuan">Dampak dan agregat beda sumber</h2>
+                <p className="deskripsi-temuan">
+                  2023: 5.388 dari berkas wilayah, 5.519 dari tabel agregat.
+                </p>
+              </div>
+
+              <div className="kartu-temuan-keterbatasan">
+                <span className="nomor-temuan">06</span>
+                <h2 className="judul-temuan">31 kode tidak bisa digambar</h2>
+                <p className="deskripsi-temuan">
+                  Wilayah Papua sebelum pemekaran punya angka tetapi tidak punya bentuk.
+                </p>
+              </div>
+
+              <div className="kartu-temuan-keterbatasan">
+                <span className="nomor-temuan">07</span>
+                <h2 className="judul-temuan">Lima entri batas bukan wilayah</h2>
+                <p className="deskripsi-temuan">
+                  Danau, Danau Toba, Hutan, Waduk Cirata, dan Kedungombo dibuang.
+                </p>
+              </div>
+
+              <div className="kartu-temuan-keterbatasan">
+                <span className="nomor-temuan">08</span>
+                <h2 className="judul-temuan">Nol berbeda dari kosong</h2>
+                <p className="deskripsi-temuan">
+                  Nol berarti tidak ada kejadian. Kosong berarti tidak dilaporkan.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
