@@ -408,7 +408,7 @@ export default function App() {
      kamera yang berbeda.
 
      flyToBounds saja tidak cukup, karena ia memusatkan wilayah di tengah
-     layar penuh, padahal separuh kanan layar tertutup panel 420px. Karena itu
+     layar penuh, padahal separuh kanan layar tertutup panel kanan. Karena itu
      titik tujuan dihitung sendiri: wilayah dipusatkan pada kotak yang tidak
      tertutup kartu mengapung, lalu flyTo menganimasikan geser dan zoom
      sekaligus sepanjang busur. */
@@ -424,10 +424,16 @@ export default function App() {
       const kurangiGerak = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const panelTerbuka = !adalahPonsel && !panelRingkasanTutup;
 
+      // Lebar panel dibaca dari layar, bukan dipaku, karena lebar itu berubah
+      // menurut ukuran jendela. Kalau dipaku, titik pusat wilayah akan meleset
+      // di laptop.
+      const lebarPanel = panelTerbuka
+        ? (document.querySelector<HTMLElement>(".panel-ringkasan-nasional, .panel-detail-wilayah")
+            ?.offsetWidth ?? 420) + 40
+        : 40;
+
       const tepiKiri = adalahPonsel ? L.point(16, 76) : L.point(40, 104);
-      const tepiKanan = adalahPonsel
-        ? L.point(16, 300)
-        : L.point(panelTerbuka ? 460 : 40, 200);
+      const tepiKanan = adalahPonsel ? L.point(16, 300) : L.point(lebarPanel, 200);
 
       const zoom = Math.max(
         m.getMinZoom(),

@@ -21,6 +21,11 @@
   --bayangan-panel: 0px 10px 30px 0px rgba(60, 50, 30, 0.14);
   --bayangan-lembar: 0px -8px 28px 0px rgba(60, 50, 30, 0.16);
 
+  /* Lebar panel kanan. Di layar lebar 1920 panel 420px hanya memakan 22%
+     layar, tetapi di laptop 1366 lebar itu memakan 31% dan terasa menutupi
+     peta. Nilainya diturunkan lewat media query di bawah. */
+  --lebar-panel: 420px;
+
   /* Satu keluarga huruf untuk seluruh antarmuka, mengikuti Webber Design System
      yang jadi acuan referensi datago. */
   --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
@@ -371,6 +376,8 @@ body {
 
 .baris-tombol-utilitas {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 8px;
 }
 
@@ -596,7 +603,7 @@ body {
   position: absolute;
   top: 104px;
   right: 40px;
-  width: 420px;
+  width: var(--lebar-panel);
   max-height: calc(100vh - 128px);
   overflow-y: auto;
   background: var(--warna-kartu);
@@ -710,7 +717,9 @@ body {
 .panel-angka-hero {
   margin: 0;
   font-family: var(--font-sans);
-  font-size: 56px;
+  /* Angka utama ikut mengecil di layar sempit supaya panel tidak terasa
+     memenuhi layar laptop. Pada 1920 tetap 56px. */
+  font-size: clamp(40px, 3.4vw, 56px);
   font-weight: 500;
   line-height: 1;
   color: var(--warna-tinta);
@@ -3669,12 +3678,33 @@ body {
   color: var(--warna-tinta);
 }
 
+/* Di bawah 1440 lebar panel diturunkan dua tingkat. Pada 1366 (laptop umum)
+   420px memakan 31% layar dan terasa menutupi peta, sedangkan pada 1920 hanya
+   22% dan tidak perlu diubah. */
+@media (max-width: 1440px) {
+  :root {
+    --lebar-panel: 360px;
+  }
+
+  .panel-ringkasan-nasional,
+  .panel-detail-wilayah {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 1200px) {
+  :root {
+    --lebar-panel: 320px;
+  }
+}
+
 /* Kartu penggeser tahun duduk di samping kanan legenda. Itu baru tidak muat
-   kalau panel ringkasan terbuka pada lebar di bawah 1088px: panel bergeser ke
-   kiri sampai menabrak penggeser (kanan penggeser di 628, kiri panel di
-   lebar - 460). Selama panel tertutup, penggeser tetap di tempatnya. */
-@media (max-width: 1088px) {
-  .aplikasi:has(.panel-ringkasan-nasional) .penggeser {
+   kalau panel kanan terbuka pada lebar sempit: panel bergeser ke kiri sampai
+   menabrak penggeser. Kanan penggeser di 628; kiri panel di lebar - 424 pada
+   panel 384, jadi tabrakan terjadi di bawah 1052. Ambang 1060 dipakai supaya
+   aman untuk kedua lebar panel. */
+@media (max-width: 1060px) {
+  .aplikasi:has(.panel-ringkasan-nasional, .panel-detail-wilayah) .penggeser {
     left: 40px;
     bottom: 200px;
   }
