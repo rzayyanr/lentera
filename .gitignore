@@ -31,3 +31,8 @@ dist-ssr
 .env.local
 .env.*.local
 
+# File sementara/lokal
+migrasi-supabase.txt
+*.local.txt
+
+

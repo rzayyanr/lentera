@@ -6,7 +6,7 @@ export interface PenggunaPelapor {
   email: string;
   telepon: string;
   instansi?: string;
-  role?: "warga" | "moderator";
+  role?: "warga" | "relawan" | "moderator" | "admin";
 }
 
 export interface ItemLaporan {
@@ -27,6 +27,7 @@ export interface ItemLaporan {
   fotoUrl?: string;
   dampak?: string;
   createdAt?: string;
+  userId?: string;
 }
 
 export const DATA_AWAL_LAPORAN: ItemLaporan[] = [
@@ -169,6 +170,7 @@ export function buatKodeRujukan(): string {
 interface BarisLaporanDB {
   id?: string;
   kode: string;
+  user_id?: string;
   jenis: string;
   wilayah: string;
   desa: string;
@@ -215,11 +217,12 @@ function konversiDariDB(row: BarisLaporanDB): ItemLaporan {
     fotoUrl: row.foto_url,
     dampak: row.dampak,
     createdAt: row.created_at,
+    userId: row.user_id,
   };
 }
 
 // ============================================================================
-// FUNGSI AUTENTIKASI
+// FUNGSI AUTENTIKASI DENGAN TABEL PROFIL PENGGUNA
 // ============================================================================
 
 export async function ambilSesiPelapor(): Promise<PenggunaPelapor | null> {
@@ -229,17 +232,25 @@ export async function ambilSesiPelapor(): Promise<PenggunaPelapor | null> {
       if (!error && data?.user) {
         const u = data.user;
         const meta = u.user_metadata || {};
+
+        // Ambil profil dari public.profil_pengguna
+        const { data: prof } = await supabase
+          .from("profil_pengguna")
+          .select("nama_lengkap, no_telepon, role")
+          .eq("id", u.id)
+          .maybeSingle();
+
         return {
           id: u.id,
-          nama: meta.nama || u.email?.split("@")[0] || "Warga",
+          nama: prof?.nama_lengkap || meta.nama || u.email?.split("@")[0] || "Warga",
           email: u.email || "",
-          telepon: meta.telepon || "",
-          instansi: meta.instansi || "Warga Terverifikasi",
-          role: meta.role || "warga",
+          telepon: prof?.no_telepon || meta.telepon || "",
+          instansi: "Warga Terverifikasi",
+          role: (prof?.role as PenggunaPelapor["role"]) || (meta.role as PenggunaPelapor["role"]) || "warga",
         };
       }
     } catch {
-      // fallback ke localStorage jika offline
+      // abaikan
     }
   }
 
@@ -258,22 +269,31 @@ export async function masukPelapor(
 ): Promise<PenggunaPelapor> {
   if (apakahSupabaseAktif && supabase) {
     const { data, error } = await supabase.auth.signInWithPassword({
-      email,
+      email: email.trim(),
       password: sandi,
     });
     if (error) {
       throw new Error(error.message);
     }
     const u = data.user;
-    const meta = u?.user_metadata || {};
+    if (!u) throw new Error("Gagal memperoleh sesi pengguna");
+
+    const { data: prof } = await supabase
+      .from("profil_pengguna")
+      .select("nama_lengkap, no_telepon, role")
+      .eq("id", u.id)
+      .maybeSingle();
+
+    const meta = u.user_metadata || {};
     const profil: PenggunaPelapor = {
-      id: u?.id,
-      nama: meta.nama || email.split("@")[0],
-      email: u?.email || email,
-      telepon: meta.telepon || "",
-      instansi: meta.instansi || "Warga Terverifikasi",
-      role: meta.role || "warga",
+      id: u.id,
+      nama: prof?.nama_lengkap || meta.nama || email.split("@")[0],
+      email: u.email || email,
+      telepon: prof?.no_telepon || meta.telepon || "",
+      instansi: "Warga Terverifikasi",
+      role: (prof?.role as PenggunaPelapor["role"]) || (meta.role as PenggunaPelapor["role"]) || "warga",
     };
+
     try {
       localStorage.setItem(KUNCI_PELAPOR_STORAGE, JSON.stringify(profil));
     } catch {
@@ -282,16 +302,7 @@ export async function masukPelapor(
     return profil;
   }
 
-  // Mode lokal
-  const profil: PenggunaPelapor = {
-    nama: email.split("@")[0] || "Muhammad Bagas Farshaldy",
-    email,
-    telepon: "0812-3456-7890",
-    instansi: "Warga Terverifikasi",
-    role: "warga",
-  };
-  localStorage.setItem(KUNCI_PELAPOR_STORAGE, JSON.stringify(profil));
-  return profil;
+  throw new Error("Koneksi Supabase belum aktif. Pastikan .env.local terpasang.");
 }
 
 export async function daftarPelapor(
@@ -302,13 +313,12 @@ export async function daftarPelapor(
 ): Promise<PenggunaPelapor> {
   if (apakahSupabaseAktif && supabase) {
     const { data, error } = await supabase.auth.signUp({
-      email,
+      email: email.trim(),
       password: sandi,
       options: {
         data: {
-          nama,
-          telepon,
-          instansi: "Warga Terverifikasi",
+          nama: nama.trim(),
+          telepon: telepon.trim(),
           role: "warga",
         },
       },
@@ -317,14 +327,17 @@ export async function daftarPelapor(
       throw new Error(error.message);
     }
     const u = data.user;
+    if (!u) throw new Error("Gagal membuat akun");
+
     const profil: PenggunaPelapor = {
-      id: u?.id,
-      nama,
-      email,
-      telepon,
+      id: u.id,
+      nama: nama.trim(),
+      email: email.trim(),
+      telepon: telepon.trim(),
       instansi: "Warga Terverifikasi",
       role: "warga",
     };
+
     try {
       localStorage.setItem(KUNCI_PELAPOR_STORAGE, JSON.stringify(profil));
     } catch {
@@ -333,16 +346,7 @@ export async function daftarPelapor(
     return profil;
   }
 
-  // Mode lokal
-  const profil: PenggunaPelapor = {
-    nama: nama || "Muhammad Bagas Farshaldy",
-    email: email || "farshaldybagas@gmail.com",
-    telepon: telepon || "0812-3456-7890",
-    instansi: "Warga Terverifikasi",
-    role: "warga",
-  };
-  localStorage.setItem(KUNCI_PELAPOR_STORAGE, JSON.stringify(profil));
-  return profil;
+  throw new Error("Koneksi Supabase belum aktif. Pastikan .env.local terpasang.");
 }
 
 export async function keluarPelapor(): Promise<void> {
@@ -375,7 +379,7 @@ export async function unggahFotoBukti(file: File, kode: string): Promise<string 
 
   if (error) {
     console.warn("Gagal unggah foto ke Supabase Storage:", error.message);
-    return undefined;
+    throw new Error(`Gagal mengunggah foto bukti: ${error.message}`);
   }
 
   const { data: pubUrl } = supabase.storage
@@ -386,11 +390,12 @@ export async function unggahFotoBukti(file: File, kode: string): Promise<string 
 }
 
 // ============================================================================
-// FUNGSI LAPORAN (KIRIM, CEK STATUS, MODERASI)
+// FUNGSI LAPORAN (KIRIM, CEK STATUS, RIWAYAT SAYA, MODERASI)
 // ============================================================================
 
 export async function kirimLaporanKeServer(
   input: {
+    userId?: string;
     jenis: string;
     wilayah: string;
     desa: string;
@@ -416,8 +421,19 @@ export async function kirimLaporanKeServer(
   }
 
   if (apakahSupabaseAktif && supabase) {
+    let targetUid = input.userId;
+    if (!targetUid) {
+      const { data } = await supabase.auth.getUser();
+      targetUid = data?.user?.id;
+    }
+
+    if (!targetUid) {
+      throw new Error("Wajib masuk akun terlebih dahulu untuk mengirim laporan.");
+    }
+
     const payload: BarisLaporanDB = {
       kode,
+      user_id: targetUid,
       jenis: input.jenis,
       wilayah: input.wilayah,
       desa: input.desa,
@@ -449,7 +465,7 @@ export async function kirimLaporanKeServer(
     }
   }
 
-  // Fallback lokal
+  // Fallback lokal jika supabase tidak aktif
   const itemBaru: ItemLaporan = {
     kode,
     dikirim: "Baru saja",
@@ -481,6 +497,16 @@ export async function periksaStatusLaporan(kode: string): Promise<ItemLaporan | 
 
   if (apakahSupabaseAktif && supabase) {
     try {
+      // 1. Coba lewat RPC public cek_status_laporan
+      const { data: rpcData, error: rpcError } = await supabase.rpc(
+        "cek_status_laporan",
+        { p_kode: bersih }
+      );
+      if (!rpcError && rpcData && rpcData.length > 0) {
+        return konversiDariDB(rpcData[0]);
+      }
+
+      // 2. Coba lewat SELECT langsung
       const { data, error } = await supabase
         .from("laporan_warga")
         .select("*")
@@ -500,9 +526,38 @@ export async function periksaStatusLaporan(kode: string): Promise<ItemLaporan | 
   const ketemuLokal = localList.find((it) => it.kode === bersih);
   if (ketemuLokal) return ketemuLokal;
 
-  // Cek data bawaan
   const ketemuBawaan = DATA_AWAL_LAPORAN.find((it) => it.kode === bersih);
   return ketemuBawaan || null;
+}
+
+export async function ambilRiwayatLaporanSaya(userId?: string): Promise<ItemLaporan[]> {
+  if (apakahSupabaseAktif && supabase) {
+    try {
+      let uid = userId;
+      if (!uid) {
+        const { data } = await supabase.auth.getUser();
+        uid = data?.user?.id;
+      }
+
+      if (uid) {
+        const { data, error } = await supabase
+          .from("laporan_warga")
+          .select("*")
+          .eq("user_id", uid)
+          .order("created_at", { ascending: false });
+
+        if (!error && data) {
+          return data.map(konversiDariDB);
+        }
+      }
+    } catch (err) {
+      console.warn("Gagal mengambil riwayat laporan saya:", err);
+    }
+  }
+
+  // Fallback lokal
+  const localList = ambilDariStorage();
+  return localList;
 }
 
 export async function ambilDaftarModerator(): Promise<ItemLaporan[]> {
@@ -513,12 +568,8 @@ export async function ambilDaftarModerator(): Promise<ItemLaporan[]> {
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (!error && data && data.length > 0) {
-        const dariDb = data.map(konversiDariDB);
-        // Gabungkan data awal jika belum ada di database
-        const kodeDiDb = new Set(dariDb.map((x) => x.kode));
-        const sisaAwal = DATA_AWAL_LAPORAN.filter((x) => !kodeDiDb.has(x.kode));
-        return [...dariDb, ...sisaAwal];
+      if (!error && data) {
+        return data.map(konversiDariDB);
       }
     } catch (err) {
       console.warn("Gagal memuat antrean moderator dari Supabase:", err);
@@ -527,9 +578,7 @@ export async function ambilDaftarModerator(): Promise<ItemLaporan[]> {
 
   // Fallback lokal
   const extra = ambilDariStorage();
-  const kodeDiExtra = new Set(extra.map((x) => x.kode));
-  const sisa = DATA_AWAL_LAPORAN.filter((x) => !kodeDiExtra.has(x.kode));
-  return [...extra, ...sisa];
+  return extra;
 }
 
 export async function perbaruiStatusLaporan(
@@ -559,10 +608,8 @@ export async function perbaruiStatusLaporan(
 
   // Fallback lokal
   const extra = ambilDariStorage();
-  let updated = false;
   const listBaru = extra.map((it) => {
     if (it.kode === kode) {
-      updated = true;
       return {
         ...it,
         status: statusBaru,
@@ -572,19 +619,6 @@ export async function perbaruiStatusLaporan(
     }
     return it;
   });
-
-  if (!updated) {
-    // Bila berasal dari data awal, salin ke local storage dengan status baru
-    const awal = DATA_AWAL_LAPORAN.find((x) => x.kode === kode);
-    if (awal) {
-      listBaru.unshift({
-        ...awal,
-        status: statusBaru,
-        catatanModerator,
-        moderator: namaModerator,
-      });
-    }
-  }
 
   simpanKeStorage(listBaru);
   return true;
