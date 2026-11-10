@@ -562,23 +562,20 @@ export async function ambilRiwayatLaporanSaya(userId?: string): Promise<ItemLapo
 
 export async function ambilDaftarModerator(): Promise<ItemLaporan[]> {
   if (apakahSupabaseAktif && supabase) {
-    try {
-      const { data, error } = await supabase
-        .from("laporan_warga")
-        .select("*")
-        .order("created_at", { ascending: false });
+    const { data, error } = await supabase
+      .from("laporan_warga")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-      if (!error && data) {
-        return data.map(konversiDariDB);
-      }
-    } catch (err) {
-      console.warn("Gagal memuat antrean moderator dari Supabase:", err);
+    if (error) {
+      throw new Error(`Gagal memuat antrean dari Supabase: ${error.message}`);
     }
+
+    return (data || []).map(konversiDariDB);
   }
 
-  // Fallback lokal
-  const extra = ambilDariStorage();
-  return extra;
+  // Fallback lokal (hanya saat Supabase belum dikonfigurasi)
+  return ambilDariStorage();
 }
 
 export async function perbaruiStatusLaporan(
@@ -586,27 +583,37 @@ export async function perbaruiStatusLaporan(
   statusBaru: ItemLaporan["status"],
   catatanModerator: string,
   namaModerator: string = "Nadia"
-): Promise<boolean> {
+): Promise<void> {
   if (apakahSupabaseAktif && supabase) {
-    try {
-      const { error } = await supabase
-        .from("laporan_warga")
-        .update({
-          status: statusBaru,
-          catatan_moderator: catatanModerator,
-          moderator: namaModerator,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("kode", kode);
+    // .select() dipakai supaya kita tahu berapa baris yang benar-benar
+    // berubah. Tanpa ini, RLS yang menolak UPDATE hanya mengembalikan
+    // 0 baris tanpa error, lalu UI seolah-olah berhasil padahal basis
+    // data tidak berubah.
+    const { data, error } = await supabase
+      .from("laporan_warga")
+      .update({
+        status: statusBaru,
+        catatan_moderator: catatanModerator,
+        moderator: namaModerator,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("kode", kode)
+      .select("id, kode");
 
-      if (!error) return true;
-      console.warn("Gagal update status di Supabase:", error.message);
-    } catch (err) {
-      console.warn("Supabase update error:", err);
+    if (error) {
+      throw new Error(`Gagal menyimpan keputusan ke Supabase: ${error.message}`);
     }
+
+    if (!data || data.length === 0) {
+      throw new Error(
+        "Keputusan tidak tersimpan di server. Pastikan akun ini punya role moderator/admin dan kode laporan masih ada."
+      );
+    }
+
+    return;
   }
 
-  // Fallback lokal
+  // Fallback lokal (hanya saat Supabase belum dikonfigurasi)
   const extra = ambilDariStorage();
   const listBaru = extra.map((it) => {
     if (it.kode === kode) {
@@ -621,5 +628,4 @@ export async function perbaruiStatusLaporan(
   });
 
   simpanKeStorage(listBaru);
-  return true;
 }

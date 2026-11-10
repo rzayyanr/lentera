@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import arrowLeftSvg from "../assets/icons/arrow-left.svg";
 import {
   ambilSesiPelapor,
@@ -13,8 +13,37 @@ import {
   type PenggunaPelapor,
 } from "../lib/layananLaporan";
 import { apakahSupabaseAktif } from "../lib/supabase";
+import Moderator from "./Moderator";
 
 export type { PenggunaPelapor };
+
+interface OpsiWilayah {
+  kode: string;
+  nama: string;
+  prov: string;
+}
+
+interface OpsiProvinsi {
+  kode: string;
+  nama: string;
+}
+
+const BULAN_PANJANG = [
+  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+  "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+];
+
+const TANGGAL_HARI_INI = new Date().toISOString().split("T")[0];
+
+function formatTanggalLengkap(iso: string): string {
+  if (!iso) return "";
+  const parts = iso.split("-");
+  if (parts.length < 3) return iso;
+  const y = parts[0];
+  const m = Number(parts[1]);
+  const d = Number(parts[2]);
+  return `${d} ${BULAN_PANJANG[m - 1] ?? parts[1]} ${y}`;
+}
 
 interface Props {
   subHalamanAwal?: "beranda" | "masuk" | "kirim" | "status" | "riwayat";
@@ -42,16 +71,29 @@ export default function LaporanWarga({
   const [galatAuth, setGalatAuth] = useState<string | null>(null);
   const [sedangAuth, setSedangAuth] = useState(false);
 
+  // Data Master Wilayah & Kecamatan dari Sistem/Peta
+  const [daftarWilayah, setDaftarWilayah] = useState<OpsiWilayah[]>([]);
+  const [daftarProvinsi, setDaftarProvinsi] = useState<OpsiProvinsi[]>([]);
+  const [petaKecamatan, setPetaKecamatan] = useState<Record<string, string[]>>({});
+  const [modeKecamatanManual, setModeKecamatanManual] = useState(false);
+
   // State Formulir Laporan
   const [jenisKejadian, setJenisKejadian] = useState("Banjir");
   const [kabupaten, setKabupaten] = useState("");
   const [kecamatan, setKecamatan] = useState("");
-  const [tanggal, setTanggal] = useState("");
+  const [tanggalIso, setTanggalIso] = useState(() => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  });
   const [dampak, setDampak] = useState("");
   const [deskripsi, setDeskripsi] = useState("");
   const [setuju, setSetuju] = useState(true);
   const [berkasFoto, setBerkasFoto] = useState<File | null>(null);
   const [pratinjauFoto, setPratinjauFoto] = useState<string | null>(null);
+  const [sedangSeretFoto, setSedangSeretFoto] = useState(false);
   const [sedangKirim, setSedangKirim] = useState(false);
   const [galatKirim, setGalatKirim] = useState<string | null>(null);
   const inputBerkasRef = useRef<HTMLInputElement | null>(null);
@@ -87,6 +129,83 @@ export default function LaporanWarga({
       batal = true;
     };
   }, []);
+
+  // Muat data master wilayah dari sistem peta dan kecamatan kejadian
+  useEffect(() => {
+    let batal = false;
+    Promise.all([
+      fetch("/data/wilayah.json").then((r) => r.json()).catch(() => []),
+      fetch("/data/provinsi.json").then((r) => r.json()).catch(() => []),
+      fetch("/data/kejadian-jatim.json").then((r) => r.json()).catch(() => null),
+    ]).then(([wil, prov, jatim]) => {
+      if (batal) return;
+      if (Array.isArray(wil)) setDaftarWilayah(wil);
+      if (Array.isArray(prov)) setDaftarProvinsi(prov);
+
+      if (jatim && jatim.kejadian && jatim.kabupaten) {
+        const map: Record<string, Set<string>> = {};
+        for (const row of jatim.kejadian) {
+          const kabNama = jatim.kabupaten[row[3]];
+          const loc = row[4];
+          if (!loc || typeof loc !== "string" || !loc.trim()) continue;
+          if (!map[kabNama]) map[kabNama] = new Set();
+          map[kabNama].add(loc.trim());
+        }
+        const finalMap: Record<string, string[]> = {};
+        for (const [k, setVal] of Object.entries(map)) {
+          finalMap[k] = Array.from(setVal).sort((a, b) => a.localeCompare(b));
+        }
+        setPetaKecamatan(finalMap);
+      }
+    });
+
+    return () => {
+      batal = true;
+    };
+  }, []);
+
+  // Kelompokkan wilayah per provinsi (A-Z)
+  const wilayahPerProvinsi = useMemo(() => {
+    const map = new Map<string, OpsiWilayah[]>();
+    for (const w of daftarWilayah) {
+      const list = map.get(w.prov) || [];
+      list.push(w);
+      map.set(w.prov, list);
+    }
+    for (const list of map.values()) {
+      list.sort((a, b) => a.nama.localeCompare(b.nama));
+    }
+    return map;
+  }, [daftarWilayah]);
+
+  const provinsiTerurut = useMemo(() => {
+    return [...daftarProvinsi].sort((a, b) => a.nama.localeCompare(b.nama));
+  }, [daftarProvinsi]);
+
+  // Daftar kecamatan yang cocok dengan kabupaten terpilih
+  const daftarKecamatanTersedia = useMemo(() => {
+    if (!kabupaten) return [];
+    const q = kabupaten.toLowerCase();
+    const keys = Object.keys(petaKecamatan).filter((k) => {
+      const lk = k.toLowerCase();
+      const clean = lk.replace(" kabupaten", "").replace(" kota", "");
+      return lk.includes(q) || q.includes(clean);
+    });
+
+    const unique = new Set<string>();
+    for (const k of keys) {
+      for (const item of petaKecamatan[k] || []) {
+        unique.add(item);
+      }
+    }
+    return Array.from(unique).sort((a, b) => a.localeCompare(b));
+  }, [kabupaten, petaKecamatan]);
+
+  function handlePilihKabupaten(namaKab: string) {
+    setKabupaten(namaKab);
+    setKecamatan("");
+    setModeKecamatanManual(false);
+  }
 
   const muatRiwayat = useCallback(async (uid?: string) => {
     const targetUid = uid || pengguna?.id;
@@ -186,13 +305,52 @@ export default function LaporanWarga({
     }
   }
 
-  function handlePilihBerkas(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (file) {
-      setBerkasFoto(file);
-      const url = URL.createObjectURL(file);
-      setPratinjauFoto(url);
+  function terimaBerkasFoto(file: File | null | undefined) {
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setGalatKirim("Berkas bukti harus berupa gambar (JPG, PNG, atau WEBP).");
+      return;
     }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setGalatKirim("Ukuran foto bukti maksimal 5 MB.");
+      return;
+    }
+
+    setGalatKirim(null);
+    setBerkasFoto(file);
+    setPratinjauFoto((sebelumnya) => {
+      if (sebelumnya) URL.revokeObjectURL(sebelumnya);
+      return URL.createObjectURL(file);
+    });
+  }
+
+  function handlePilihBerkas(e: React.ChangeEvent<HTMLInputElement>) {
+    terimaBerkasFoto(e.target.files?.[0]);
+    // Reset supaya berkas yang sama tetap bisa dipilih ulang.
+    e.target.value = "";
+  }
+
+  function handleSeretMasuk(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    setSedangSeretFoto(true);
+  }
+
+  function handleSeretKeluar(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    // Jangan matikan penanda saat kursor hanya melewati anak elemen.
+    if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+    setSedangSeretFoto(false);
+  }
+
+  function handleJatuhkanBerkas(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    setSedangSeretFoto(false);
+    terimaBerkasFoto(e.dataTransfer.files?.[0]);
   }
 
   async function handleKirimLaporan(e: React.FormEvent) {
@@ -216,7 +374,7 @@ export default function LaporanWarga({
           jenis: jenisKejadian,
           wilayah: kabupaten,
           desa: kecamatan,
-          tanggalKejadian: tanggal,
+          tanggalKejadian: formatTanggalLengkap(tanggalIso) || tanggalIso,
           dampak: dampak,
           deskripsi: deskripsi,
           pelapor: pengguna.nama,
@@ -246,6 +404,36 @@ export default function LaporanWarga({
     } else {
       setTampilan("masuk");
     }
+  }
+
+  const adalahModerator =
+    pengguna?.role === "moderator" || pengguna?.role === "admin";
+
+  // Akun moderator/admin tidak memakai formulir warga. Menu Lapor milik mereka
+  // langsung membuka pusat moderasi: cek kode dan antrean pengajuan.
+  if (adalahModerator) {
+    return (
+      <Moderator
+        varian="lapor"
+        onKeluar={() => {
+          setPengguna(null);
+          setTampilan("beranda");
+        }}
+      />
+    );
+  }
+
+  // Hindari kedipan formulir warga selagi role akun masih diperiksa.
+  if (apakahSupabaseAktif && memuatSesi) {
+    return (
+      <div className="halaman-laporan-warga">
+        <div className="wadah-konten-lebar">
+          <p style={{ padding: "40px 0", color: "var(--warna-redup)" }}>
+            Memeriksa sesi akun...
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -704,33 +892,96 @@ export default function LaporanWarga({
 
                 <div className="grid-dua-kolom-input">
                   <div className="kelompok-form">
-                    <label htmlFor="kabupaten-input" className="label-input-kapital">
+                    <label htmlFor="kabupaten-select" className="label-input-kapital">
                       KABUPATEN / KOTA
                     </label>
-                    <input
-                      id="kabupaten-input"
-                      type="text"
+                    <select
+                      id="kabupaten-select"
                       className="input-standar"
                       value={kabupaten}
-                      onChange={(e) => setKabupaten(e.target.value)}
-                      placeholder="Contoh: Probolinggo Kabupaten"
+                      onChange={(e) => handlePilihKabupaten(e.target.value)}
                       required
-                    />
+                    >
+                      <option value="">-- Pilih Kabupaten / Kota --</option>
+                      {provinsiTerurut.map((prov) => {
+                        const listKab = wilayahPerProvinsi.get(prov.kode) || [];
+                        if (listKab.length === 0) return null;
+                        return (
+                          <optgroup key={prov.kode} label={prov.nama}>
+                            {listKab.map((w) => (
+                              <option key={w.kode} value={w.nama}>
+                                {w.nama}
+                              </option>
+                            ))}
+                          </optgroup>
+                        );
+                      })}
+                    </select>
                   </div>
 
                   <div className="kelompok-form">
-                    <label htmlFor="kecamatan-input" className="label-input-kapital">
+                    <label htmlFor="kecamatan-input-or-select" className="label-input-kapital">
                       KECAMATAN / DESA
                     </label>
-                    <input
-                      id="kecamatan-input"
-                      type="text"
-                      className="input-standar"
-                      value={kecamatan}
-                      onChange={(e) => setKecamatan(e.target.value)}
-                      placeholder="Contoh: Kec. Sukapura, Ds. Kedasih"
-                      required
-                    />
+                    {daftarKecamatanTersedia.length > 0 && !modeKecamatanManual ? (
+                      <select
+                        id="kecamatan-input-or-select"
+                        className="input-standar"
+                        value={kecamatan}
+                        onChange={(e) => {
+                          if (e.target.value === "__manual__") {
+                            setModeKecamatanManual(true);
+                            setKecamatan("");
+                          } else {
+                            setKecamatan(e.target.value);
+                          }
+                        }}
+                        required
+                      >
+                        <option value="">-- Pilih Kecamatan / Desa --</option>
+                        {daftarKecamatanTersedia.map((item) => (
+                          <option key={item} value={item}>
+                            {item}
+                          </option>
+                        ))}
+                        <option value="__manual__">+ Ketik Kecamatan / Desa Lainnya (Manual)</option>
+                      </select>
+                    ) : (
+                      <div>
+                        <input
+                          id="kecamatan-input-or-select"
+                          type="text"
+                          className="input-standar"
+                          value={kecamatan}
+                          onChange={(e) => setKecamatan(e.target.value)}
+                          placeholder={
+                            kabupaten
+                              ? `Masukkan nama kecamatan di ${kabupaten}`
+                              : "Pilih kabupaten terlebih dahulu atau tulis di sini"
+                          }
+                          required
+                        />
+                        {daftarKecamatanTersedia.length > 0 && (
+                          <button
+                            type="button"
+                            className="tombol-batal-teks"
+                            style={{
+                              fontSize: "11.5px",
+                              marginTop: "4px",
+                              color: "var(--warna-aksen)",
+                              padding: 0,
+                              cursor: "pointer",
+                            }}
+                            onClick={() => {
+                              setModeKecamatanManual(false);
+                              setKecamatan("");
+                            }}
+                          >
+                            ← Kembali pilih dari daftar sistem
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -741,13 +992,18 @@ export default function LaporanWarga({
                     </label>
                     <input
                       id="tanggal-input"
-                      type="text"
+                      type="date"
                       className="input-standar"
-                      value={tanggal}
-                      onChange={(e) => setTanggal(e.target.value)}
-                      placeholder="Contoh: 10 November 2026"
+                      value={tanggalIso}
+                      max={TANGGAL_HARI_INI}
+                      onChange={(e) => setTanggalIso(e.target.value)}
                       required
                     />
+                    {tanggalIso && (
+                      <p style={{ margin: "4px 0 0", fontSize: "11.5px", color: "var(--warna-redup)" }}>
+                        Terpilih: <strong>{formatTanggalLengkap(tanggalIso)}</strong>
+                      </p>
+                    )}
                   </div>
 
                   <div className="kelompok-form">
@@ -791,8 +1047,26 @@ export default function LaporanWarga({
                     onChange={handlePilihBerkas}
                   />
                   <div
-                    className="area-unggah-berkas"
+                    className={`area-unggah-berkas${sedangSeretFoto ? " sedang-seret" : ""}`}
                     onClick={() => inputBerkasRef.current?.click()}
+                    onDragEnter={handleSeretMasuk}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.dataTransfer.dropEffect = "copy";
+                      if (!sedangSeretFoto) setSedangSeretFoto(true);
+                    }}
+                    onDragLeave={handleSeretKeluar}
+                    onDrop={handleJatuhkanBerkas}
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Unggah bukti foto, bisa diklik atau dengan menyeret berkas"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        inputBerkasRef.current?.click();
+                      }
+                    }}
                   >
                     {berkasFoto ? (
                       <div>
@@ -800,7 +1074,7 @@ export default function LaporanWarga({
                           ✓ {berkasFoto.name} ({(berkasFoto.size / 1024).toFixed(1)} KB)
                         </p>
                         <p className="teks-unggah" style={{ fontSize: 11, marginTop: 4 }}>
-                          Klik untuk ganti berkas foto
+                          Klik atau seret foto lain untuk mengganti berkas
                         </p>
                         {pratinjauFoto && (
                           <img
@@ -817,7 +1091,9 @@ export default function LaporanWarga({
                       </div>
                     ) : (
                       <p className="teks-unggah">
-                        Tarik foto ke sini atau klik untuk memilih berkas gambar bukti
+                        {sedangSeretFoto
+                          ? "Lepaskan foto di sini untuk melampirkan bukti"
+                          : "Tarik foto ke sini atau klik untuk memilih berkas gambar bukti"}
                       </p>
                     )}
                   </div>

@@ -2,17 +2,32 @@ import { useEffect, useState } from "react";
 import arrowLeftSvg from "../assets/icons/arrow-left.svg";
 import {
   ambilDaftarModerator,
+  ambilSesiPelapor,
+  keluarPelapor,
   perbaruiStatusLaporan,
   type ItemLaporan as ItemAntrean,
+  type PenggunaPelapor,
   DATA_AWAL_LAPORAN as DATA_AWAL_ANTEAN,
 } from "../lib/layananLaporan";
 import { apakahSupabaseAktif } from "../lib/supabase";
 
-export default function Moderator() {
+interface Props {
+  /** "lapor" dipakai saat halaman ini menggantikan formulir warga di menu Lapor. */
+  varian?: "internal" | "lapor";
+  /** Dipanggil setelah moderator keluar, supaya halaman induk ikut diperbarui. */
+  onKeluar?: () => void;
+}
+
+export default function Moderator({ varian = "internal", onKeluar }: Props) {
   const [subHalaman, setSubHalaman] = useState<"daftar" | "detail">("daftar");
-  const [daftar, setDaftar] = useState<ItemAntrean[]>(DATA_AWAL_ANTEAN);
+  const [daftar, setDaftar] = useState<ItemAntrean[]>(() =>
+    apakahSupabaseAktif ? [] : DATA_AWAL_ANTEAN
+  );
   const [terpilih, setTerpilih] = useState<ItemAntrean>(DATA_AWAL_ANTEAN[0]!);
   const [kataKunci, setKataKunci] = useState("");
+  const [kodeCek, setKodeCek] = useState("");
+  const [pesanCek, setPesanCek] = useState<string | null>(null);
+  const [sedangCek, setSedangCek] = useState(false);
   const [saringStatus, setSaringStatus] = useState<string>("semua");
   const [statusDipilih, setStatusDipilih] = useState<
     "Diterima" | "Butuh verifikasi" | "Ditolak"
@@ -20,28 +35,64 @@ export default function Moderator() {
   const [catatanInput, setCatatanInput] = useState("");
   const [pesanTersimpan, setPesanTersimpan] = useState(false);
   const [sedangSimpan, setSedangSimpan] = useState(false);
+  const [sedangMuat, setSedangMuat] = useState(apakahSupabaseAktif);
+  const [galat, setGalat] = useState<string | null>(null);
+  const [sesi, setSesi] = useState<PenggunaPelapor | null>(null);
+
+  const peranPengguna = sesi?.role ?? null;
+  const punyaAksesModerator =
+    !apakahSupabaseAktif ||
+    peranPengguna === "moderator" ||
+    peranPengguna === "admin";
 
   useEffect(() => {
     let batal = false;
-    ambilDaftarModerator().then((items) => {
-      if (!batal && items.length > 0) {
+
+    async function muat() {
+      try {
+        const sesiAktif = await ambilSesiPelapor();
+        if (batal) return;
+        setSesi(sesiAktif);
+
+        const items = await ambilDaftarModerator();
+        if (batal) return;
+
         setDaftar(items);
-        const awal = items[0]!;
-        setTerpilih(awal);
-        setStatusDipilih(
-          awal.status === "Diterbitkan"
-            ? "Diterima"
-            : awal.status === "Ditolak"
-            ? "Ditolak"
-            : "Butuh verifikasi"
-        );
-        setCatatanInput(awal.catatanModerator || "");
+        if (items.length > 0) {
+          const awal = items[0]!;
+          setTerpilih(awal);
+          setStatusDipilih(
+            awal.status === "Diterbitkan"
+              ? "Diterima"
+              : awal.status === "Ditolak"
+              ? "Ditolak"
+              : "Butuh verifikasi"
+          );
+          setCatatanInput(awal.catatanModerator || "");
+        }
+      } catch (err) {
+        if (!batal) {
+          setGalat(
+            err instanceof Error ? err.message : "Gagal memuat antrean laporan."
+          );
+        }
+      } finally {
+        if (!batal) setSedangMuat(false);
       }
-    });
+    }
+
+    muat();
     return () => {
       batal = true;
     };
   }, []);
+
+  async function handleKeluar() {
+    await keluarPelapor();
+    setSesi(null);
+    if (onKeluar) onKeluar();
+    else window.location.reload();
+  }
 
   const jumlahMenunggu = daftar.filter((i) => i.status === "Menunggu").length;
   const jumlahButuh = daftar.filter((i) => i.status === "Butuh verifikasi").length;
@@ -65,8 +116,68 @@ export default function Moderator() {
     return true;
   });
 
+  async function handleCekKode(e: React.FormEvent) {
+    e.preventDefault();
+    const bersih = kodeCek.trim().toUpperCase();
+
+    if (!bersih) {
+      setPesanCek("Masukkan kode rujukan terlebih dahulu.");
+      return;
+    }
+
+    setSedangCek(true);
+    setPesanCek(null);
+
+    try {
+      let ketemu = daftar.find((it) => it.kode.toUpperCase() === bersih);
+
+      if (!ketemu) {
+        // Muat ulang sekali, siapa tahu laporan masuk setelah halaman dibuka.
+        const terbaru = await ambilDaftarModerator();
+        setDaftar(terbaru);
+        ketemu = terbaru.find((it) => it.kode.toUpperCase() === bersih);
+      }
+
+      if (!ketemu) {
+        setPesanCek(
+          `Laporan dengan kode ${bersih} tidak ditemukan. Periksa kembali kode rujukannya.`
+        );
+        return;
+      }
+
+      bukaDetail(ketemu);
+    } catch (err) {
+      setPesanCek(
+        err instanceof Error ? err.message : "Gagal memeriksa kode laporan."
+      );
+    } finally {
+      setSedangCek(false);
+    }
+  }
+
+  function bukaDetail(item: ItemAntrean) {
+    setTerpilih(item);
+    setStatusDipilih(
+      item.status === "Diterbitkan"
+        ? "Diterima"
+        : item.status === "Ditolak"
+        ? "Ditolak"
+        : "Butuh verifikasi"
+    );
+    setCatatanInput(item.catatanModerator || "");
+    setSubHalaman("detail");
+  }
+
   async function handleSimpanKeputusan() {
+    if (!punyaAksesModerator) {
+      setGalat(
+        "Akun ini belum punya role moderator/admin, jadi keputusan tidak bisa disimpan ke server. Minta admin menaikkan role akun di tabel profil_pengguna."
+      );
+      return;
+    }
+
     setSedangSimpan(true);
+    setGalat(null);
     const updatedStatus: ItemAntrean["status"] =
       statusDipilih === "Diterima"
         ? "Diterbitkan"
@@ -85,6 +196,21 @@ export default function Moderator() {
     try {
       await perbaruiStatusLaporan(terpilih.kode, updatedStatus, catatanFinal, "Nadia");
 
+      // Ambil ulang dari server supaya yang tampil benar-benar data
+      // yang tersimpan, bukan sekadar perubahan sementara di layar.
+      try {
+        const terbaru = await ambilDaftarModerator();
+        const tersimpan = terbaru.find((it) => it.kode === terpilih.kode);
+        if (tersimpan) {
+          setDaftar(terbaru);
+          setTerpilih(tersimpan);
+          setCatatanInput(tersimpan.catatanModerator || "");
+        }
+      } catch {
+        // Penyimpanan sudah berhasil; gagal memuat ulang tidak perlu
+        // membatalkan tampilan.
+      }
+
       setDaftar((prev) =>
         prev.map((it) =>
           it.kode === terpilih.kode
@@ -97,7 +223,6 @@ export default function Moderator() {
             : it
         )
       );
-
       setTerpilih((prev) => ({
         ...prev,
         status: updatedStatus,
@@ -107,6 +232,12 @@ export default function Moderator() {
 
       setPesanTersimpan(true);
       setTimeout(() => setPesanTersimpan(false), 2500);
+    } catch (err) {
+      setGalat(
+        err instanceof Error
+          ? err.message
+          : "Gagal menyimpan keputusan ke server."
+      );
     } finally {
       setSedangSimpan(false);
     }
@@ -120,15 +251,24 @@ export default function Moderator() {
             ============================================================== */}
         {subHalaman === "daftar" && (
           <div data-node-id="16:391" data-name="16 · Moderator — daftar laporan">
-            <p className="remah-kategori">MODERATOR · INTERNAL</p>
-            <h1 className="judul-halaman-utama">Antrean laporan masuk</h1>
+            <p className="remah-kategori">
+              {varian === "lapor" ? "LAPORAN WARGA · MODERATOR" : "MODERATOR · INTERNAL"}
+            </p>
+            <h1 className="judul-halaman-utama">Pusat moderasi laporan</h1>
             <p className="deskripsi-halaman-utama">
-              Halaman ini tidak muncul di navigasi warga. Akses memakai kode pengelola dan setiap perubahan status tercatat.
+              Akun moderator tidak mengirim laporan warga. Periksa laporan lewat kode
+              rujukan, lalu tinjau pengajuan yang masuk dan tetapkan statusnya.
             </p>
 
             <div className="baris-badge-atas-tabel">
-              <span className="badge-lapisan netral">Akses terbatas</span>
-              <span className="badge-lapisan netral">Di luar navigasi warga</span>
+              <span className="badge-lapisan netral">
+                {peranPengguna === "admin"
+                  ? "Akses admin"
+                  : peranPengguna === "moderator"
+                  ? "Akses moderator"
+                  : "Akses terbatas"}
+              </span>
+              <span className="badge-lapisan netral">Setiap perubahan status tercatat</span>
               <span
                 className="badge-lapisan"
                 style={{
@@ -142,17 +282,97 @@ export default function Moderator() {
               </span>
             </div>
 
-            {/* Penyaring & Pencarian */}
-            <div className="kartu-penyaring-moderator" data-name="Penyaring">
-              <div className="baris-penyaring-moderator">
+            {sesi && punyaAksesModerator && (
+              <div className="kartu-sesi-pengguna">
+                <span className="badge-lapisan resmi">
+                  {peranPengguna === "admin" ? "Admin" : "Moderator"}
+                </span>
+                <p className="teks-sesi-aktif">
+                  Masuk sebagai <strong>{sesi.nama}</strong> ({sesi.email})
+                </p>
+                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                  <button type="button" className="tombol-keluar-sesi" onClick={handleKeluar}>
+                    Keluar
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {galat && (
+              <div
+                role="alert"
+                style={{
+                  background: "#fee2e2",
+                  color: "#991b1b",
+                  padding: "10px 14px",
+                  borderRadius: 6,
+                  fontSize: 13,
+                  marginBottom: 16,
+                  border: "1px solid #fecaca",
+                }}
+              >
+                {galat}
+              </div>
+            )}
+
+            {apakahSupabaseAktif && !sedangMuat && !punyaAksesModerator && (
+              <div
+                style={{
+                  background: "#fef3c7",
+                  color: "#92400e",
+                  padding: "10px 14px",
+                  borderRadius: 6,
+                  fontSize: 12.5,
+                  marginBottom: 16,
+                  border: "1px solid #fcd34d",
+                }}
+              >
+                {peranPengguna
+                  ? `Akun ini masuk sebagai "${peranPengguna}". Perubahan status hanya bisa disimpan oleh akun dengan role moderator atau admin.`
+                  : "Kamu belum masuk. Masuk dengan akun moderator untuk menyimpan perubahan status."}
+              </div>
+            )}
+
+            {/* Container 1: cek laporan spesifik lewat kode rujukan */}
+            <section className="kartu-moderator-beranda" data-name="Cek laporan dengan kode">
+              <h2 className="judul-kartu-moderator">Cek laporan dengan kode</h2>
+              <p className="deskripsi-kartu-moderator">
+                Punya kode rujukan dari pelapor atau warga? Masukkan di sini untuk
+                langsung membuka laporan itu, tanpa menelusuri antrean.
+              </p>
+              <form className="baris-cek-kode-moderator" onSubmit={handleCekKode}>
                 <input
                   type="text"
-                  placeholder="Cari kode, pelapor, atau wilayah"
-                  className="input-cari-moderator"
-                  value={kataKunci}
-                  onChange={(e) => setKataKunci(e.target.value)}
-                  aria-label="Cari kode atau wilayah"
+                  className="input-standar"
+                  placeholder="Contoh: LNT-8A3F-9K2L"
+                  value={kodeCek}
+                  onChange={(e) => {
+                    setKodeCek(e.target.value);
+                    if (pesanCek) setPesanCek(null);
+                  }}
+                  aria-label="Kode rujukan laporan"
                 />
+                <button type="submit" className="tombol-aksi-utama" disabled={sedangCek}>
+                  {sedangCek ? "Memeriksa..." : "Cek laporan"}
+                </button>
+              </form>
+              {pesanCek && <p className="pesan-cek-kode">{pesanCek}</p>}
+            </section>
+
+            {/* Container 2: pengajuan yang perlu diputuskan */}
+            <section
+              className="kartu-moderator-beranda kartu-moderator-antrean"
+              data-name="Pengajuan laporan"
+            >
+              <div className="kepala-antrean-moderator">
+                <div>
+                  <h2 className="judul-kartu-moderator">Pengajuan laporan</h2>
+                  <p className="deskripsi-kartu-moderator" style={{ marginBottom: 0 }}>
+                    {jumlahMenunggu + jumlahButuh > 0
+                      ? `${jumlahMenunggu + jumlahButuh} laporan menunggu keputusan. Klik satu baris untuk membaca detail dan menetapkan status.`
+                      : "Belum ada pengajuan yang menunggu keputusan saat ini."}
+                  </p>
+                </div>
 
                 <div className="baris-filter-status-chips">
                   <button
@@ -192,11 +412,22 @@ export default function Moderator() {
                   </button>
                 </div>
               </div>
-            </div>
 
-            {/* Tabel Antrean */}
-            <div className="kartu-tabel-lapisan" data-name="Tabel">
-              <div className="wadah-gulir-tabel">
+              <div className="baris-penyaring-antrean">
+                <input
+                  type="text"
+                  placeholder="Cari kode, pelapor, atau wilayah"
+                  className="input-cari-moderator"
+                  value={kataKunci}
+                  onChange={(e) => setKataKunci(e.target.value)}
+                  aria-label="Cari kode, pelapor, atau wilayah"
+                />
+                <span className="jumlah-hasil-antrean">
+                  Menampilkan {disaring.length} dari {daftar.length} laporan
+                </span>
+              </div>
+
+              <div className="wadah-gulir-tabel" data-name="Tabel">
                 <table className="tabel-bantuan-resmi tabel-moderator">
                   <thead>
                     <tr>
@@ -213,18 +444,7 @@ export default function Moderator() {
                       <tr
                         key={item.kode}
                         className="baris-dapat-diklik"
-                        onClick={() => {
-                          setTerpilih(item);
-                          setStatusDipilih(
-                            item.status === "Diterbitkan"
-                              ? "Diterima"
-                              : item.status === "Ditolak"
-                              ? "Ditolak"
-                              : "Butuh verifikasi"
-                          );
-                          setCatatanInput(item.catatanModerator || "");
-                          setSubHalaman("detail");
-                        }}
+                        onClick={() => bukaDetail(item)}
                       >
                         <td className="tebal-teks kode-monokrom">{item.kode}</td>
                         <td>{item.dikirim}</td>
@@ -251,14 +471,16 @@ export default function Moderator() {
                     {disaring.length === 0 && (
                       <tr>
                         <td colSpan={6} className="tabel-kosong">
-                          Tidak ada laporan yang sesuai dengan penyaring.
+                          {sedangMuat
+                            ? "Memuat antrean laporan dari server..."
+                            : "Tidak ada laporan yang sesuai dengan penyaring."}
                         </td>
                       </tr>
                     )}
                   </tbody>
                 </table>
               </div>
-            </div>
+            </section>
           </div>
         )}
 
@@ -285,6 +507,41 @@ export default function Moderator() {
               <span className="badge-lapisan warga">{terpilih.status}</span>
               <span className="badge-lapisan warga">Laporan warga</span>
             </div>
+
+            {galat && (
+              <div
+                role="alert"
+                style={{
+                  background: "#fee2e2",
+                  color: "#991b1b",
+                  padding: "10px 14px",
+                  borderRadius: 6,
+                  fontSize: 13,
+                  marginBottom: 16,
+                  border: "1px solid #fecaca",
+                }}
+              >
+                {galat}
+              </div>
+            )}
+
+            {apakahSupabaseAktif && !sedangMuat && !punyaAksesModerator && (
+              <div
+                style={{
+                  background: "#fef3c7",
+                  color: "#92400e",
+                  padding: "10px 14px",
+                  borderRadius: 6,
+                  fontSize: 12.5,
+                  marginBottom: 16,
+                  border: "1px solid #fcd34d",
+                }}
+              >
+                {peranPengguna
+                  ? `Akun ini masuk sebagai "${peranPengguna}". Hanya akun dengan role moderator atau admin yang bisa menyimpan keputusan.`
+                  : "Kamu belum masuk. Masuk dengan akun moderator untuk menyimpan keputusan."}
+              </div>
+            )}
 
             <div className="grid-detail-kejadian">
               {/* Kolom Kiri: Isi Laporan */}
@@ -431,13 +688,18 @@ export default function Moderator() {
                     type="button"
                     className="tombol-aksi-utama"
                     onClick={handleSimpanKeputusan}
-                    disabled={sedangSimpan}
+                    disabled={sedangSimpan || !punyaAksesModerator}
+                    title={
+                      punyaAksesModerator
+                        ? undefined
+                        : "Akun ini belum punya role moderator/admin"
+                    }
                   >
                     {sedangSimpan ? "Menyimpan..." : "Simpan keputusan"}
                   </button>
 
                   {pesanTersimpan && (
-                    <p className="pesan-sukses-mod">Keputusan berhasil diperbarui.</p>
+                    <p className="pesan-sukses-mod">Keputusan tersimpan di server.</p>
                   )}
                 </section>
 

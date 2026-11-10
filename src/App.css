@@ -2599,6 +2599,23 @@ body {
   text-align: center;
   background: var(--warna-panggung);
   cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.area-unggah-berkas:focus-visible {
+  outline: 2px solid var(--warna-aksen);
+  outline-offset: 2px;
+}
+
+.area-unggah-berkas.sedang-seret {
+  border-color: var(--warna-aksen);
+  border-style: solid;
+  background: color-mix(in srgb, var(--warna-aksen) 8%, var(--warna-panggung));
+}
+
+.area-unggah-berkas.sedang-seret .teks-unggah {
+  color: var(--warna-aksen);
+  font-weight: 600;
 }
 
 .teks-unggah {
@@ -3167,6 +3184,85 @@ body {
   border-radius: 12px;
   padding: 14px 18px;
   margin-bottom: 20px;
+}
+
+.kartu-moderator-beranda {
+  background: var(--warna-kartu);
+  border: 1px solid var(--warna-garis);
+  border-radius: 12px;
+  padding: 22px 24px;
+  margin-bottom: 20px;
+  box-shadow: 0px 4px 12px rgba(60, 50, 30, 0.04);
+}
+
+.judul-kartu-moderator {
+  font-family: var(--font-sans);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--warna-tinta);
+  margin: 0 0 6px;
+}
+
+.deskripsi-kartu-moderator {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--warna-redup);
+  margin: 0 0 16px;
+  max-width: 640px;
+}
+
+.baris-cek-kode-moderator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.baris-cek-kode-moderator .input-standar {
+  flex: 1 1 260px;
+  max-width: 340px;
+}
+
+.pesan-cek-kode {
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  color: #991b1b;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin: 12px 0 0;
+}
+
+.kartu-moderator-antrean {
+  padding: 0;
+  overflow: hidden;
+}
+
+.kepala-antrean-moderator {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 22px 24px 0;
+}
+
+.baris-penyaring-antrean {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--warna-garis);
+}
+
+.jumlah-hasil-antrean {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--warna-redup);
 }
 
 .baris-penyaring-moderator {

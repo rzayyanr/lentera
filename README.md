@@ -24,7 +24,7 @@ Tahap pengerjaan berjalan. Yang sudah berfungsi:
 - Halaman Tentang dan sumber data, termasuk daftar selisih angka yang ditemukan saat pengolahan.
 - Halaman Daftar wilayah, Detail kejadian, Bandingkan wilayah, Transparansi bantuan, dan Catatan komunitas.
 - Laporan warga: masuk atau daftar akun pelapor, formulir laporan, dan pelacakan status lewat kode rujukan.
-- Halaman moderator untuk memeriksa dan memverifikasi laporan yang masuk.
+- Halaman moderator untuk memeriksa dan memverifikasi laporan yang masuk. Untuk akun moderator/admin, menu Lapor langsung membuka pusat moderasi (cek laporan lewat kode dan antrean pengajuan); formulir laporan warga tidak ditampilkan.
 - Bilah atas mengapung dan ikon Lucide, mengikuti berkas High Fidelity di Figma.
 - Tampilan memakai satu keluarga huruf, DM Sans, yang disimpan sendiri.
 
@@ -33,7 +33,7 @@ Tahap pengerjaan berjalan. Yang sudah berfungsi:
 - React 19 + Vite 8 + TypeScript
 - Leaflet untuk peta, tanpa basemap tile
 - Data statis hasil pipeline, bukan API saat pengguna membuka situs
-- Akun pelapor dan laporan warga masih disimpan di `localStorage` peramban, belum di basis data terkelola. Saat ini belum ada server, jadi moderator hanya melihat laporan dari peramban yang sama.
+- Akun pelapor dan laporan warga memakai Supabase (Auth, tabel `laporan_warga`, dan Storage untuk foto bukti). Halaman moderator memerlukan akun dengan role `moderator`/`admin`; lihat `supabase/perbaikan-moderator.sql` untuk menaikkan role akun.
 - Vercel untuk hosting
 
 ## Cara menjalankan
