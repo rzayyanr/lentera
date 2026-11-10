@@ -1,46 +1,76 @@
 {
   "diperiksa": "2026-11-10",
   "catatan": [
-    "Rincian per kejadian hanya diterbitkan terbuka oleh BPBD Jawa Timur. Provinsi lain mempublikasikan statistik tahunan, bukan log kejadian.",
-    "Portal DIBI BNPB sebagai rujukan rincian nasional sudah tidak dapat dipakai: sejak 2026 situsnya berubah menjadi dasbor Apache Superset yang hanya memuat satu dataset (posko gempa NTT 2026), dan delapan grafiknya sudah diganti nama menjadi 'HACKED BY UNKNOWN1337 FT D3D0x'.",
-    "Status 'belum diperiksa' berarti portal provinsi tersebut belum sempat ditelusuri, bukan berarti datanya tidak ada."
+    "Rincian per kejadian hanya diterbitkan terbuka oleh BPBD Jawa Timur. Provinsi lain mempublikasikan statistik tahunan atau hitungan per kecamatan, bukan log kejadian.",
+    "Seluruh 38 provinsi sudah diperiksa portal datanya pada 10 November 2026. Yang berstatus belum berarti portalnya tidak menjawab, menolak akses, atau isinya hanya agregat.",
+    "Portal DIBI BNPB sebagai rujukan rincian nasional sudah tidak dapat dipakai: sejak 2026 situsnya berubah menjadi dasbor Apache Superset yang hanya memuat satu dataset (posko gempa NTT 2026), dan delapan grafiknya sudah diganti nama menjadi HACKED BY UNKNOWN1337 FT D3D0x."
   ],
   "provinsi": {
     "11": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.acehprov.go.id",
+      "url": "https://data.acehprov.go.id",
+      "alasan": "Portal CKAN terbuka dengan 161 dataset bencana, tetapi seluruhnya berupa jumlah dan frekuensi per jenis bencana, bukan log per tanggal."
     },
     "12": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.sumutprov.go.id",
+      "url": "https://data.sumutprov.go.id",
+      "alasan": "Tidak ada portal data provinsi yang menjawab pada alamat ini, diperiksa 10 November 2026."
     },
     "13": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.sumbarprov.go.id",
+      "url": "https://data.sumbarprov.go.id",
+      "alasan": "Portal CKAN terbuka dengan 73 dataset bencana, berisi jumlah kejadian per kecamatan dan per kabupaten per tahun, bukan log per tanggal."
     },
     "14": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.riau.go.id",
+      "url": "https://data.riau.go.id",
+      "alasan": "Tidak ada portal data provinsi yang menjawab pada alamat ini, diperiksa 10 November 2026."
     },
     "15": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.jambiprov.go.id",
+      "url": "https://data.jambiprov.go.id",
+      "alasan": "Tidak ada portal data provinsi yang menjawab pada alamat ini, diperiksa 10 November 2026."
     },
     "16": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.sumselprov.go.id",
+      "url": "https://data.sumselprov.go.id",
+      "alasan": "Tidak ada portal data provinsi yang menjawab pada alamat ini, diperiksa 10 November 2026."
     },
     "17": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.bengkuluprov.go.id",
+      "url": "https://data.bengkuluprov.go.id",
+      "alasan": "Portal CKAN terbuka, hanya memuat data jumlah kejadian bencana per tahun, tanpa tanggal kejadian."
     },
     "18": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.lampungprov.go.id",
+      "url": "https://data.lampungprov.go.id",
+      "alasan": "Portal menolak permintaan (HTTP 403) saat diperiksa 10 November 2026."
     },
     "19": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.babelprov.go.id",
+      "url": "https://data.babelprov.go.id",
+      "alasan": "Tidak ada portal data provinsi yang menjawab pada alamat ini, diperiksa 10 November 2026."
     },
     "21": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.kepriprov.go.id",
+      "url": "https://data.kepriprov.go.id",
+      "alasan": "Tidak ada portal data provinsi yang menjawab pada alamat ini, diperiksa 10 November 2026."
     },
     "31": {
       "status": "belum",
       "sumber": "data.jakarta.go.id",
       "url": "https://data.jakarta.go.id",
-      "alasan": "Portal data DKI menolak permintaan API (koneksi direset), dan portal BPBD hanya memuat berita, bukan tabel kejadian."
+      "alasan": "API portal data DKI menolak permintaan (koneksi direset), dan portal BPBD hanya memuat berita, bukan tabel kejadian."
     },
     "32": {
       "status": "belum",
@@ -73,73 +103,139 @@
       "status": "belum",
       "sumber": "data.bantenprov.go.id",
       "url": "https://data.bantenprov.go.id",
-      "alasan": "Portal data Banten terbuka dan memuat 67 dataset bencana, tetapi semuanya berupa indeks risiko dan statistik penanganan, tanpa log kejadian per tanggal."
+      "alasan": "Portal CKAN terbuka dengan 67 dataset bencana, semuanya indeks risiko dan statistik penanganan, tanpa log kejadian."
     },
     "51": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.baliprov.go.id",
+      "url": "https://data.baliprov.go.id",
+      "alasan": "Tidak ada portal data provinsi yang menjawab pada alamat ini, diperiksa 10 November 2026."
     },
     "52": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.ntbprov.go.id",
+      "url": "https://data.ntbprov.go.id",
+      "alasan": "Portal terbuka, tetapi tidak menyediakan API data terbuka (HTTP 404 pada alamat API), sehingga isinya tidak bisa diperiksa sebagai data."
     },
     "53": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.nttprov.go.id",
+      "url": "https://data.nttprov.go.id",
+      "alasan": "Tidak ada portal data provinsi yang menjawab pada alamat ini, diperiksa 10 November 2026."
     },
     "61": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.kalbarprov.go.id",
+      "url": "https://data.kalbarprov.go.id",
+      "alasan": "Portal CKAN terbuka, tetapi dataset kejadian yang diperiksa (Data Kejadian Bencana 2019) berisi hitungan per kecamatan per jenis bencana sebanyak 24 baris, bukan log per tanggal."
     },
     "62": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.kalteng.go.id",
+      "url": "https://data.kalteng.go.id",
+      "alasan": "Tidak ada portal data provinsi yang menjawab pada alamat ini, diperiksa 10 November 2026."
     },
     "63": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.kalselprov.go.id",
+      "url": "https://data.kalselprov.go.id",
+      "alasan": "Portal terbuka, tetapi tidak menyediakan API data terbuka (tidak ada alamat API), sehingga isinya tidak bisa diperiksa sebagai data."
     },
     "64": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.kaltimprov.go.id",
+      "url": "https://data.kaltimprov.go.id",
+      "alasan": "Portal CKAN terbuka, tetapi dataset kejadian yang diperiksa (Balikpapan 2022) berisi rekap bulanan per jenis bencana sebanyak 10 baris, bukan log per tanggal."
     },
     "65": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.kaltaraprov.go.id",
+      "url": "https://data.kaltaraprov.go.id",
+      "alasan": "Portal terbuka, tetapi tidak menyediakan API data terbuka (HTTP 404 pada alamat API), sehingga isinya tidak bisa diperiksa sebagai data."
     },
     "71": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.sulutprov.go.id",
+      "url": "https://data.sulutprov.go.id",
+      "alasan": "Tidak ada portal data provinsi yang menjawab pada alamat ini, diperiksa 10 November 2026."
     },
     "72": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.sultengprov.go.id",
+      "url": "https://data.sultengprov.go.id",
+      "alasan": "Tidak ada portal data provinsi yang menjawab pada alamat ini, diperiksa 10 November 2026."
     },
     "73": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.sulselprov.go.id",
+      "url": "https://data.sulselprov.go.id",
+      "alasan": "Portal menolak permintaan (HTTP 403) saat diperiksa 10 November 2026."
     },
     "74": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.sultraprov.go.id",
+      "url": "https://data.sultraprov.go.id",
+      "alasan": "Tidak ada portal data provinsi yang menjawab pada alamat ini, diperiksa 10 November 2026."
     },
     "75": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.gorontaloprov.go.id",
+      "url": "https://data.gorontaloprov.go.id",
+      "alasan": "Tidak ada portal data provinsi yang menjawab pada alamat ini, diperiksa 10 November 2026."
     },
     "76": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.sulbarprov.go.id",
+      "url": "https://data.sulbarprov.go.id",
+      "alasan": "Portal terbuka, tetapi tidak menyediakan API data terbuka (HTTP 500 pada alamat API), sehingga isinya tidak bisa diperiksa sebagai data."
     },
     "81": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.malukuprov.go.id",
+      "url": "https://data.malukuprov.go.id",
+      "alasan": "Portal terbuka, tetapi tidak menyediakan API data terbuka (HTTP 404 pada alamat API), sehingga isinya tidak bisa diperiksa sebagai data."
     },
     "82": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.malutprov.go.id",
+      "url": "https://data.malutprov.go.id",
+      "alasan": "Tidak ada portal data provinsi yang menjawab pada alamat ini, diperiksa 10 November 2026."
     },
     "91": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.papua.go.id",
+      "url": "https://data.papua.go.id",
+      "alasan": "Tidak ada portal data provinsi yang menjawab pada alamat ini, diperiksa 10 November 2026."
     },
     "92": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.papuabaratprov.go.id",
+      "url": "https://data.papuabaratprov.go.id",
+      "alasan": "Portal CKAN terbuka, tetapi tidak memuat satu pun dataset bencana."
     },
     "93": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.papuaselatanprov.go.id",
+      "url": "https://data.papuaselatanprov.go.id",
+      "alasan": "Tidak ada portal data provinsi yang menjawab pada alamat ini, diperiksa 10 November 2026."
     },
     "94": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.papuatengahprov.go.id",
+      "url": "https://data.papuatengahprov.go.id",
+      "alasan": "Tidak ada portal data provinsi yang menjawab pada alamat ini, diperiksa 10 November 2026."
     },
     "95": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.papuapegununganprov.go.id",
+      "url": "https://data.papuapegununganprov.go.id",
+      "alasan": "Tidak ada portal data provinsi yang menjawab pada alamat ini, diperiksa 10 November 2026."
     },
     "96": {
-      "status": "belum_diperiksa"
+      "status": "belum",
+      "sumber": "data.papuabaratdayaprov.go.id",
+      "url": "https://data.papuabaratdayaprov.go.id",
+      "alasan": "Tidak ada portal data provinsi yang menjawab pada alamat ini, diperiksa 10 November 2026."
     }
   }
 }

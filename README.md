@@ -98,18 +98,23 @@ src/assets/icons/         ikon Lucide yang dipakai antarmuka
 
 ### Kenapa rincian per kejadian hanya satu provinsi
 
-Diperiksa ulang 10 November 2026:
+Seluruh 38 provinsi diperiksa portal datanya pada 10 November 2026. Hasilnya:
 
-| Portal | Hasil |
+| Hasil | Jumlah provinsi |
 |---|---|
-| DIBI BNPB (`dibi.bnpb.go.id`) | Sekarang dasbor Apache Superset. API-nya hanya memuat satu dataset, `gempa_ntt_2026.v_posko_pengungsian_4superset`, dan 8 dari 14 grafiknya sudah diganti nama menjadi `HACKED BY UNKNOWN1337 FT D3D0x`. Grafik lama yang dirujuk dasbor (id 6–51) membalas `{"message":"Not found"}`. |
-| `data.jakarta.go.id` | API menolak permintaan, koneksi direset |
-| `data.jabarprov.go.id` | API tidak merespons, timeout 45 detik |
-| `data.jatengprov.go.id` | DNS/TLS tidak menjawab |
-| `data.jogjaprov.go.id` | DNS/TLS tidak menjawab |
-| `data.bantenprov.go.id` | CKAN terbuka, 67 dataset bencana, tetapi semuanya indeks risiko dan statistik penanganan, tanpa log kejadian |
+| Log kejadian per tanggal | **1** (Jawa Timur, `smartpb.bpbd.jatimprov.go.id`) |
+| Portal terbuka, isinya hanya agregat per kecamatan atau per jenis | **7** (Aceh, Sumatera Barat, Bengkulu, Banten, Kalimantan Barat, Kalimantan Timur, Papua Barat) |
+| Portal terbuka, tanpa API data | 5 (NTB, Kalimantan Selatan, Kalimantan Utara, Sulawesi Barat, Maluku) |
+| Portal menolak akses | 2 (Lampung, Sulawesi Selatan) |
+| Portal ada, API bermasalah | 4 (DKI Jakarta, Jawa Barat, Jawa Tengah, DI Yogyakarta) |
+| Tidak ada portal yang menjawab | 15 |
+| Provinsi baru tanpa portal | 4 (Papua Selatan, Papua Tengah, Papua Pegunungan, Papua Barat Daya) |
 
-Status ini disimpan di `public/data/cakupan-sumber.json` dan dipakai halaman Tentang serta tab Riwayat di panel wilayah. Menambah provinsi nanti cukup menambah satu berkas kejadian dan satu entri cakupan.
+Contoh isi yang diperiksa untuk memastikan bukan log kejadian: dataset "Data Kejadian Bencana Tahun 2019" di Kalimantan Barat berisi 24 baris, satu baris per kecamatan, dengan kolom jumlah per jenis bencana. Dataset Balikpapan 2022 di Kalimantan Timur berisi 10 baris rekap bulanan. Tidak ada yang memuat tanggal dan desa per kejadian seperti SMARTPB.
+
+Sumber nasional untuk ini, DIBI BNPB, sudah tidak dapat dipakai: situsnya kini dasbor Apache Superset yang hanya memuat satu dataset, `gempa_ntt_2026.v_posko_pengungsian_4superset`, dengan 8 dari 14 grafiknya sudah diganti nama menjadi `HACKED BY UNKNOWN1337 FT D3D0x`. Grafik lama yang dirujuk dasbor (id 6–51) membalas `{"message":"Not found"}`.
+
+Status per provinsi disimpan di `public/data/cakupan-sumber.json` dan dipakai halaman Tentang serta tab Riwayat di panel wilayah. Menambah provinsi nanti cukup menambah satu berkas kejadian dan satu entri cakupan.
 
 ## Catatan data yang perlu diketahui
 
