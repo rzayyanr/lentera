@@ -21,8 +21,9 @@
   --bayangan-panel: 0px 10px 30px 0px rgba(60, 50, 30, 0.14);
   --bayangan-lembar: 0px -8px 28px 0px rgba(60, 50, 30, 0.16);
 
-  --font-serif: "Newsreader", Georgia, serif;
-  --font-sans: "Public Sans", system-ui, -apple-system, sans-serif;
+  /* Satu keluarga huruf untuk seluruh antarmuka, mengikuti Webber Design System
+     yang jadi acuan referensi datago. */
+  --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
 }
 
 body {
@@ -94,7 +95,7 @@ body {
 }
 
 .bilah-atas-merek {
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 20px;
   font-weight: 600;
   color: var(--warna-tinta);
@@ -583,7 +584,7 @@ body {
 }
 
 .tahun-besar {
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 22px;
   font-weight: 600;
   color: var(--warna-tinta);
@@ -668,7 +669,7 @@ body {
 
 .panel-judul-wilayah {
   margin: 6px 0 2px;
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 26px;
   font-weight: 500;
   color: var(--warna-tinta);
@@ -717,7 +718,7 @@ body {
 
 .panel-angka-hero {
   margin: 0;
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 56px;
   font-weight: 500;
   line-height: 1;
@@ -761,7 +762,7 @@ body {
 
 .panel-seksi-judul {
   margin: 0;
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 15px;
   font-weight: 600;
   color: var(--warna-tinta);
@@ -951,7 +952,7 @@ body {
 
 .tab-dampak-judul {
   margin: 12px 0 2px;
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 15px;
   font-weight: 600;
   color: var(--warna-tinta);
@@ -1028,7 +1029,7 @@ body {
 
 .sumber-judul {
   margin: 0 0 10px;
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 15px;
   font-weight: 600;
   color: var(--warna-tinta);
@@ -1116,7 +1117,7 @@ body {
 
 .ponsel-judul {
   margin: 2px 0;
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 24px;
   font-weight: 500;
   color: var(--warna-tinta);
@@ -1135,7 +1136,7 @@ body {
 
 .ponsel-angka-hero {
   margin: 0;
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 44px;
   font-weight: 500;
   line-height: 1;
@@ -1164,7 +1165,7 @@ body {
 
 .ponsel-seksi-judul {
   margin: 0 0 10px;
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 600;
   color: var(--warna-tinta);
@@ -1320,7 +1321,7 @@ body {
 
 .daftar-judul {
   margin: 6px 0 8px;
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 34px;
   font-weight: 500;
   color: var(--warna-tinta);
@@ -1536,7 +1537,7 @@ body {
 
 .riwayat-judul {
   margin: 6px 0 8px;
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 34px;
   font-weight: 500;
   color: var(--warna-tinta);
@@ -1883,7 +1884,7 @@ body {
 }
 
 .judul-halaman-utama {
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 34px;
   font-weight: 600;
   color: var(--warna-tinta);
@@ -2029,7 +2030,7 @@ body {
    ========================================================================== */
 
 .judul-kejadian {
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 28px;
   font-weight: 600;
   color: var(--warna-tinta);
@@ -2286,7 +2287,7 @@ body {
 }
 
 .judul-opsi-laporan {
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 22px;
   font-weight: 600;
   color: var(--warna-tinta);
@@ -2567,7 +2568,7 @@ body {
 }
 
 .judul-laporan-kode {
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 20px;
   font-weight: 600;
   color: var(--warna-tinta);
@@ -2676,7 +2677,7 @@ body {
 }
 
 .judul-opsi-bantuan {
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 22px;
   font-weight: 600;
   color: var(--warna-tinta);
@@ -2863,7 +2864,7 @@ body {
 }
 
 .judul-kartu-tautan {
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 18px;
   font-weight: 600;
   color: var(--warna-tinta);
@@ -2976,7 +2977,7 @@ body {
 }
 
 .judul-temuan {
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 17px;
   font-weight: 600;
   color: var(--warna-tinta);
@@ -3277,7 +3278,7 @@ body {
 }
 
 .nama-wilayah-bandingkan {
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 24px;
   font-weight: 600;
   color: var(--warna-tinta);
@@ -3299,7 +3300,7 @@ body {
 }
 
 .angka-kpi-bandingkan {
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 44px;
   font-weight: 700;
   color: var(--warna-tinta);

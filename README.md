@@ -21,21 +21,18 @@ Tahap pengerjaan berjalan. Yang sudah berfungsi:
 - Wilayah yang tidak punya catatan digambar dengan pola garis miring, bukan dianggap nol.
 - Riwayat 24.190 kejadian Jawa Timur tahun 2020 sampai 2025, dengan saringan tahun dan jenis bencana, serta tautan ke catatan aslinya.
 - Halaman Tentang dan sumber data, termasuk daftar selisih angka yang ditemukan saat pengolahan.
-- Tampilan mengikuti design system, dengan font Newsreader dan Public Sans yang disimpan sendiri.
-
-Yang belum dikerjakan:
-
-- Formulir laporan warga beserta halaman status laporan.
-- Halaman transparansi bantuan.
-- Halaman moderator untuk memeriksa laporan masuk.
-- Halaman bantuan.
+- Halaman Daftar wilayah, Detail kejadian, Bandingkan wilayah, Transparansi bantuan, dan Catatan komunitas.
+- Laporan warga: masuk atau daftar akun pelapor, formulir laporan, dan pelacakan status lewat kode rujukan.
+- Halaman moderator untuk memeriksa dan memverifikasi laporan yang masuk.
+- Bilah atas mengapung dan ikon Lucide, mengikuti berkas High Fidelity di Figma.
+- Tampilan memakai satu keluarga huruf, DM Sans, yang disimpan sendiri.
 
 ## Teknologi
 
 - React 19 + Vite 8 + TypeScript
 - Leaflet untuk peta, tanpa basemap tile
 - Data statis hasil pipeline, bukan API saat pengguna membuka situs
-- Penyimpanan laporan warga akan memakai layanan basis data terkelola. Pilihannya belum final.
+- Akun pelapor dan laporan warga masih disimpan di `localStorage` peramban, belum di basis data terkelola. Saat ini belum ada server, jadi moderator hanya melihat laporan dari peramban yang sama.
 - Vercel untuk hosting
 
 ## Cara menjalankan
@@ -78,11 +75,16 @@ scripts/olah-kejadian.ts  pengolah riwayat kejadian, sekaligus pemotong alamat
 scripts/verifikasi-dampak.ts  pemeriksa hasil olahan
 public/data/              JSON untuk aplikasi
 public/geo/               batas wilayah, sudah ditempeli kode BPS
-public/fonts/             Newsreader dan Public Sans, disimpan sendiri
+public/fonts/             DM Sans, satu variable font, disimpan sendiri
 src/lib/data.ts           tipe, pemuat, dan skala warna
-src/App.tsx               halaman peta
-src/components/RiwayatJatim.tsx  halaman riwayat kejadian
-src/components/Tentang.tsx       halaman tentang dan sumber data
+src/App.css               token warna, jarak, bayangan, dan gaya komponen
+src/App.tsx               kerangka halaman dan peralihan antarhalaman
+src/components/           satu berkas per halaman: BilahAtas, KendaliKiri,
+                          PanelRingkasan, PanelDetail, DaftarWilayah,
+                          RiwayatJatim, DetailKejadian, LaporanWarga,
+                          TransparansiBantuan, Tentang, Moderator,
+                          BandingkanWilayah, PonselRingkasan, PonselDetail
+src/assets/icons/         ikon Lucide yang dipakai antarmuka
 ```
 
 ## Sumber data
