@@ -1,12 +1,19 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import arrowLeftSvg from "../assets/icons/arrow-left.svg";
+import {
+  ambilSesiPelapor,
+  masukPelapor,
+  daftarPelapor,
+  keluarPelapor,
+  kirimLaporanKeServer,
+  periksaStatusLaporan,
+  buatKodeRujukan,
+  type ItemLaporan,
+  type PenggunaPelapor,
+} from "../lib/layananLaporan";
+import { apakahSupabaseAktif } from "../lib/supabase";
 
-export interface PenggunaPelapor {
-  nama: string;
-  email: string;
-  telepon: string;
-  instansi?: string;
-}
+export type { PenggunaPelapor };
 
 interface Props {
   subHalamanAwal?: "beranda" | "masuk" | "kirim" | "status";
@@ -22,15 +29,8 @@ export default function LaporanWarga({
   );
 
   // Sesi Pengguna Pelapor (Auth State)
-  const [pengguna, setPengguna] = useState<PenggunaPelapor | null>(() => {
-    try {
-      const saved = localStorage.getItem("lentera_pelapor");
-      if (saved) return JSON.parse(saved);
-    } catch {
-      // ignore
-    }
-    return null;
-  });
+  const [pengguna, setPengguna] = useState<PenggunaPelapor | null>(null);
+  const [memuatSesi, setMemuatSesi] = useState(true);
   const [tabAuth, setTabAuth] = useState<"masuk" | "daftar">("masuk");
 
   // Form Auth Input
@@ -38,6 +38,8 @@ export default function LaporanWarga({
   const [authPassword, setAuthPassword] = useState("••••••••••••");
   const [authNama, setAuthNama] = useState("Muhammad Bagas Farshaldy");
   const [authTelepon, setAuthTelepon] = useState("0812-3456-7890");
+  const [galatAuth, setGalatAuth] = useState<string | null>(null);
+  const [sedangAuth, setSedangAuth] = useState(false);
 
   // State Formulir Laporan
   const [jenisKejadian, setJenisKejadian] = useState("Tanah longsor");
@@ -49,7 +51,17 @@ export default function LaporanWarga({
     "Tanah menutup jalan desa sepanjang sekitar 30 meter. Tidak ada korban jiwa, satu rumah terdampak."
   );
   const [setuju, setSetuju] = useState(true);
+  const [berkasFoto, setBerkasFoto] = useState<File | null>(null);
+  const [pratinjauFoto, setPratinjauFoto] = useState<string | null>(null);
+  const [sedangKirim, setSedangKirim] = useState(false);
+  const [galatKirim, setGalatKirim] = useState<string | null>(null);
+  const inputBerkasRef = useRef<HTMLInputElement | null>(null);
+
+  // State Halaman Status
   const [kodeInput, setKodeInput] = useState("LNT-8F2K-4Q9D");
+  const [laporanDitemukan, setLaporanDitemukan] = useState<ItemLaporan | null>(null);
+  const [sedangCekStatus, setSedangCekStatus] = useState(false);
+  const [statusDicari, setStatusDicari] = useState(false);
 
   const daftarJenis = [
     "Banjir",
@@ -59,66 +71,128 @@ export default function LaporanWarga({
     "Lainnya",
   ];
 
-  function simpanSesi(data: PenggunaPelapor) {
-    setPengguna(data);
-    try {
-      localStorage.setItem("lentera_pelapor", JSON.stringify(data));
-    } catch {
-      // ignore
-    }
-  }
-
-  function handleKeluar() {
-    setPengguna(null);
-    try {
-      localStorage.removeItem("lentera_pelapor");
-    } catch {
-      // ignore
-    }
-  }
-
-  function handleMasuk(e: React.FormEvent) {
-    e.preventDefault();
-    const data: PenggunaPelapor = {
-      nama: authNama.trim() || "Muhammad Bagas Farshaldy",
-      email: authEmail.trim() || "farshaldybagas@gmail.com",
-      telepon: authTelepon.trim() || "0812-3456-7890",
-      instansi: "Warga Terverifikasi",
+  // Muat sesi pengguna saat komponen dimuat
+  useEffect(() => {
+    let batal = false;
+    ambilSesiPelapor().then((sesi) => {
+      if (!batal) {
+        setPengguna(sesi);
+        setMemuatSesi(false);
+      }
+    });
+    return () => {
+      batal = true;
     };
-    simpanSesi(data);
-    setTampilan("kirim");
+  }, []);
+
+  const handleCariStatus = useCallback(async (targetKode?: string) => {
+    const kodeCari = (targetKode || kodeInput).trim();
+    if (!kodeCari) return;
+
+    setSedangCekStatus(true);
+    setStatusDicari(true);
+    try {
+      const data = await periksaStatusLaporan(kodeCari);
+      setLaporanDitemukan(data);
+    } finally {
+      setSedangCekStatus(false);
+    }
+  }, [kodeInput]);
+
+  // Periksa status otomatis jika membuka halaman status
+  useEffect(() => {
+    let aktif = true;
+    if (tampilan === "status" && kodeInput.trim()) {
+      queueMicrotask(() => {
+        if (aktif) setSedangCekStatus(true);
+      });
+      periksaStatusLaporan(kodeInput)
+        .then((data) => {
+          if (aktif) {
+            setLaporanDitemukan(data);
+            setStatusDicari(true);
+          }
+        })
+        .finally(() => {
+          if (aktif) {
+            setSedangCekStatus(false);
+          }
+        });
+    }
+    return () => {
+      aktif = false;
+    };
+  }, [tampilan, kodeInput]);
+
+  async function handleKeluar() {
+    await keluarPelapor();
+    setPengguna(null);
   }
 
-  function handleKirimLaporan(e: React.FormEvent) {
+  async function handleMasuk(e: React.FormEvent) {
     e.preventDefault();
-    const kodeBaru = kodeInput || `LNT-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-    setKodeInput(kodeBaru);
-
-    // Simpan ke antrean laporan tersinkronisasi
+    setSedangAuth(true);
+    setGalatAuth(null);
     try {
-      const existingStr = localStorage.getItem("lentera_laporan_tambahan");
-      const list = existingStr ? JSON.parse(existingStr) : [];
-      list.unshift({
-        kode: kodeBaru,
-        dikirim: "Baru saja",
-        wilayah: kabupaten,
-        desa: kecamatan,
-        jenis: jenisKejadian,
-        status: "Butuh verifikasi",
-        moderator: "Belum ditinjau",
-        deskripsi: deskripsi,
-        catatanModerator: "Laporan baru masuk, menunggu verifikasi awal dari moderator.",
-        tanggalKejadian: tanggal,
-        pelapor: pengguna?.nama || "Muhammad Bagas Farshaldy",
-        kontak: pengguna?.telepon || "0812-3456-7890",
-        email: pengguna?.email || "farshaldybagas@gmail.com",
-      });
-      localStorage.setItem("lentera_laporan_tambahan", JSON.stringify(list));
-    } catch {
-      // ignore
+      if (tabAuth === "masuk") {
+        const res = await masukPelapor(authEmail, authPassword);
+        setPengguna(res);
+      } else {
+        const res = await daftarPelapor(authNama, authEmail, authPassword, authTelepon);
+        setPengguna(res);
+      }
+      setTampilan("kirim");
+    } catch (err) {
+      setGalatAuth(err instanceof Error ? err.message : "Gagal memproses autentikasi");
+    } finally {
+      setSedangAuth(false);
     }
+  }
 
-    setTampilan("status");
+  function handlePilihBerkas(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) {
+      setBerkasFoto(file);
+      const url = URL.createObjectURL(file);
+      setPratinjauFoto(url);
+    }
+  }
+
+  async function handleKirimLaporan(e: React.FormEvent) {
+    e.preventDefault();
+    setSedangKirim(true);
+    setGalatKirim(null);
+
+    const kodeBaru = buatKodeRujukan();
+
+    try {
+      const hasil = await kirimLaporanKeServer(
+        {
+          jenis: jenisKejadian,
+          wilayah: kabupaten,
+          desa: kecamatan,
+          tanggalKejadian: tanggal,
+          dampak: dampak,
+          deskripsi: deskripsi,
+          pelapor: pengguna?.nama || "Muhammad Bagas Farshaldy",
+          kontak: pengguna?.telepon || "0812-3456-7890",
+          email: pengguna?.email || "farshaldybagas@gmail.com",
+          kodeKustom: kodeBaru,
+        },
+        berkasFoto || undefined
+      );
+
+      setKodeInput(hasil.kode);
+      setLaporanDitemukan(hasil);
+      setStatusDicari(true);
+      setBerkasFoto(null);
+      setPratinjauFoto(null);
+      setTampilan("status");
+    } catch (err) {
+      setGalatKirim(err instanceof Error ? err.message : "Gagal mengirim laporan");
+    } finally {
+      setSedangKirim(false);
+    }
   }
 
   function mulaiLapor() {
@@ -153,6 +227,26 @@ export default function LaporanWarga({
               Laporan warga tidak dicampur dengan data resmi. Setiap laporan diverifikasi oleh moderator dan terikat pada akun pelapor yang sah agar data dapat dipertanggungjawabkan.
             </p>
 
+            {/* Indikator Penyimpanan Backend */}
+            <div style={{ marginBottom: 16 }}>
+              <span
+                className="badge-lapisan"
+                style={{
+                  background: apakahSupabaseAktif ? "#e6f4ea" : "#fef3c7",
+                  color: apakahSupabaseAktif ? "#137333" : "#92400e",
+                  border: `1px solid ${apakahSupabaseAktif ? "#a8dab5" : "#fcd34d"}`,
+                  fontSize: "11px",
+                  padding: "4px 8px",
+                  borderRadius: "4px",
+                  fontWeight: 600,
+                }}
+              >
+                {apakahSupabaseAktif
+                  ? "● Cloud Database Aktif (Supabase)"
+                  : "○ Mode Lokal Terisolasi (LocalStorage)"}
+              </span>
+            </div>
+
             {/* Banner Peringatan Bukan Kanal Darurat */}
             <div className="banner-peringatan-darurat">
               <span className="ikon-tanda-seru" aria-hidden="true">!</span>
@@ -162,7 +256,7 @@ export default function LaporanWarga({
             </div>
 
             {/* Status Akun bila sudah login */}
-            {pengguna && (
+            {!memuatSesi && pengguna && (
               <div className="kartu-sesi-pengguna">
                 <span className="badge-lapisan resmi">Sesi Aktif</span>
                 <p className="teks-sesi-aktif">
@@ -239,7 +333,10 @@ export default function LaporanWarga({
                 <button
                   type="button"
                   className="tombol-aksi-sekunder"
-                  onClick={() => setTampilan("status")}
+                  onClick={() => {
+                    handleCariStatus(kodeInput);
+                    setTampilan("status");
+                  }}
                 >
                   Periksa
                 </button>
@@ -290,7 +387,10 @@ export default function LaporanWarga({
                     role="tab"
                     aria-selected={tabAuth === "masuk"}
                     className={`tab-auth-item ${tabAuth === "masuk" ? "aktif" : ""}`}
-                    onClick={() => setTabAuth("masuk")}
+                    onClick={() => {
+                      setTabAuth("masuk");
+                      setGalatAuth(null);
+                    }}
                   >
                     Masuk (Sign in)
                   </button>
@@ -299,11 +399,29 @@ export default function LaporanWarga({
                     role="tab"
                     aria-selected={tabAuth === "daftar"}
                     className={`tab-auth-item ${tabAuth === "daftar" ? "aktif" : ""}`}
-                    onClick={() => setTabAuth("daftar")}
+                    onClick={() => {
+                      setTabAuth("daftar");
+                      setGalatAuth(null);
+                    }}
                   >
                     Daftar akun baru
                   </button>
                 </div>
+
+                {galatAuth && (
+                  <div
+                    style={{
+                      background: "#fee2e2",
+                      color: "#991b1b",
+                      padding: "10px 14px",
+                      borderRadius: 6,
+                      fontSize: 13,
+                      marginBottom: 16,
+                    }}
+                  >
+                    {galatAuth}
+                  </div>
+                )}
 
                 <form onSubmit={handleMasuk} className="form-isi-auth">
                   {tabAuth === "daftar" && (
@@ -325,15 +443,15 @@ export default function LaporanWarga({
 
                   <div className="kelompok-form">
                     <label htmlFor="auth-email-input" className="label-input-kapital">
-                      EMAIL ATAU NOMOR WHATSAPP
+                      EMAIL PELAPOR
                     </label>
                     <input
                       id="auth-email-input"
-                      type="text"
+                      type="email"
                       className="input-standar"
                       value={authEmail}
                       onChange={(e) => setAuthEmail(e.target.value)}
-                      placeholder="nama@email.com atau 08123456789"
+                      placeholder="nama@email.com"
                       required
                     />
                   </div>
@@ -365,6 +483,7 @@ export default function LaporanWarga({
                       className="input-standar"
                       value={authPassword}
                       onChange={(e) => setAuthPassword(e.target.value)}
+                      placeholder="Minimal 6 karakter"
                       required
                     />
                   </div>
@@ -379,31 +498,43 @@ export default function LaporanWarga({
                     )}
                   </div>
 
-                  <button type="submit" className="tombol-aksi-utama tombol-panjang">
-                    {tabAuth === "masuk"
+                  <button
+                    type="submit"
+                    className="tombol-aksi-utama tombol-panjang"
+                    disabled={sedangAuth}
+                  >
+                    {sedangAuth
+                      ? "Memproses..."
+                      : tabAuth === "masuk"
                       ? "Masuk dan Lanjutkan Lapor"
                       : "Daftar dan Lanjutkan Lapor"}
                   </button>
 
                   <div className="pemisah-auth-garis">
-                    <span>— atau lanjutkan dengan —</span>
+                    <span>— atau gunakan sesi simulasi cepat —</span>
                   </div>
 
                   <button
                     type="button"
                     className="tombol-aksi-sekunder tombol-panjang"
                     onClick={() => {
-                      const dataGoogle: PenggunaPelapor = {
-                        nama: "Muhammad Bagas Farshaldy",
-                        email: "farshaldybagas@gmail.com",
-                        telepon: "0812-3456-7890",
-                        instansi: "Akun Google Terverifikasi",
+                      const dataDemo: PenggunaPelapor = {
+                        nama: authNama.trim() || "Muhammad Bagas Farshaldy",
+                        email: authEmail.trim() || "farshaldybagas@gmail.com",
+                        telepon: authTelepon.trim() || "0812-3456-7890",
+                        instansi: "Warga Terverifikasi",
+                        role: "warga",
                       };
-                      simpanSesi(dataGoogle);
+                      setPengguna(dataDemo);
+                      try {
+                        localStorage.setItem("lentera_pelapor", JSON.stringify(dataDemo));
+                      } catch {
+                        // abaikan
+                      }
                       setTampilan("kirim");
                     }}
                   >
-                    Masuk dengan Akun Google
+                    Masuk Cepat sebagai Pelapor Terverifikasi
                   </button>
                 </form>
               </div>
@@ -481,6 +612,21 @@ export default function LaporanWarga({
                 Ganti Akun
               </button>
             </div>
+
+            {galatKirim && (
+              <div
+                style={{
+                  background: "#fee2e2",
+                  color: "#991b1b",
+                  padding: "10px 14px",
+                  borderRadius: 6,
+                  fontSize: 13,
+                  marginBottom: 16,
+                }}
+              >
+                {galatKirim}
+              </div>
+            )}
 
             <div className="grid-formulir-dan-sidebar">
               {/* Kolom Kiri: Formulir */}
@@ -576,10 +722,46 @@ export default function LaporanWarga({
                   />
                 </div>
 
+                {/* Bukti Foto Input */}
                 <div className="kelompok-form">
                   <label className="label-input-kapital">BUKTI FOTO</label>
-                  <div className="area-unggah-berkas">
-                    <p className="teks-unggah">Tarik foto ke sini atau pilih berkas</p>
+                  <input
+                    type="file"
+                    ref={inputBerkasRef}
+                    accept="image/*"
+                    style={{ display: "none" }}
+                    onChange={handlePilihBerkas}
+                  />
+                  <div
+                    className="area-unggah-berkas"
+                    onClick={() => inputBerkasRef.current?.click()}
+                  >
+                    {berkasFoto ? (
+                      <div>
+                        <p className="teks-unggah" style={{ fontWeight: 600, color: "var(--warna-tinta)" }}>
+                          ✓ {berkasFoto.name} ({(berkasFoto.size / 1024).toFixed(1)} KB)
+                        </p>
+                        <p className="teks-unggah" style={{ fontSize: 11, marginTop: 4 }}>
+                          Klik untuk ganti berkas
+                        </p>
+                        {pratinjauFoto && (
+                          <img
+                            src={pratinjauFoto}
+                            alt="Pratinjau foto"
+                            style={{
+                              maxHeight: 120,
+                              borderRadius: 4,
+                              marginTop: 10,
+                              border: "1px solid var(--warna-garis)",
+                            }}
+                          />
+                        )}
+                      </div>
+                    ) : (
+                      <p className="teks-unggah">
+                        Tarik foto ke sini atau klik untuk memilih berkas gambar
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -598,8 +780,12 @@ export default function LaporanWarga({
                 </div>
 
                 <div className="baris-tombol-formulir">
-                  <button type="submit" className="tombol-aksi-utama">
-                    Kirim laporan
+                  <button
+                    type="submit"
+                    className="tombol-aksi-utama"
+                    disabled={sedangKirim}
+                  >
+                    {sedangKirim ? "Mengirim laporan..." : "Kirim laporan"}
                   </button>
                   <button
                     type="button"
@@ -688,9 +874,10 @@ export default function LaporanWarga({
                     <button
                       type="button"
                       className="tombol-aksi-utama tombol-cek-status"
-                      onClick={() => setKodeInput(kodeInput || "LNT-8F2K-4Q9D")}
+                      onClick={() => handleCariStatus(kodeInput)}
+                      disabled={sedangCekStatus}
                     >
-                      Periksa status
+                      {sedangCekStatus ? "Memeriksa..." : "Periksa status"}
                     </button>
                   </div>
                   <p className="catatan-kode-karakter">
@@ -699,63 +886,144 @@ export default function LaporanWarga({
                 </div>
 
                 {/* Hasil Status Timeline */}
-                <div className="kartu-hasil-status" data-name="Hasil status">
-                  <div className="kepala-hasil-status">
-                    <div>
-                      <h2 className="judul-laporan-kode">Laporan {kodeInput || "LNT-8F2K-4Q9D"}</h2>
-                      <p className="subjudul-laporan-waktu">
-                        Dikirim 12 November 2025, 09.14 WIB · Probolinggo Kabupaten
+                {laporanDitemukan ? (
+                  <div className="kartu-hasil-status" data-name="Hasil status">
+                    <div className="kepala-hasil-status">
+                      <div>
+                        <h2 className="judul-laporan-kode">Laporan {laporanDitemukan.kode}</h2>
+                        <p className="subjudul-laporan-waktu">
+                          Dikirim {laporanDitemukan.dikirim} WIB · {laporanDitemukan.wilayah}
+                          {laporanDitemukan.desa ? `, ${laporanDitemukan.desa}` : ""}
+                        </p>
+                      </div>
+                      <span className="badge-lapisan resmi">
+                        Pelapor: {laporanDitemukan.pelapor}
+                      </span>
+                    </div>
+
+                    <div style={{ marginTop: 12, marginBottom: 16 }}>
+                      <p style={{ fontSize: "13.5px", color: "var(--warna-tinta)" }}>
+                        <strong>Kejadian:</strong> {laporanDitemukan.jenis} — {laporanDitemukan.deskripsi}
                       </p>
+                      {laporanDitemukan.fotoUrl && (
+                        <div style={{ marginTop: 10 }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: "var(--warna-redup)" }}>
+                            BUKTI FOTO TERLAMPIR:
+                          </span>
+                          <img
+                            src={laporanDitemukan.fotoUrl}
+                            alt="Bukti foto laporan"
+                            style={{
+                              display: "block",
+                              maxHeight: 180,
+                              borderRadius: 4,
+                              marginTop: 6,
+                              border: "1px solid var(--warna-garis)",
+                            }}
+                          />
+                        </div>
+                      )}
                     </div>
-                    <span className="badge-lapisan resmi">
-                      Pelapor: {pengguna?.nama || "Muhammad Bagas Farshaldy"}
-                    </span>
+
+                    <div className="timeline-status-laporan">
+                      {/* Tahap 1: Diterima */}
+                      <div className="item-timeline-status selesai">
+                        <div className="dot-timeline-status" />
+                        <div className="konten-timeline-status">
+                          <div className="kepala-status-timeline">
+                            <span className="label-tahap-status">DITERIMA</span>
+                            <span className="waktu-tahap-status">{laporanDitemukan.dikirim}</span>
+                          </div>
+                          <p className="deskripsi-tahap-status">
+                            Laporan tercatat dan terikat dengan akun pelapor terverifikasi.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Tahap 2: Moderasi */}
+                      <div
+                        className={`item-timeline-status ${
+                          laporanDitemukan.status === "Butuh verifikasi"
+                            ? "aktif-butuh"
+                            : laporanDitemukan.status === "Menunggu"
+                            ? "pending"
+                            : "selesai"
+                        }`}
+                      >
+                        <div className="dot-timeline-status" />
+                        <div className="konten-timeline-status">
+                          <div className="kepala-status-timeline">
+                            <span className="label-tahap-status">
+                              {laporanDitemukan.status.toUpperCase()}
+                            </span>
+                            <span className="waktu-tahap-status">
+                              Moderator: {laporanDitemukan.moderator}
+                            </span>
+                          </div>
+                          <p className="deskripsi-tahap-status">
+                            {laporanDitemukan.catatanModerator}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Tahap 3: Hasil Publikasi */}
+                      <div
+                        className={`item-timeline-status ${
+                          laporanDitemukan.status === "Diterbitkan"
+                            ? "selesai"
+                            : laporanDitemukan.status === "Ditolak"
+                            ? "aktif-butuh"
+                            : "pending"
+                        }`}
+                      >
+                        <div className="dot-timeline-status" />
+                        <div className="konten-timeline-status">
+                          <div className="kepala-status-timeline">
+                            <span
+                              className={`label-tahap-status ${
+                                laporanDitemukan.status === "Diterbitkan" ||
+                                laporanDitemukan.status === "Ditolak"
+                                  ? ""
+                                  : "redup"
+                              }`}
+                            >
+                              {laporanDitemukan.status === "Diterbitkan"
+                                ? "DITERBITKAN KE PETA"
+                                : laporanDitemukan.status === "Ditolak"
+                                ? "LAPORAN DITOLAK"
+                                : "PENERBITAN"}
+                            </span>
+                            <span className="waktu-tahap-status redup">
+                              {laporanDitemukan.status === "Diterbitkan"
+                                ? "Aktif"
+                                : "—"}
+                            </span>
+                          </div>
+                          <p
+                            className={`deskripsi-tahap-status ${
+                              laporanDitemukan.status === "Diterbitkan" ||
+                              laporanDitemukan.status === "Ditolak"
+                                ? ""
+                                : "redup"
+                            }`}
+                          >
+                            {laporanDitemukan.status === "Diterbitkan"
+                              ? "Laporan telah disetujui dan ditayangkan sebagai lapisan laporan warga di Lentera."
+                              : laporanDitemukan.status === "Ditolak"
+                              ? "Laporan diarsipkan dan tidak diterbitkan ke peta publik."
+                              : "Status penayangan ke peta publik muncul setelah verifikasi tuntas."}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-
-                  <div className="timeline-status-laporan">
-                    {/* Tahap 1: Diterima */}
-                    <div className="item-timeline-status selesai">
-                      <div className="dot-timeline-status" />
-                      <div className="konten-timeline-status">
-                        <div className="kepala-status-timeline">
-                          <span className="label-tahap-status">DITERIMA</span>
-                          <span className="waktu-tahap-status">12 November 2025, 09.14</span>
-                        </div>
-                        <p className="deskripsi-tahap-status">
-                          Laporan tercatat dan terikat dengan akun pelapor terverifikasi.
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Tahap 2: Butuh Verifikasi */}
-                    <div className="item-timeline-status aktif-butuh">
-                      <div className="dot-timeline-status" />
-                      <div className="konten-timeline-status">
-                        <div className="kepala-status-timeline">
-                          <span className="label-tahap-status">BUTUH VERIFIKASI</span>
-                          <span className="waktu-tahap-status">12 November 2025, 14.02</span>
-                        </div>
-                        <p className="deskripsi-tahap-status">
-                          Moderator meminta foto lokasi yang lebih jelas dari pelapor.
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Tahap 3: Menunggu */}
-                    <div className="item-timeline-status pending">
-                      <div className="dot-timeline-status" />
-                      <div className="konten-timeline-status">
-                        <div className="kepala-status-timeline">
-                          <span className="label-tahap-status redup">MENUNGGU</span>
-                          <span className="waktu-tahap-status redup">—</span>
-                        </div>
-                        <p className="deskripsi-tahap-status redup">
-                          Status berikutnya muncul setelah bukti tambahan diperiksa.
-                        </p>
-                      </div>
-                    </div>
+                ) : statusDicari ? (
+                  <div className="kartu-hasil-status">
+                    <p style={{ color: "#b91c1c", margin: 0, fontSize: "14px" }}>
+                      Laporan dengan kode <strong>{kodeInput}</strong> tidak ditemukan. Pastikan format penulisan sesuai (misalnya: <code>LNT-8F2K-4Q9D</code>).
+                    </p>
                   </div>
-                </div>
+                ) : null}
               </div>
 
               {/* Kolom Kanan: Catatan Kode Rujukan */}
@@ -777,12 +1045,19 @@ export default function LaporanWarga({
                     </li>
                     <li>
                       <span className="titik-simbol">•</span>
-                      <span>Status Ditolak selalu disertai alasan tertulis dari tim verifikasi.</span>
+                      <span>Pemeriksaan berkas foto berlangsung maksimal 1×24 jam kerja.</span>
                     </li>
                   </ul>
-                  <div className="badge-wrapper-privasi">
-                    <span className="badge-lapisan warga">Laporan warga</span>
-                  </div>
+                </section>
+
+                <section className="kartu-panduan-laporan" data-name="Kanal darurat">
+                  <h2 className="judul-seksi-kartu">Butuh pertolongan darurat?</h2>
+                  <p className="teks-privasi-laporan">
+                    Lentera tidak memiliki unit tanggap darurat lapangan. Hubungi kontak darurat daerah:
+                  </p>
+                  <p className="teks-nomor-darurat">
+                    <strong>112</strong> (Panggilan Darurat Bebas Pulsa)
+                  </p>
                 </section>
               </div>
             </div>

@@ -25,3 +25,9 @@ dist-ssr
 
 # Unduhan mentah data dampak, hasil olahannya ada di public/data
 .cache
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+

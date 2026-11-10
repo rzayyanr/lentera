@@ -1,164 +1,52 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import arrowLeftSvg from "../assets/icons/arrow-left.svg";
-
-interface ItemAntrean {
-  kode: string;
-  dikirim: string;
-  wilayah: string;
-  desa: string;
-  jenis: string;
-  status: "Menunggu" | "Butuh verifikasi" | "Diterbitkan" | "Ditolak";
-  moderator: string;
-  deskripsi: string;
-  catatanModerator: string;
-  tanggalKejadian: string;
-  pelapor: string;
-  kontak: string;
-  email: string;
-}
-
-const DATA_AWAL_ANTEAN: ItemAntrean[] = [
-  {
-    kode: "LNT-8F2K-4Q9D",
-    dikirim: "12 Nov 2025, 09.14",
-    wilayah: "Probolinggo Kabupaten",
-    desa: "Kel./Ds. Kedasih, Kec. Sukapura",
-    jenis: "Tanah longsor",
-    status: "Butuh verifikasi",
-    moderator: "Belum ditinjau",
-    deskripsi:
-      "Tanah menutup jalan desa sepanjang sekitar 30 meter. Tidak ada korban jiwa, satu rumah terdampak. Akses dari arah utara tidak bisa dilewati.",
-    catatanModerator:
-      "Foto belum menunjukkan titik lokasi yang jelas. Minta pelapor mengunggah foto dengan penanda jalan.",
-    tanggalKejadian: "31 Desember 2025",
-    pelapor: "Muhammad Bagas Farshaldy",
-    kontak: "0812-3456-7890",
-    email: "farshaldybagas@gmail.com",
-  },
-  {
-    kode: "LNT-3M7P-1XCV",
-    dikirim: "12 Nov 2025, 08.02",
-    wilayah: "Lumajang Kabupaten",
-    desa: "Kec. Pronojiwo",
-    jenis: "Banjir",
-    status: "Diterbitkan",
-    moderator: "Raka",
-    deskripsi: "Genangan air setinggi 40 cm di permukiman RT 02.",
-    catatanModerator: "Laporan terverifikasi lewat kontak posko.",
-    tanggalKejadian: "12 November 2025",
-    pelapor: "Ahmad Fauzi",
-    kontak: "0813-8821-4455",
-    email: "fauzi.relawan@gmail.com",
-  },
-  {
-    kode: "LNT-9Q4T-6BNM",
-    dikirim: "11 Nov 2025, 21.40",
-    wilayah: "Pasuruan Kabupaten",
-    desa: "Kec. Grati",
-    jenis: "Angin kencang",
-    status: "Menunggu",
-    moderator: "—",
-    deskripsi: "Atap beberapa kios pasar terbawa angin saat hujan deras.",
-    catatanModerator: "Menunggu pemeriksaan berkas foto.",
-    tanggalKejadian: "11 November 2025",
-    pelapor: "Dewi Lestari",
-    kontak: "0857-1902-8831",
-    email: "dewilestari@yahoo.com",
-  },
-  {
-    kode: "LNT-2W8K-5JHD",
-    dikirim: "11 Nov 2025, 17.11",
-    wilayah: "Malang Kota",
-    desa: "Kec. Klojen",
-    jenis: "Gempa",
-    status: "Menunggu",
-    moderator: "—",
-    deskripsi: "Getaran terasa kuat sekitar 5 detik, tidak ada retakan bangunan.",
-    catatanModerator: "Menunggu data konfirmasi BMKG.",
-    tanggalKejadian: "11 November 2025",
-    pelapor: "Budi Santoso",
-    kontak: "0821-7765-1290",
-    email: "budi.malang@gmail.com",
-  },
-  {
-    kode: "LNT-7C1V-3RTY",
-    dikirim: "11 Nov 2025, 11.25",
-    wilayah: "Sidoarjo Kabupaten",
-    desa: "Kec. Porong",
-    jenis: "Banjir",
-    status: "Ditolak",
-    moderator: "Nadia",
-    deskripsi: "Foto yang dilampirkan adalah dokumentasi banjir tahun 2021.",
-    catatanModerator: "Foto tidak sesuai waktu kejadian (duplikasi lama).",
-    tanggalKejadian: "10 November 2025",
-    pelapor: "Rian Hidayat",
-    kontak: "0896-4432-8811",
-    email: "rian.hid@outlook.com",
-  },
-  {
-    kode: "LNT-5B6N-8KLP",
-    dikirim: "10 Nov 2025, 19.03",
-    wilayah: "Gresik Kabupaten",
-    desa: "Kec. Manyar",
-    jenis: "Kebakaran",
-    status: "Diterbitkan",
-    moderator: "Raka",
-    deskripsi: "Kebakaran ilalang dekat kawasan industri, sudah ditangani damkar.",
-    catatanModerator: "Terverifikasi dengan rilis damkar setempat.",
-    tanggalKejadian: "10 November 2025",
-    pelapor: "Siti Rahmawati",
-    kontak: "0812-9988-7766",
-    email: "siti.rahma@gmail.com",
-  },
-  {
-    kode: "LNT-4H2S-9WQE",
-    dikirim: "10 Nov 2025, 15.48",
-    wilayah: "Jember Kabupaten",
-    desa: "Kec. Silo",
-    jenis: "Tanah longsor",
-    status: "Butuh verifikasi",
-    moderator: "Nadia",
-    deskripsi: "Tebing jalan raya longsor menutup separuh lajur kendaraan.",
-    catatanModerator: "Perlu konfirmasi status pembukaan jalan.",
-    tanggalKejadian: "10 November 2025",
-    pelapor: "Hendra Kusuma",
-    kontak: "0878-1122-3344",
-    email: "hendra.ksm@gmail.com",
-  },
-];
+import {
+  ambilDaftarModerator,
+  perbaruiStatusLaporan,
+  type ItemLaporan as ItemAntrean,
+  DATA_AWAL_LAPORAN as DATA_AWAL_ANTEAN,
+} from "../lib/layananLaporan";
+import { apakahSupabaseAktif } from "../lib/supabase";
 
 export default function Moderator() {
   const [subHalaman, setSubHalaman] = useState<"daftar" | "detail">("daftar");
-  const [daftar, setDaftar] = useState<ItemAntrean[]>(() => {
-    try {
-      const extraStr = localStorage.getItem("lentera_laporan_tambahan");
-      if (extraStr) {
-        const extra: ItemAntrean[] = JSON.parse(extraStr);
-        return [...extra, ...DATA_AWAL_ANTEAN];
-      }
-    } catch {
-      // ignore
-    }
-    return DATA_AWAL_ANTEAN;
-  });
-  const [terpilih, setTerpilih] = useState<ItemAntrean>(() => {
-    try {
-      const extraStr = localStorage.getItem("lentera_laporan_tambahan");
-      if (extraStr) {
-        const extra: ItemAntrean[] = JSON.parse(extraStr);
-        if (extra[0]) return extra[0];
-      }
-    } catch {
-      // ignore
-    }
-    return DATA_AWAL_ANTEAN[0]!;
-  });
+  const [daftar, setDaftar] = useState<ItemAntrean[]>(DATA_AWAL_ANTEAN);
+  const [terpilih, setTerpilih] = useState<ItemAntrean>(DATA_AWAL_ANTEAN[0]!);
   const [kataKunci, setKataKunci] = useState("");
   const [saringStatus, setSaringStatus] = useState<string>("semua");
   const [statusDipilih, setStatusDipilih] = useState<
     "Diterima" | "Butuh verifikasi" | "Ditolak"
   >("Butuh verifikasi");
+  const [catatanInput, setCatatanInput] = useState("");
   const [pesanTersimpan, setPesanTersimpan] = useState(false);
+  const [sedangSimpan, setSedangSimpan] = useState(false);
+
+  useEffect(() => {
+    let batal = false;
+    ambilDaftarModerator().then((items) => {
+      if (!batal && items.length > 0) {
+        setDaftar(items);
+        const awal = items[0]!;
+        setTerpilih(awal);
+        setStatusDipilih(
+          awal.status === "Diterbitkan"
+            ? "Diterima"
+            : awal.status === "Ditolak"
+            ? "Ditolak"
+            : "Butuh verifikasi"
+        );
+        setCatatanInput(awal.catatanModerator || "");
+      }
+    });
+    return () => {
+      batal = true;
+    };
+  }, []);
+
+  const jumlahMenunggu = daftar.filter((i) => i.status === "Menunggu").length;
+  const jumlahButuh = daftar.filter((i) => i.status === "Butuh verifikasi").length;
+  const jumlahDiterbitkan = daftar.filter((i) => i.status === "Diterbitkan").length;
+  const jumlahDitolak = daftar.filter((i) => i.status === "Ditolak").length;
 
   const disaring = daftar.filter((item) => {
     if (saringStatus === "menunggu" && item.status !== "Menunggu") return false;
@@ -170,29 +58,58 @@ export default function Moderator() {
       return (
         item.kode.toLowerCase().includes(q) ||
         item.wilayah.toLowerCase().includes(q) ||
-        item.jenis.toLowerCase().includes(q)
+        item.jenis.toLowerCase().includes(q) ||
+        item.pelapor.toLowerCase().includes(q)
       );
     }
     return true;
   });
 
-  function handleSimpanKeputusan() {
-    const updatedStatus =
+  async function handleSimpanKeputusan() {
+    setSedangSimpan(true);
+    const updatedStatus: ItemAntrean["status"] =
       statusDipilih === "Diterima"
         ? "Diterbitkan"
         : statusDipilih === "Butuh verifikasi"
         ? "Butuh verifikasi"
         : "Ditolak";
 
-    setDaftar((prev) =>
-      prev.map((it) =>
-        it.kode === terpilih.kode
-          ? { ...it, status: updatedStatus as ItemAntrean["status"], moderator: "Nadia" }
-          : it
-      )
-    );
-    setPesanTersimpan(true);
-    setTimeout(() => setPesanTersimpan(false), 2500);
+    const catatanFinal =
+      catatanInput.trim() ||
+      (updatedStatus === "Diterbitkan"
+        ? "Laporan telah diverifikasi dan disetujui."
+        : updatedStatus === "Ditolak"
+        ? "Laporan tidak memenuhi kriteria verifikasi lapangan."
+        : "Menunggu bukti tambahan dari pelapor.");
+
+    try {
+      await perbaruiStatusLaporan(terpilih.kode, updatedStatus, catatanFinal, "Nadia");
+
+      setDaftar((prev) =>
+        prev.map((it) =>
+          it.kode === terpilih.kode
+            ? {
+                ...it,
+                status: updatedStatus,
+                moderator: "Nadia",
+                catatanModerator: catatanFinal,
+              }
+            : it
+        )
+      );
+
+      setTerpilih((prev) => ({
+        ...prev,
+        status: updatedStatus,
+        moderator: "Nadia",
+        catatanModerator: catatanFinal,
+      }));
+
+      setPesanTersimpan(true);
+      setTimeout(() => setPesanTersimpan(false), 2500);
+    } finally {
+      setSedangSimpan(false);
+    }
   }
 
   return (
@@ -212,6 +129,17 @@ export default function Moderator() {
             <div className="baris-badge-atas-tabel">
               <span className="badge-lapisan netral">Akses terbatas</span>
               <span className="badge-lapisan netral">Di luar navigasi warga</span>
+              <span
+                className="badge-lapisan"
+                style={{
+                  background: apakahSupabaseAktif ? "#e6f4ea" : "#fef3c7",
+                  color: apakahSupabaseAktif ? "#137333" : "#92400e",
+                  border: `1px solid ${apakahSupabaseAktif ? "#a8dab5" : "#fcd34d"}`,
+                  fontSize: "11px",
+                }}
+              >
+                {apakahSupabaseAktif ? "● Supabase Terkoneksi" : "○ Mode Penyimpanan Lokal"}
+              </span>
             </div>
 
             {/* Penyaring & Pencarian */}
@@ -219,7 +147,7 @@ export default function Moderator() {
               <div className="baris-penyaring-moderator">
                 <input
                   type="text"
-                  placeholder="Cari kode atau wilayah"
+                  placeholder="Cari kode, pelapor, atau wilayah"
                   className="input-cari-moderator"
                   value={kataKunci}
                   onChange={(e) => setKataKunci(e.target.value)}
@@ -232,35 +160,35 @@ export default function Moderator() {
                     className={`chip-filter-mod ${saringStatus === "semua" ? "aktif" : ""}`}
                     onClick={() => setSaringStatus("semua")}
                   >
-                    Semua 24
+                    Semua {daftar.length}
                   </button>
                   <button
                     type="button"
                     className={`chip-filter-mod ${saringStatus === "menunggu" ? "aktif" : ""}`}
                     onClick={() => setSaringStatus("menunggu")}
                   >
-                    Menunggu 12
+                    Menunggu {jumlahMenunggu}
                   </button>
                   <button
                     type="button"
                     className={`chip-filter-mod ${saringStatus === "butuh" ? "aktif" : ""}`}
                     onClick={() => setSaringStatus("butuh")}
                   >
-                    Butuh bukti 7
+                    Butuh bukti {jumlahButuh}
                   </button>
                   <button
                     type="button"
                     className={`chip-filter-mod ${saringStatus === "diterbitkan" ? "aktif" : ""}`}
                     onClick={() => setSaringStatus("diterbitkan")}
                   >
-                    Diterbitkan 4
+                    Diterbitkan {jumlahDiterbitkan}
                   </button>
                   <button
                     type="button"
                     className={`chip-filter-mod ${saringStatus === "ditolak" ? "aktif" : ""}`}
                     onClick={() => setSaringStatus("ditolak")}
                   >
-                    Ditolak 1
+                    Ditolak {jumlahDitolak}
                   </button>
                 </div>
               </div>
@@ -287,6 +215,14 @@ export default function Moderator() {
                         className="baris-dapat-diklik"
                         onClick={() => {
                           setTerpilih(item);
+                          setStatusDipilih(
+                            item.status === "Diterbitkan"
+                              ? "Diterima"
+                              : item.status === "Ditolak"
+                              ? "Ditolak"
+                              : "Butuh verifikasi"
+                          );
+                          setCatatanInput(item.catatanModerator || "");
                           setSubHalaman("detail");
                         }}
                       >
@@ -385,13 +321,31 @@ export default function Moderator() {
                     <p className="nilai-deskripsi-teks">{terpilih.deskripsi}</p>
                   </div>
 
-                  <div className="kotak-bukti-unggah" data-name="Bukti">
-                    <p>1 foto lokasi · 1.842 × 1.036 · diunggah 09.14 WIB</p>
-                  </div>
+                  {terpilih.fotoUrl ? (
+                    <div className="kotak-bukti-unggah" data-name="Bukti" style={{ textAlign: "left" }}>
+                      <p style={{ fontWeight: 600, marginBottom: 8 }}>Foto bukti dari pelapor:</p>
+                      <a href={terpilih.fotoUrl} target="_blank" rel="noreferrer">
+                        <img
+                          src={terpilih.fotoUrl}
+                          alt="Foto bukti dari pelapor"
+                          style={{
+                            maxWidth: "100%",
+                            maxHeight: 280,
+                            borderRadius: 4,
+                            border: "1px solid var(--warna-garis)",
+                          }}
+                        />
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="kotak-bukti-unggah" data-name="Bukti">
+                      <p>Tidak ada berkas foto yang dilampirkan oleh pelapor.</p>
+                    </div>
+                  )}
 
                   <div className="seksi-catatan-moderator">
                     <span className="label-field">
-                      Catatan moderator · 12 Nov 2025, 14.02
+                      Catatan moderator saat ini
                     </span>
                     <p className="nilai-catatan-teks">{terpilih.catatanModerator}</p>
                   </div>
@@ -449,12 +403,37 @@ export default function Moderator() {
                     </label>
                   </div>
 
+                  <div style={{ marginTop: 14, marginBottom: 14 }}>
+                    <label
+                      htmlFor="catatan-moderator-input"
+                      style={{
+                        display: "block",
+                        fontSize: 11,
+                        fontWeight: 700,
+                        letterSpacing: "0.05em",
+                        color: "var(--warna-tinta)",
+                        marginBottom: 6,
+                      }}
+                    >
+                      CATATAN / ALASAN MODERATOR
+                    </label>
+                    <textarea
+                      id="catatan-moderator-input"
+                      rows={3}
+                      className="textarea-standar"
+                      value={catatanInput}
+                      onChange={(e) => setCatatanInput(e.target.value)}
+                      placeholder="Tuliskan catatan tindak lanjut atau alasan penolakan..."
+                    />
+                  </div>
+
                   <button
                     type="button"
                     className="tombol-aksi-utama"
                     onClick={handleSimpanKeputusan}
+                    disabled={sedangSimpan}
                   >
-                    Simpan keputusan
+                    {sedangSimpan ? "Menyimpan..." : "Simpan keputusan"}
                   </button>
 
                   {pesanTersimpan && (
@@ -466,12 +445,11 @@ export default function Moderator() {
                   <h2 className="judul-seksi-kartu">Riwayat moderasi</h2>
                   <div className="daftar-riwayat-moderasi">
                     <div className="baris-riwayat-mod">
-                      <span className="waktu-mod">12 Nov 14.02</span>
-                      <span className="aksi-mod">Nadia · Butuh verifikasi</span>
-                    </div>
-                    <div className="baris-riwayat-mod">
-                      <span className="waktu-mod">12 Nov 09.20</span>
-                      <span className="aksi-mod">Sistem · Menunggu</span>
+                      <span className="waktu-mod">{terpilih.dikirim}</span>
+                      <span className="aksi-mod">
+                        {terpilih.moderator !== "Belum ditinjau" ? terpilih.moderator : "Sistem"} ·{" "}
+                        {terpilih.status}
+                      </span>
                     </div>
                   </div>
                 </section>
