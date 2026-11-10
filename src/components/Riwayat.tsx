@@ -17,6 +17,7 @@ import {
   cakupanProvinsi,
   dampakProvinsi,
   fmt,
+  jenisProvinsiUntuk,
   kejadianProvinsi,
   namaProvinsiRapi,
   type DataLentera,
@@ -72,6 +73,7 @@ export default function Riwayat({ siap, provAwal = "35", onPilihKejadian }: Prop
   );
   const maksBatang = Math.max(1, ...seriKejadian.map((item) => item.nilai));
   const jumlahKabupaten = siap?.perProvinsi.get(prov)?.length ?? 0;
+  const jenisProvinsi = siap ? jenisProvinsiUntuk(siap, prov) : null;
 
   const tabelDampak = useMemo(() => {
     if (!siap) return { kolom: [] as string[], baris: [] as Array<{ tahun: number; nilai: Array<number | null> }> };
@@ -241,6 +243,45 @@ export default function Riwayat({ siap, provAwal = "35", onPilihKejadian }: Prop
                   </tbody>
                 </table>
               </div>
+            </div>
+
+            <div className="kartu-tabel-riwayat" data-name="Jenis bencana provinsi">
+              <div className="riwayat-kartu-kepala">
+                <h2 className="riwayat-kartu-judul">Jenis bencana di {namaProvinsi}</h2>
+                <span className="riwayat-kartu-sumber">
+                  {jenisProvinsi
+                    ? `${jenisProvinsi.sumber}, ${jenisProvinsi.periode[0]}–${jenisProvinsi.periode[1]}`
+                    : "belum tersedia"}
+                </span>
+              </div>
+
+              {jenisProvinsi ? (
+                <ul className="daftar-jenis-provinsi">
+                  {jenisProvinsi.jenis.map((item) => (
+                    <li key={item.jenis} className="butir-jenis-provinsi">
+                      <div className="baris-jenis-atas">
+                        <span className="nama-jenis">{item.jenis}</span>
+                        <span className="nilai-jenis">{fmt(item.total)}</span>
+                      </div>
+                      <div className="rel-bar-proporsi">
+                        <div
+                          className="bar-proporsi-aksen"
+                          style={{
+                            width: `${Math.max(2, Math.round((item.total / jenisProvinsi.jenis[0].total) * 100))}%`,
+                          }}
+                        />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="catatan-jenis" style={{ padding: "0 20px 20px" }}>
+                  BNPB hanya menerbitkan sebaran jenis bencana pada tingkat nasional, bukan per
+                  provinsi. {namaProvinsi} juga belum menerbitkan log kejadian per tanggal, jadi
+                  sebaran jenisnya belum bisa dihitung. Angka nasionalnya ada di panel ringkasan
+                  pada halaman Peta.
+                </p>
+              )}
             </div>
 
             <p className="keterangan-bawah-riwayat">

@@ -1920,6 +1920,10 @@ body {
     overflow-x: auto;
   }
 
+  .daftar-jenis-provinsi {
+    grid-template-columns: 1fr;
+  }
+
   .toolbar-penyaring-daftar {
     height: auto;
     flex-direction: column;
@@ -3958,6 +3962,22 @@ body {
   :root {
     --lebar-panel: 320px;
   }
+}
+
+/* Daftar jenis bencana per provinsi di halaman riwayat */
+.daftar-jenis-provinsi {
+  list-style: none;
+  margin: 0;
+  padding: 4px 20px 20px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 24px;
+}
+
+.butir-jenis-provinsi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 /* Daftar jenis bencana di panel ringkasan */

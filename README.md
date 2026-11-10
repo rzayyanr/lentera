@@ -19,7 +19,7 @@ Tahap pengerjaan berjalan. Yang sudah berfungsi:
 - Tautan langsung per wilayah dan ukuran, misalnya `?kode=3507&ukuran=menderita`.
 - Legenda dengan ambang yang dihitung dari sebaran data, bukan angka karangan.
 - Wilayah yang tidak punya catatan digambar dengan pola garis miring, bukan dianggap nol.
-- Halaman Riwayat dengan pemilih 38 provinsi: ringkasan tahunan dari tabel agregat BNPB untuk semua provinsi, dan daftar kejadian per tanggal untuk provinsi yang menerbitkannya (sekarang Jawa Timur, 24.190 kejadian 2020-2025).
+- Halaman Riwayat dengan pemilih 38 provinsi: ringkasan tahunan dari tabel agregat BNPB untuk semua provinsi, daftar kejadian per tanggal untuk provinsi yang menerbitkannya (sekarang Jawa Timur, 24.190 kejadian 2020-2025), dan sebaran jenis bencana provinsi kalau tersedia.
 - Tabel cakupan 38 provinsi di halaman Tentang: mana yang punya rincian per kejadian, mana yang belum, dan apa alasannya.
 - Panel ringkasan nasional memuat sebaran 9 jenis bencana (banjir, cuaca ekstrem, kebakaran hutan dan lahan, tanah longsor, kekeringan, gelombang pasang, gempa, erupsi, tsunami) untuk tahun yang sedang dipilih.
 - Halaman Tentang dan sumber data, termasuk daftar selisih angka yang ditemukan saat pengolahan.
@@ -58,6 +58,7 @@ npm run dampak:unduh      # mengunduh 836 berkas dampak dari folder BNPB, lama
 npm run dampak:olah       # mengolah unduhan menjadi public/data/dampak.json
 npm run dampak:verifikasi # memeriksa hasil olahan sebelum dipakai
 npm run jenis:unduh      # mengambil jumlah kejadian per jenis bencana 2010-2024
+npm run jenis:provinsi   # menghitung sebaran jenis per provinsi dari log kejadian
 npm run build             # memeriksa tipe lalu membangun versi produksi
 npm run preview           # melihat hasil build
 ```
@@ -79,6 +80,7 @@ scripts/verifikasi-dampak.ts  pemeriksa hasil olahan
 public/data/              JSON untuk aplikasi
 public/data/cakupan-sumber.json  status rincian per kejadian tiap provinsi
 public/data/jenis-bencana.json   jumlah kejadian per jenis bencana, nasional
+public/data/jenis-provinsi.json  sebaran jenis per provinsi, dari log kejadian
 public/geo/               batas wilayah, sudah ditempeli kode BPS
 public/fonts/             DM Sans, satu variable font, disimpan sendiri
 src/lib/data.ts           tipe, pemuat, dan skala warna

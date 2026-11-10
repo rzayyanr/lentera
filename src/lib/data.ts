@@ -47,6 +47,7 @@ export interface DataLentera {
   dampak: Dampak;
   cakupan: Cakupan;
   jenisBencana: JenisBencana;
+  jenisProvinsi: JenisProvinsi;
   perKode: Map<string, Wilayah>;
   perProvinsi: Map<string, Wilayah[]>;
 }
@@ -56,6 +57,30 @@ export interface DataLentera {
  * Satu baris per jenis, satu angka per tahun. Tidak dipecah per kabupaten,
  * karena sumbernya hanya menerbitkan angka nasional.
  */
+/**
+ * Sebaran jenis bencana per provinsi, dihitung dari log kejadian per tanggal.
+ * Hanya ada untuk provinsi yang menerbitkan log seperti itu.
+ */
+export interface JenisProvinsi {
+  provinsi: Record<
+    string,
+    {
+      sumber: string;
+      url: string;
+      periode: [number, number];
+      jumlahKejadian: number;
+      tahun: number[];
+      jenis: Array<{
+        jenis: string;
+        total: number;
+        perTahun: Record<string, number>;
+        perKabupaten: Record<string, number>;
+      }>;
+    }
+  >;
+  catatan: string[];
+}
+
 export interface JenisBencana {
   tahun: number[];
   jenis: Array<{ jenis: string; nilai: number[] }>;
@@ -151,6 +176,15 @@ export async function muatData(): Promise<DataLentera> {
     cakupan = { diperiksa: "", catatan: [], provinsi: {} };
   }
 
+  // Berkas jenis per provinsi hanya ada untuk provinsi yang menerbitkan log
+  // kejadian, jadi kegagalan memuatnya bukan kesalahan.
+  let jenisProvinsi: JenisProvinsi;
+  try {
+    jenisProvinsi = await ambil<JenisProvinsi>("/data/jenis-provinsi.json");
+  } catch {
+    jenisProvinsi = { provinsi: {}, catatan: [] };
+  }
+
   // Berkas jenis bencana juga boleh gagal; tanpa berkas itu bagian jenis
   // bencana tidak ditampilkan.
   let jenisBencana: JenisBencana;
@@ -173,7 +207,7 @@ export async function muatData(): Promise<DataLentera> {
     perProvinsi.set(w.prov, daftar);
   }
 
-  return { meta, wilayah, provinsi, dampak, cakupan, jenisBencana, perKode, perProvinsi };
+  return { meta, wilayah, provinsi, dampak, cakupan, jenisBencana, jenisProvinsi, perKode, perProvinsi };
 }
 
 /** Cakupan rincian kejadian untuk satu kode provinsi. */
@@ -223,6 +257,11 @@ export function jenisPadaTahun(
   return data.jenisBencana.jenis
     .map((b) => ({ jenis: b.jenis, nilai: b.nilai[i] ?? 0 }))
     .sort((a, b) => b.nilai - a.nilai);
+}
+
+/** Sebaran jenis bencana satu provinsi, atau null kalau tidak diterbitkan. */
+export function jenisProvinsiUntuk(data: DataLentera, prov: string) {
+  return data.jenisProvinsi.provinsi[prov] ?? null;
 }
 
 /** Ringkasan jumlah provinsi menurut status cakupan. */
