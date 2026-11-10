@@ -269,7 +269,6 @@ export default function App() {
       m.remove();
       peta.current = null;
       lapisan.current = null;
-      lapisPerKode.current.clear();
     };
   }, [halaman]);
 
