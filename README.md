@@ -21,6 +21,7 @@ Tahap pengerjaan berjalan. Yang sudah berfungsi:
 - Wilayah yang tidak punya catatan digambar dengan pola garis miring, bukan dianggap nol.
 - Halaman Riwayat dengan pemilih 38 provinsi: ringkasan tahunan dari tabel agregat BNPB untuk semua provinsi, dan daftar kejadian per tanggal untuk provinsi yang menerbitkannya (sekarang Jawa Timur, 24.190 kejadian 2020-2025).
 - Tabel cakupan 38 provinsi di halaman Tentang: mana yang punya rincian per kejadian, mana yang belum, dan apa alasannya.
+- Panel ringkasan nasional memuat sebaran 9 jenis bencana (banjir, cuaca ekstrem, kebakaran hutan dan lahan, tanah longsor, kekeringan, gelombang pasang, gempa, erupsi, tsunami) untuk tahun yang sedang dipilih.
 - Halaman Tentang dan sumber data, termasuk daftar selisih angka yang ditemukan saat pengolahan.
 - Halaman Daftar wilayah, Detail kejadian, Bandingkan wilayah, Transparansi bantuan, dan Catatan komunitas.
 - Laporan warga: masuk atau daftar akun pelapor, formulir laporan, dan pelacakan status lewat kode rujukan.
@@ -56,6 +57,7 @@ npm run data              # menarik data agregat BNPB dan menyusun JSON
 npm run dampak:unduh      # mengunduh 836 berkas dampak dari folder BNPB, lama
 npm run dampak:olah       # mengolah unduhan menjadi public/data/dampak.json
 npm run dampak:verifikasi # memeriksa hasil olahan sebelum dipakai
+npm run jenis:unduh      # mengambil jumlah kejadian per jenis bencana 2010-2024
 npm run build             # memeriksa tipe lalu membangun versi produksi
 npm run preview           # melihat hasil build
 ```
@@ -76,6 +78,7 @@ scripts/olah-kejadian.ts  pengolah riwayat kejadian, sekaligus pemotong alamat
 scripts/verifikasi-dampak.ts  pemeriksa hasil olahan
 public/data/              JSON untuk aplikasi
 public/data/cakupan-sumber.json  status rincian per kejadian tiap provinsi
+public/data/jenis-bencana.json   jumlah kejadian per jenis bencana, nasional
 public/geo/               batas wilayah, sudah ditempeli kode BPS
 public/fonts/             DM Sans, satu variable font, disimpan sendiri
 src/lib/data.ts           tipe, pemuat, dan skala warna
@@ -93,6 +96,7 @@ src/assets/icons/         ikon Lucide yang dipakai antarmuka
 
 - Jumlah kejadian per kabupaten 2010 sampai 2024: [Data Bencana Indonesia, BNPB](https://data.bnpb.go.id/dataset/data-bencana-indonesia), lisensi ODC-BY.
 - Dampak per kabupaten 2002 sampai 2023: dataset "Jumlah kejadian dan Dampak Bencana Tahun &lt;tahun&gt;" di portal yang sama, berupa folder Google Drive berisi 38 berkas Excel per tahun.
+- Jumlah kejadian per jenis bencana, nasional 2010-2024: dataset "Jumlah Kejadian Bencana Menurut Jenis Bencana" di [portal data BNPB](https://data.bnpb.go.id/dataset/data-bencana-indonesia), dibaca lewat datastore CKAN.
 - Batas wilayah: [geoBoundaries](https://www.geoboundaries.org/), ADM2 Indonesia.
 - Riwayat kejadian per tanggal: hanya dari [SMARTPB BPBD Jawa Timur](https://smartpb.bpbd.jatimprov.go.id/). Provinsi lain tidak menerbitkan log kejadian, jadi tabel cakupan di halaman Tentang mencatat status tiap provinsi apa adanya.
 

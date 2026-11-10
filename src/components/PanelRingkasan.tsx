@@ -1,6 +1,18 @@
 import { useMemo } from "react";
 import closeXSvg from "../assets/icons/close-x.svg";
-import { fmt, type DataLentera, type Wilayah, sumberUntuk } from "../lib/data";
+import {
+  fmt,
+  jenisPadaTahun,
+  type DataLentera,
+  type Wilayah,
+  sumberUntuk,
+} from "../lib/data";
+
+/** "BANJIR" menjadi "Banjir", "CUACA EKSTREM" tetap terbaca sebagai kalimat. */
+function judulJenis(nama: string): string {
+  const kecil = nama.toLowerCase();
+  return kecil.charAt(0).toUpperCase() + kecil.slice(1);
+}
 
 interface Props {
   siap: DataLentera;
@@ -40,6 +52,11 @@ export default function PanelRingkasan({
   }, [siap, iTahun]);
 
   const nilaiMaks = wilayahTertinggi[0]?.nilai ?? 1;
+
+  // Jenis bencana hanya tersedia sebagai angka nasional per tahun.
+  const jenisTahun = useMemo(() => jenisPadaTahun(siap, tahun), [siap, tahun]);
+  const maksJenis = Math.max(1, ...jenisTahun.map((j) => j.nilai));
+  const totalJenis = jenisTahun.reduce((jumlah, j) => jumlah + j.nilai, 0);
 
   return (
     <aside className="panel-ringkasan-nasional" data-node-id="5:167" data-name="Panel · Ringkasan">
@@ -113,6 +130,40 @@ export default function PanelRingkasan({
           })}
         </ul>
       </div>
+
+      <hr className="panel-garis" />
+
+      {/* Jenis bencana pada tahun terpilih */}
+      {jenisTahun.length > 0 && (
+        <div className="panel-seksi-jenis">
+          <div className="panel-seksi-judul-baris">
+            <h3 className="panel-seksi-judul">Jenis bencana</h3>
+            <span className="panel-seksi-label-kanan">{tahun}</span>
+          </div>
+
+          <ul className="daftar-jenis-bencana">
+            {jenisTahun.map((item) => (
+              <li key={item.jenis} className="butir-jenis-bencana">
+                <div className="baris-jenis-atas">
+                  <span className="nama-jenis">{judulJenis(item.jenis)}</span>
+                  <span className="nilai-jenis">{fmt(item.nilai)}</span>
+                </div>
+                <div className="rel-bar-proporsi">
+                  <div
+                    className="bar-proporsi-aksen"
+                    style={{ width: `${Math.max(3, Math.round((item.nilai / maksJenis) * 100))}%` }}
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <p className="catatan-jenis">
+            Dihitung dari tabel jenis bencana BNPB, terpisah dari tabel kabupaten.
+            Totalnya bisa berbeda sedikit: {fmt(totalJenis)} berbanding {fmt(totalNasional)} kejadian pada {tahun}.
+          </p>
+        </div>
+      )}
 
       <hr className="panel-garis" />
 

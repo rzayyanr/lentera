@@ -3960,6 +3960,52 @@ body {
   }
 }
 
+/* Daftar jenis bencana di panel ringkasan */
+.panel-seksi-jenis {
+  padding-bottom: 2px;
+}
+
+.daftar-jenis-bencana {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.butir-jenis-bencana {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.baris-jenis-atas {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.nama-jenis {
+  font-size: 11.5px;
+  color: var(--warna-tinta);
+}
+
+.nilai-jenis {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--warna-tinta);
+  font-variant-numeric: tabular-nums;
+}
+
+.catatan-jenis {
+  margin: 10px 0 0;
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--warna-redup);
+}
+
 /* Kartu penggeser tahun duduk di samping kanan legenda. Itu baru tidak muat
    kalau panel kanan terbuka pada lebar sempit: panel bergeser ke kiri sampai
    menabrak penggeser. Kanan penggeser di 628; kiri panel di lebar - 424 pada
