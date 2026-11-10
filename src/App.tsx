@@ -646,7 +646,7 @@ export default function App() {
       )}
 
       {/* 8. Screens 12, 13, 14, 15: Tentang dan Sumber Data */}
-      {halaman === "tentang" && <Tentang />}
+      {halaman === "tentang" && <Tentang siap={siap} />}
 
       {/* 9. Screens 16, 17: Moderator (Internal) */}
       {halaman === "moderator" && <Moderator />}

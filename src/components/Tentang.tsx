@@ -1,15 +1,51 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import arrowLeftSvg from "../assets/icons/arrow-left.svg";
 import arrowUpRightSvg from "../assets/icons/arrow-up-right.svg";
+import {
+  labelStatusCakupan,
+  namaProvinsiRapi,
+  formatTanggal,
+  ringkasCakupan,
+  type DataLentera,
+} from "../lib/data";
 
 interface Props {
   subHalamanAwal?: "utama" | "sumber" | "integritas" | "keterbatasan";
+  siap?: DataLentera | null;
 }
 
-export default function Tentang({ subHalamanAwal = "utama" }: Props) {
+const URUTAN_STATUS: Record<string, number> = {
+  rinci: 0,
+  belum: 1,
+  belum_diperiksa: 2,
+};
+
+export default function Tentang({ subHalamanAwal = "utama", siap }: Props) {
   const [subHalaman, setSubHalaman] = useState<
     "utama" | "sumber" | "integritas" | "keterbatasan"
   >(subHalamanAwal);
+
+  // Tabel cakupan diurutkan menurut status, lalu kode provinsi, supaya
+  // pembaca melihat lebih dulu mana yang sudah tersedia.
+  const daftarCakupan = useMemo(() => {
+    if (!siap) return [];
+    return siap.provinsi
+      .map((p) => ({
+        kode: p.kode,
+        nama: p.nama,
+        cakupan: siap.cakupan.provinsi[p.kode] ?? { status: "belum_diperiksa" as const },
+      }))
+      .sort((a, b) => {
+        const selisih =
+          (URUTAN_STATUS[a.cakupan.status] ?? 3) - (URUTAN_STATUS[b.cakupan.status] ?? 3);
+        return selisih !== 0 ? selisih : a.kode.localeCompare(b.kode);
+      });
+  }, [siap]);
+
+  const ringkasan = useMemo(
+    () => (siap ? ringkasCakupan(siap) : { rinci: 0, belum: 0, belumDiperiksa: 0, total: 0 }),
+    [siap],
+  );
 
   return (
     <div className="halaman-tentang-data">
@@ -232,6 +268,67 @@ export default function Tentang({ subHalamanAwal = "utama" }: Props) {
             <p className="catatan-kaki-tabel">
               Data BNPB dipakai apa adanya. Lentera tidak menambahkan, merata-ratakan, atau menebak angka yang tidak diterbitkan.
             </p>
+
+            {siap && (
+              <section className="kartu-tabel-lapisan kartu-cakupan-rincian" data-name="Cakupan rincian per provinsi">
+                <div className="kepala-cakupan">
+                  <h2 className="judul-seksi-kartu">Cakupan rincian per kejadian</h2>
+                  <p className="deskripsi-cakupan">
+                    <strong>{ringkasan.rinci} dari {ringkasan.total} provinsi</strong> menerbitkan
+                    log kejadian per tanggal secara terbuka. Angka tahunan tersedia untuk seluruh
+                    Indonesia; yang belum lengkap hanya rincian per kejadiannya.
+                    {siap.cakupan.diperiksa && (
+                      <> Seluruh portal diperiksa terakhir {formatTanggal(siap.cakupan.diperiksa)}.</>
+                    )}
+                  </p>
+                </div>
+
+                <div className="wadah-gulir-tabel">
+                  <table className="tabel-bantuan-resmi tabel-cakupan-provinsi">
+                    <thead>
+                      <tr>
+                        <th scope="col" style={{ width: "22%" }}>PROVINSI</th>
+                        <th scope="col" style={{ width: "18%" }}>STATUS</th>
+                        <th scope="col" style={{ width: "44%" }}>SUMBER ATAU ALASAN</th>
+                        <th scope="col" style={{ width: "16%" }}>PERIODE</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {daftarCakupan.map(({ kode, nama, cakupan }) => (
+                        <tr key={kode}>
+                          <td className="tebal-teks">{namaProvinsiRapi(nama)}</td>
+                          <td>
+                            <span className={`badge-cakupan ${cakupan.status}`}>
+                              {labelStatusCakupan(cakupan.status)}
+                            </span>
+                          </td>
+                          <td>
+                            {cakupan.sumber && <span className="teks-sumber-cakupan">{cakupan.sumber}</span>}
+                            {cakupan.alasan && (
+                              <span className="teks-alasan-cakupan">{cakupan.alasan}</span>
+                            )}
+                            {!cakupan.sumber && !cakupan.alasan && (
+                              <span className="teks-redup-cakupan">
+                                Portal provinsi belum ditelusuri
+                              </span>
+                            )}
+                          </td>
+                          <td>{cakupan.periode ?? "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="catatan-cakupan">
+                  {siap.cakupan.catatan.map((teks, i) => (
+                    <p key={i} className="catatan-cakupan-baris">
+                      {teks}
+                    </p>
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         )}
 

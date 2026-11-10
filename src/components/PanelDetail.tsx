@@ -6,6 +6,10 @@ import {
   fmt,
   ambilNilai,
   rincianDampak,
+  cakupanProvinsi,
+  labelStatusCakupan,
+  namaProvinsiRapi,
+  formatTanggal,
   UKURAN_UTAMA,
   type DataLentera,
   type Wilayah,
@@ -39,6 +43,12 @@ export default function PanelDetail({
   const provinsi = siap.provinsi.find((p) => p.kode === wilayah.prov);
   const nilaiTerkini = ambilNilai(siap, wilayah.kode, tahun, ukuran);
   const satuan = UKURAN_UTAMA.find((u) => u.id === ukuran)?.satuan ?? "kejadian";
+
+  // Status rincian per kejadian diambil dari berkas cakupan, bukan ditulis
+  // di dalam komponen, supaya penambahan provinsi cukup menambah data.
+  const cakupan = cakupanProvinsi(siap, wilayah.prov);
+  const rincianTersedia = cakupan.status === "rinci";
+  const namaProvinsi = namaProvinsiRapi(provinsi?.nama ?? wilayah.prov);
 
   // Data 15 tahun (2010 - 2024) untuk grafik batang riwayat
   const riwayat15Tahun = useMemo(() => {
@@ -206,24 +216,61 @@ export default function PanelDetail({
       {tabAktif === "riwayat" && (
         <div className="panel-isi-tab-riwayat" data-node-id="16:672" data-name="02a · Detail wilayah — Riwayat kejadian">
           <h3 className="tab-dampak-judul">Riwayat kejadian wilayah</h3>
-          <p className="tab-dampak-subjudul">
-            Daftar kejadian satu per satu hanya tersedia untuk Jawa Timur, karena hanya provinsi itu yang menerbitkan data per kejadian secara terbuka.
-          </p>
 
-          <div className="kotak-keadaan-kosong-tab" data-name="Keadaan kosong">
-            <p className="judul-keadaan-kosong">Tidak ada daftar kejadian untuk wilayah ini</p>
-            <p className="keterangan-keadaan-kosong">
-              Angka tahunan di tab Dampak tetap tersedia. Yang tidak ada hanya rincian per kejadian.
-            </p>
-          </div>
+          {rincianTersedia ? (
+            <>
+              <p className="tab-dampak-subjudul">
+                {cakupan.sumber} menerbitkan {fmt(cakupan.jumlahKejadian ?? 0)} kejadian
+                {cakupan.periode ? ` tahun ${cakupan.periode}` : ""}, lengkap dengan
+                tanggal, desa, dan korban.
+              </p>
+              <button
+                type="button"
+                className="tombol-tautan-aksen"
+                onClick={onBukaRiwayatJatim}
+              >
+                <span>Buka riwayat {namaProvinsi} →</span>
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="tab-dampak-subjudul">
+                Rincian satu kejadian satu baris belum tersedia untuk {namaProvinsi}.
+              </p>
+              <div className="kotak-keadaan-kosong-tab" data-name="Keadaan kosong">
+                <p className="judul-keadaan-kosong">Tidak ada daftar kejadian untuk wilayah ini</p>
+                <p className="keterangan-keadaan-kosong">
+                  Angka tahunan di tab Dampak tetap tersedia dan tetap bisa ditelusuri.
+                  Yang tidak ada hanya rincian per kejadian.
+                </p>
+              </div>
 
-          <button
-            type="button"
-            className="tombol-tautan-aksen"
-            onClick={onBukaRiwayatJatim}
-          >
-            <span>Buka riwayat Jawa Timur →</span>
-          </button>
+              <dl className="daftar-cakupan-pendek">
+                <div className="baris-cakupan-pendek">
+                  <dt>Status</dt>
+                  <dd>{labelStatusCakupan(cakupan.status)}</dd>
+                </div>
+                {cakupan.sumber && (
+                  <div className="baris-cakupan-pendek">
+                    <dt>Portal diperiksa</dt>
+                    <dd>{cakupan.sumber}</dd>
+                  </div>
+                )}
+                {cakupan.alasan && (
+                  <div className="baris-cakupan-pendek">
+                    <dt>Alasan</dt>
+                    <dd>{cakupan.alasan}</dd>
+                  </div>
+                )}
+                {siap.cakupan.diperiksa && (
+                  <div className="baris-cakupan-pendek">
+                    <dt>Diperiksa</dt>
+                    <dd>{formatTanggal(siap.cakupan.diperiksa)}</dd>
+                  </div>
+                )}
+              </dl>
+            </>
+          )}
         </div>
       )}
 

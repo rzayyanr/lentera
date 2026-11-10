@@ -20,6 +20,7 @@ Tahap pengerjaan berjalan. Yang sudah berfungsi:
 - Legenda dengan ambang yang dihitung dari sebaran data, bukan angka karangan.
 - Wilayah yang tidak punya catatan digambar dengan pola garis miring, bukan dianggap nol.
 - Riwayat 24.190 kejadian Jawa Timur tahun 2020 sampai 2025, dengan saringan tahun dan jenis bencana, serta tautan ke catatan aslinya.
+- Tabel cakupan 38 provinsi di halaman Tentang: mana yang punya rincian per kejadian, mana yang belum, dan apa alasannya.
 - Halaman Tentang dan sumber data, termasuk daftar selisih angka yang ditemukan saat pengolahan.
 - Halaman Daftar wilayah, Detail kejadian, Bandingkan wilayah, Transparansi bantuan, dan Catatan komunitas.
 - Laporan warga: masuk atau daftar akun pelapor, formulir laporan, dan pelacakan status lewat kode rujukan.
@@ -74,6 +75,7 @@ scripts/unduh-kejadian.ts pengunduh riwayat kejadian Jawa Timur
 scripts/olah-kejadian.ts  pengolah riwayat kejadian, sekaligus pemotong alamat
 scripts/verifikasi-dampak.ts  pemeriksa hasil olahan
 public/data/              JSON untuk aplikasi
+public/data/cakupan-sumber.json  status rincian per kejadian tiap provinsi
 public/geo/               batas wilayah, sudah ditempeli kode BPS
 public/fonts/             DM Sans, satu variable font, disimpan sendiri
 src/lib/data.ts           tipe, pemuat, dan skala warna
@@ -92,7 +94,22 @@ src/assets/icons/         ikon Lucide yang dipakai antarmuka
 - Jumlah kejadian per kabupaten 2010 sampai 2024: [Data Bencana Indonesia, BNPB](https://data.bnpb.go.id/dataset/data-bencana-indonesia), lisensi ODC-BY.
 - Dampak per kabupaten 2002 sampai 2023: dataset "Jumlah kejadian dan Dampak Bencana Tahun &lt;tahun&gt;" di portal yang sama, berupa folder Google Drive berisi 38 berkas Excel per tahun.
 - Batas wilayah: [geoBoundaries](https://www.geoboundaries.org/), ADM2 Indonesia.
-- DIBI **tidak dipakai**, karena dasbor publiknya sudah diacak-acak pihak lain.
+- Riwayat kejadian per tanggal: hanya dari [SMARTPB BPBD Jawa Timur](https://smartpb.bpbd.jatimprov.go.id/). Provinsi lain tidak menerbitkan log kejadian, jadi tabel cakupan di halaman Tentang mencatat status tiap provinsi apa adanya.
+
+### Kenapa rincian per kejadian hanya satu provinsi
+
+Diperiksa ulang 10 November 2026:
+
+| Portal | Hasil |
+|---|---|
+| DIBI BNPB (`dibi.bnpb.go.id`) | Sekarang dasbor Apache Superset. API-nya hanya memuat satu dataset, `gempa_ntt_2026.v_posko_pengungsian_4superset`, dan 8 dari 14 grafiknya sudah diganti nama menjadi `HACKED BY UNKNOWN1337 FT D3D0x`. Grafik lama yang dirujuk dasbor (id 6–51) membalas `{"message":"Not found"}`. |
+| `data.jakarta.go.id` | API menolak permintaan, koneksi direset |
+| `data.jabarprov.go.id` | API tidak merespons, timeout 45 detik |
+| `data.jatengprov.go.id` | DNS/TLS tidak menjawab |
+| `data.jogjaprov.go.id` | DNS/TLS tidak menjawab |
+| `data.bantenprov.go.id` | CKAN terbuka, 67 dataset bencana, tetapi semuanya indeks risiko dan statistik penanganan, tanpa log kejadian |
+
+Status ini disimpan di `public/data/cakupan-sumber.json` dan dipakai halaman Tentang serta tab Riwayat di panel wilayah. Menambah provinsi nanti cukup menambah satu berkas kejadian dan satu entri cakupan.
 
 ## Catatan data yang perlu diketahui
 

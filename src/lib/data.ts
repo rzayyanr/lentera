@@ -45,8 +45,36 @@ export interface DataLentera {
   wilayah: Wilayah[];
   provinsi: Provinsi[];
   dampak: Dampak;
+  cakupan: Cakupan;
   perKode: Map<string, Wilayah>;
   perProvinsi: Map<string, Wilayah[]>;
+}
+
+/**
+ * Status ketersediaan rincian per kejadian untuk satu provinsi.
+ * Dicatat apa adanya, termasuk yang belum tersedia dan yang belum diperiksa.
+ */
+export type StatusCakupan = "rinci" | "belum" | "belum_diperiksa";
+
+export interface CakupanProvinsi {
+  status: StatusCakupan;
+  /** Nama sistem atau portal sumbernya. */
+  sumber?: string;
+  url?: string;
+  alasan?: string;
+  periode?: string;
+  jumlahKejadian?: number;
+  /** Tanggal data diambil, bukan tanggal diperiksa. */
+  diambil?: string;
+  catatan?: string;
+}
+
+export interface Cakupan {
+  /** Tanggal terakhir seluruh portal diperiksa. */
+  diperiksa: string;
+  catatan: string[];
+  /** Kunci adalah kode provinsi dua digit. */
+  provinsi: Record<string, CakupanProvinsi>;
 }
 
 /** Ukuran yang bisa ditampilkan di peta. */
@@ -101,6 +129,15 @@ export async function muatData(): Promise<DataLentera> {
     dampak = { tahun: [], ukuran: [], wilayah: {}, catatan: ["Data dampak belum tersedia."] };
   }
 
+  // Berkas cakupan boleh gagal; tanpa berkas itu antarmuka menganggap
+  // rincian kejadian belum tersedia untuk semua provinsi.
+  let cakupan: Cakupan;
+  try {
+    cakupan = await ambil<Cakupan>("/data/cakupan-sumber.json");
+  } catch {
+    cakupan = { diperiksa: "", catatan: [], provinsi: {} };
+  }
+
   const perKode = new Map(wilayah.map((w) => [w.kode, w]));
   const perProvinsi = new Map<string, Wilayah[]>();
   for (const w of wilayah) {
@@ -109,7 +146,57 @@ export async function muatData(): Promise<DataLentera> {
     perProvinsi.set(w.prov, daftar);
   }
 
-  return { meta, wilayah, provinsi, dampak, perKode, perProvinsi };
+  return { meta, wilayah, provinsi, dampak, cakupan, perKode, perProvinsi };
+}
+
+/** Cakupan rincian kejadian untuk satu kode provinsi. */
+export function cakupanProvinsi(data: DataLentera, prov: string): CakupanProvinsi {
+  return data.cakupan.provinsi[prov] ?? { status: "belum_diperiksa" };
+}
+
+/** Nama provinsi disimpan dalam huruf besar; ini merapikannya untuk kalimat. */
+export function namaProvinsiRapi(nama: string): string {
+  return nama
+    .toLowerCase()
+    .split(" ")
+    .map((kata) =>
+      kata.length <= 3 ? kata.toUpperCase() : kata.charAt(0).toUpperCase() + kata.slice(1),
+    )
+    .join(" ");
+}
+
+/** Label pendek untuk status cakupan, dipakai di tabel dan panel. */
+export function labelStatusCakupan(status: StatusCakupan): string {
+  if (status === "rinci") return "Rinci per kejadian";
+  if (status === "belum") return "Belum tersedia";
+  return "Belum diperiksa";
+}
+
+/** 2026-11-10 menjadi 10 November 2026. */
+export function formatTanggal(iso: string): string {
+  const bulan = [
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+  ];
+  const [tahun, urutanBulan, hari] = iso.split("-").map(Number);
+  if (!tahun || !urutanBulan || !hari) return iso;
+  return `${hari} ${bulan[urutanBulan - 1]} ${tahun}`;
+}
+
+/** Ringkasan jumlah provinsi menurut status cakupan. */
+export function ringkasCakupan(data: DataLentera): {
+  rinci: number;
+  belum: number;
+  belumDiperiksa: number;
+  total: number;
+} {
+  const semua = Object.values(data.cakupan.provinsi);
+  return {
+    rinci: semua.filter((c) => c.status === "rinci").length,
+    belum: semua.filter((c) => c.status === "belum").length,
+    belumDiperiksa: semua.filter((c) => c.status === "belum_diperiksa").length,
+    total: semua.length,
+  };
 }
 
 /** Tahun yang tersedia untuk satu ukuran. */

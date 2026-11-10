@@ -1,0 +1,145 @@
+{
+  "diperiksa": "2026-11-10",
+  "catatan": [
+    "Rincian per kejadian hanya diterbitkan terbuka oleh BPBD Jawa Timur. Provinsi lain mempublikasikan statistik tahunan, bukan log kejadian.",
+    "Portal DIBI BNPB sebagai rujukan rincian nasional sudah tidak dapat dipakai: sejak 2026 situsnya berubah menjadi dasbor Apache Superset yang hanya memuat satu dataset (posko gempa NTT 2026), dan delapan grafiknya sudah diganti nama menjadi 'HACKED BY UNKNOWN1337 FT D3D0x'.",
+    "Status 'belum diperiksa' berarti portal provinsi tersebut belum sempat ditelusuri, bukan berarti datanya tidak ada."
+  ],
+  "provinsi": {
+    "11": {
+      "status": "belum_diperiksa"
+    },
+    "12": {
+      "status": "belum_diperiksa"
+    },
+    "13": {
+      "status": "belum_diperiksa"
+    },
+    "14": {
+      "status": "belum_diperiksa"
+    },
+    "15": {
+      "status": "belum_diperiksa"
+    },
+    "16": {
+      "status": "belum_diperiksa"
+    },
+    "17": {
+      "status": "belum_diperiksa"
+    },
+    "18": {
+      "status": "belum_diperiksa"
+    },
+    "19": {
+      "status": "belum_diperiksa"
+    },
+    "21": {
+      "status": "belum_diperiksa"
+    },
+    "31": {
+      "status": "belum",
+      "sumber": "data.jakarta.go.id",
+      "url": "https://data.jakarta.go.id",
+      "alasan": "Portal data DKI menolak permintaan API (koneksi direset), dan portal BPBD hanya memuat berita, bukan tabel kejadian."
+    },
+    "32": {
+      "status": "belum",
+      "sumber": "data.jabarprov.go.id",
+      "url": "https://data.jabarprov.go.id",
+      "alasan": "API portal data Jawa Barat tidak merespons (timeout 45 detik)."
+    },
+    "33": {
+      "status": "belum",
+      "sumber": "data.jatengprov.go.id",
+      "url": "https://data.jatengprov.go.id",
+      "alasan": "Portal data Jawa Tengah gagal diakses (DNS/TLS tidak menjawab)."
+    },
+    "34": {
+      "status": "belum",
+      "sumber": "data.jogjaprov.go.id",
+      "url": "https://data.jogjaprov.go.id",
+      "alasan": "Portal data DIY gagal diakses (DNS/TLS tidak menjawab)."
+    },
+    "35": {
+      "status": "rinci",
+      "sumber": "BPBD Jawa Timur — SMARTPB",
+      "url": "https://smartpb.bpbd.jatimprov.go.id/public/v_disasterlogs_print.php",
+      "periode": "2020–2025",
+      "jumlahKejadian": 24190,
+      "diambil": "2026-10-21",
+      "catatan": "Satu-satunya provinsi yang menerbitkan log kejadian per tanggal dan per desa secara terbuka."
+    },
+    "36": {
+      "status": "belum",
+      "sumber": "data.bantenprov.go.id",
+      "url": "https://data.bantenprov.go.id",
+      "alasan": "Portal data Banten terbuka dan memuat 67 dataset bencana, tetapi semuanya berupa indeks risiko dan statistik penanganan, tanpa log kejadian per tanggal."
+    },
+    "51": {
+      "status": "belum_diperiksa"
+    },
+    "52": {
+      "status": "belum_diperiksa"
+    },
+    "53": {
+      "status": "belum_diperiksa"
+    },
+    "61": {
+      "status": "belum_diperiksa"
+    },
+    "62": {
+      "status": "belum_diperiksa"
+    },
+    "63": {
+      "status": "belum_diperiksa"
+    },
+    "64": {
+      "status": "belum_diperiksa"
+    },
+    "65": {
+      "status": "belum_diperiksa"
+    },
+    "71": {
+      "status": "belum_diperiksa"
+    },
+    "72": {
+      "status": "belum_diperiksa"
+    },
+    "73": {
+      "status": "belum_diperiksa"
+    },
+    "74": {
+      "status": "belum_diperiksa"
+    },
+    "75": {
+      "status": "belum_diperiksa"
+    },
+    "76": {
+      "status": "belum_diperiksa"
+    },
+    "81": {
+      "status": "belum_diperiksa"
+    },
+    "82": {
+      "status": "belum_diperiksa"
+    },
+    "91": {
+      "status": "belum_diperiksa"
+    },
+    "92": {
+      "status": "belum_diperiksa"
+    },
+    "93": {
+      "status": "belum_diperiksa"
+    },
+    "94": {
+      "status": "belum_diperiksa"
+    },
+    "95": {
+      "status": "belum_diperiksa"
+    },
+    "96": {
+      "status": "belum_diperiksa"
+    }
+  }
+}

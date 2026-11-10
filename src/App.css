@@ -3541,6 +3541,134 @@ body {
    19. RESPONSIVE QUERIES TAMBAHAN
    ========================================================================== */
 
+/* ==========================================================================
+   CAKUPAN RINCIAN PER PROVINSI
+   Dipakai di tab Riwayat panel detail dan di halaman Daftar sumber.
+   ========================================================================== */
+
+.kartu-cakupan-rincian {
+  margin-top: 24px;
+  padding: 24px;
+}
+
+.kepala-cakupan {
+  margin-bottom: 16px;
+}
+
+.deskripsi-cakupan {
+  margin: 6px 0 0;
+  max-width: 780px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--warna-redup);
+}
+
+.deskripsi-cakupan strong {
+  color: var(--warna-tinta);
+}
+
+.tabel-cakupan-provinsi td {
+  vertical-align: top;
+}
+
+.badge-cakupan {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.badge-cakupan.rinci {
+  border-color: var(--warna-aksen);
+  background: var(--warna-aksen-muda);
+  color: var(--warna-aksen);
+}
+
+.badge-cakupan.belum {
+  border-color: #c9b78a;
+  background: #f6efe0;
+  color: #7a5b12;
+}
+
+.badge-cakupan.belum_diperiksa {
+  border-color: var(--warna-garis);
+  background: transparent;
+  color: var(--warna-redup);
+}
+
+.teks-sumber-cakupan {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--warna-tinta);
+}
+
+.teks-alasan-cakupan {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--warna-redup);
+}
+
+.teks-redup-cakupan {
+  font-size: 11px;
+  color: var(--warna-redup);
+}
+
+.catatan-cakupan {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--warna-garis-tipis);
+}
+
+.catatan-cakupan-baris {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--warna-redup);
+}
+
+/* Ringkasan cakupan di tab Riwayat panel detail */
+.daftar-cakupan-pendek {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--warna-garis-tipis);
+}
+
+.baris-cakupan-pendek {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 10px;
+}
+
+.baris-cakupan-pendek dt {
+  margin: 0;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--warna-redup);
+}
+
+.baris-cakupan-pendek dd {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--warna-tinta);
+}
+
 /* Kartu penggeser tahun duduk di samping kanan legenda. Itu baru tidak muat
    kalau panel ringkasan terbuka pada lebar di bawah 1088px: panel bergeser ke
    kiri sampai menabrak penggeser (kanan penggeser di 628, kiri panel di
