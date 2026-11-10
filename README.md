@@ -19,7 +19,7 @@ Tahap pengerjaan berjalan. Yang sudah berfungsi:
 - Tautan langsung per wilayah dan ukuran, misalnya `?kode=3507&ukuran=menderita`.
 - Legenda dengan ambang yang dihitung dari sebaran data, bukan angka karangan.
 - Wilayah yang tidak punya catatan digambar dengan pola garis miring, bukan dianggap nol.
-- Riwayat 24.190 kejadian Jawa Timur tahun 2020 sampai 2025, dengan saringan tahun dan jenis bencana, serta tautan ke catatan aslinya.
+- Halaman Riwayat dengan pemilih 38 provinsi: ringkasan tahunan dari tabel agregat BNPB untuk semua provinsi, dan daftar kejadian per tanggal untuk provinsi yang menerbitkannya (sekarang Jawa Timur, 24.190 kejadian 2020-2025).
 - Tabel cakupan 38 provinsi di halaman Tentang: mana yang punya rincian per kejadian, mana yang belum, dan apa alasannya.
 - Halaman Tentang dan sumber data, termasuk daftar selisih angka yang ditemukan saat pengolahan.
 - Halaman Daftar wilayah, Detail kejadian, Bandingkan wilayah, Transparansi bantuan, dan Catatan komunitas.
@@ -83,7 +83,7 @@ src/App.css               token warna, jarak, bayangan, dan gaya komponen
 src/App.tsx               kerangka halaman dan peralihan antarhalaman
 src/components/           satu berkas per halaman: BilahAtas, KendaliKiri,
                           PanelRingkasan, PanelDetail, DaftarWilayah,
-                          RiwayatJatim, DetailKejadian, LaporanWarga,
+                          Riwayat, DaftarKejadianJatim, DetailKejadian, LaporanWarga,
                           TransparansiBantuan, Tentang, Moderator,
                           BandingkanWilayah, PonselRingkasan, PonselDetail
 src/assets/icons/         ikon Lucide yang dipakai antarmuka

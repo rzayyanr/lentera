@@ -254,6 +254,47 @@ export function rincianDampak(
 }
 
 /**
+ * Jumlah kejadian seluruh kabupaten/kota di satu provinsi, per tahun.
+ * Angka ini penjumlahan kabupaten, sama seperti angka provinsi di panel.
+ */
+export function kejadianProvinsi(
+  data: DataLentera,
+  prov: string,
+): Array<{ tahun: number; nilai: number }> {
+  const daftar = data.perProvinsi.get(prov) ?? [];
+  return data.meta.tahun.map((tahun, i) => ({
+    tahun,
+    nilai: daftar.reduce((jumlah, w) => jumlah + (w.nilai[i] ?? 0), 0),
+  }));
+}
+
+/**
+ * Dampak seluruh kabupaten/kota di satu provinsi, per tahun.
+ * Bernilai null kalau tidak ada satu kabupaten pun yang melaporkan tahun itu,
+ * supaya nol dan tidak tercatat tetap berbeda.
+ */
+export function dampakProvinsi(
+  data: DataLentera,
+  prov: string,
+  ukuran: string,
+): Array<{ tahun: number; nilai: number | null }> {
+  const daftar = data.perProvinsi.get(prov) ?? [];
+  const iUkuran = data.dampak.ukuran.indexOf(ukuran);
+  if (iUkuran < 0) return [];
+  return data.dampak.tahun.map((tahun, i) => {
+    let jumlah = 0;
+    let ada = false;
+    for (const w of daftar) {
+      const v = data.dampak.wilayah[w.kode]?.[i]?.[iUkuran];
+      if (v !== undefined && v >= 0) {
+        jumlah += v;
+        ada = true;
+      }
+    }
+    return { tahun, nilai: ada ? jumlah : null };
+  });
+}
+/**
  * Ambang warna dihitung dari data yang sedang tampil, bukan ditentukan
  * sendiri, supaya legenda selalu sesuai sebaran sebenarnya.
  */

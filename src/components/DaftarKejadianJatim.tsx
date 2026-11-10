@@ -1,8 +1,8 @@
 /**
- * Halaman riwayat kejadian Jawa Timur (04 High-Fidelity).
+ * Daftar kejadian per tanggal untuk Jawa Timur.
  *
- * Sumbernya SMARTPB milik BPBD Provinsi Jawa Timur.
- * Tampilan mengikuti frame 10:719 Figma Lentera.
+ * Sumbernya SMARTPB milik BPBD Provinsi Jawa Timur. Komponen ini hanya
+ * menampilkan daftarnya; judul halaman dan pemilih provinsi ada di Riwayat.tsx.
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -39,7 +39,7 @@ interface Props {
   onPilihKejadian?: (id: string) => void;
 }
 
-export default function RiwayatJatim({ onPilihKejadian }: Props) {
+export default function DaftarKejadianJatim({ onPilihKejadian }: Props) {
   const [data, setData] = useState<DataKejadian | null>(null);
   const [galat, setGalat] = useState<string | null>(null);
   const [tahun, setTahun] = useState<string>("semua");
@@ -105,22 +105,9 @@ export default function RiwayatJatim({ onPilihKejadian }: Props) {
   const potongan = tersaring.slice(halaman * PER_HALAMAN, (halaman + 1) * PER_HALAMAN);
 
   return (
-    <div className="halaman-riwayat-jatim" data-node-id="10:719" data-name="04 · Riwayat kejadian Jawa Timur">
-      <div className="riwayat-jatim-wadah">
-        <p className="riwayat-eyebrow">RIWAYAT KEJADIAN</p>
-        <h1 className="riwayat-judul">
-          Jawa Timur, {data ? Number(data.kejadian.length).toLocaleString("id-ID") : "24.190"} kejadian
-        </h1>
-        <p className="riwayat-deskripsi">
-          Daftar kejadian menurut tanggal, jenis, dan wilayah. Jawa Timur dipakai karena hanya provinsi ini yang menerbitkan jenis bencana per kejadian secara terbuka.
-        </p>
-
-        <div className="badge-lapisan resmi" style={{ marginBottom: 24 }}>
-          <span>Data resmi BPBD Jawa Timur</span>
-        </div>
-
-        {galat && <p className="pesan-galat">Gagal memuat riwayat: {galat}</p>}
-        {!galat && !data && <p className="pesan-memuat">Memuat 24.190 data kejadian Jawa Timur...</p>}
+    <div className="daftar-kejadian-jatim">
+      {galat && <p className="pesan-galat">Gagal memuat riwayat: {galat}</p>}
+      {!galat && !data && <p className="pesan-memuat">Memuat 24.190 data kejadian Jawa Timur...</p>}
 
         {data && (
           <>
@@ -313,7 +300,6 @@ export default function RiwayatJatim({ onPilihKejadian }: Props) {
             </p>
           </>
         )}
-      </div>
     </div>
   );
 }

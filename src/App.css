@@ -1514,14 +1514,14 @@ body {
    9. SCREEN 04: RIWAYAT KEJADIAN JAWA TIMUR (10:719)
    ========================================================================== */
 
-.halaman-riwayat-jatim {
+.halaman-riwayat {
   flex: 1;
   overflow-y: auto;
   background: var(--warna-panggung);
   padding: 116px 24px 60px;
 }
 
-.riwayat-jatim-wadah {
+.riwayat-wadah {
   max-width: 1248px;
   margin: 0 auto;
 }
@@ -1549,6 +1549,153 @@ body {
   color: var(--warna-redup);
   max-width: 760px;
   line-height: 1.5;
+}
+
+/* Pemilih provinsi dan tab bentuk riwayat */
+.riwayat-kepala-aksi {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.riwayat-pemilih-wadah {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 260px;
+}
+
+.riwayat-tab-bar {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--warna-garis);
+}
+
+.riwayat-tab-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  color: var(--warna-redup);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.riwayat-tab-item.aktif {
+  color: var(--warna-tinta);
+  font-weight: 600;
+  border-bottom-color: var(--warna-aksen);
+}
+
+.riwayat-tab-item:disabled {
+  cursor: not-allowed;
+  color: #a8a49a;
+}
+
+.riwayat-tab-kunci {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #f6efe0;
+  border: 1px solid #c9b78a;
+  color: #7a5b12;
+}
+
+/* Tiga angka ringkas di atas tabel */
+.riwayat-stat-baris {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.riwayat-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  background: var(--warna-kartu);
+  border: 1px solid var(--warna-garis);
+  border-radius: 12px;
+  box-shadow: var(--bayangan-kartu);
+}
+
+.riwayat-stat-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--warna-redup);
+}
+
+.riwayat-stat-nilai {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--warna-tinta);
+  font-variant-numeric: tabular-nums;
+}
+
+.riwayat-stat-kecil {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--warna-redup);
+}
+
+/* Kepala kartu tabel */
+.riwayat-kartu-kepala {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 16px 20px 12px;
+}
+
+.riwayat-kartu-judul {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--warna-tinta);
+}
+
+.riwayat-kartu-sumber {
+  font-size: 11px;
+  color: var(--warna-redup);
+}
+
+/* Grafik batang di halaman, bukan di panel */
+.riwayat-histogram {
+  height: 80px;
+  margin: 0 20px 6px;
+}
+
+.riwayat-histogram-label {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 20px 16px;
+  font-size: 10.5px;
+  color: var(--warna-redup);
+}
+
+.tabel-riwayat-tahunan td,
+.tabel-riwayat-tahunan th {
+  padding: 10px 20px;
+}
+
+.tabel-riwayat-tahunan .kolom-angka {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .grid-penyaring-riwayat {
@@ -1756,6 +1903,23 @@ body {
     gap: 12px;
   }
 
+  .riwayat-kepala-aksi {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .riwayat-pemilih-wadah {
+    min-width: 0;
+  }
+
+  .riwayat-stat-baris {
+    grid-template-columns: 1fr;
+  }
+
+  .riwayat-tab-bar {
+    overflow-x: auto;
+  }
+
   .toolbar-penyaring-daftar {
     height: auto;
     flex-direction: column;
@@ -1772,14 +1936,16 @@ body {
   }
 
   .halaman-daftar-wilayah,
-  .halaman-riwayat-jatim,
+  .halaman-riwayat,
   .halaman-detail-kejadian,
   .halaman-laporan-warga,
   .halaman-transparansi-bantuan,
   .halaman-tentang-data,
   .halaman-moderator-laporan,
   .halaman-bandingkan-wilayah {
-    padding: 24px 16px 40px;
+    /* Bilah atas mengapung sampai 68px di ponsel, jadi 24px membuat judul
+       halaman tertutup. 88px menyisakan jarak 20px di bawah bilah. */
+    padding: 88px 16px 40px;
   }
 }
 

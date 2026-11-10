@@ -20,7 +20,7 @@ import PanelDetail from "./components/PanelDetail";
 import PonselRingkasan from "./components/PonselRingkasan";
 import PonselDetail from "./components/PonselDetail";
 import DaftarWilayah from "./components/DaftarWilayah";
-import RiwayatJatim from "./components/RiwayatJatim";
+import Riwayat from "./components/Riwayat";
 import DetailKejadian from "./components/DetailKejadian";
 import LaporanWarga from "./components/LaporanWarga";
 import TransparansiBantuan from "./components/TransparansiBantuan";
@@ -620,9 +620,11 @@ export default function App() {
         />
       )}
 
-      {/* 4. Screen 04: Riwayat Kejadian Jawa Timur */}
+      {/* 4. Screen 04: Riwayat kejadian, dengan pemilih provinsi */}
       {halaman === "riwayat" && (
-        <RiwayatJatim
+        <Riwayat
+          siap={siap}
+          provAwal={dipilih?.prov ?? "35"}
           onPilihKejadian={(id) => {
             setIdKejadian(id);
             setHalaman("kejadian");
