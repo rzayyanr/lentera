@@ -5,19 +5,29 @@ import {
   muatData,
   hitungAmbang,
   warnaUntuk,
-  WARNA_KELAS,
   tahunUntuk,
   ambilNilai,
-  rincianDampak,
-  sumberUntuk,
   fmt,
   UKURAN_UTAMA,
   type DataLentera,
   type Wilayah,
 } from "./lib/data";
-import PenggeserTahun from "./components/PenggeserTahun";
-import Tentang from "./components/Tentang";
+import BilahAtas, { type HalamanTipe } from "./components/BilahAtas";
+import KendaliKiri from "./components/KendaliKiri";
+import LegendaPeta from "./components/LegendaPeta";
+import PanelRingkasan from "./components/PanelRingkasan";
+import PanelDetail from "./components/PanelDetail";
+import PonselRingkasan from "./components/PonselRingkasan";
+import PonselDetail from "./components/PonselDetail";
+import DaftarWilayah from "./components/DaftarWilayah";
 import RiwayatJatim from "./components/RiwayatJatim";
+import DetailKejadian from "./components/DetailKejadian";
+import LaporanWarga from "./components/LaporanWarga";
+import TransparansiBantuan from "./components/TransparansiBantuan";
+import Tentang from "./components/Tentang";
+import Moderator from "./components/Moderator";
+import BandingkanWilayah from "./components/BandingkanWilayah";
+import PenggeserTahun from "./components/PenggeserTahun";
 import "./App.css";
 
 interface FiturPeta {
@@ -26,10 +36,8 @@ interface FiturPeta {
   geometry: GeoJSON.Geometry;
 }
 
-/** Jeda antar tahun saat tombol putar ditekan. */
 const JEDA_PUTAR_MS = 650;
 
-/** Pola garis miring untuk wilayah tanpa catatan, sesuai design system. */
 const POLA_SVG = `
 <svg width="0" height="0" aria-hidden="true" style="position:absolute">
   <defs>
@@ -45,9 +53,8 @@ export default function App() {
   const wadahPeta = useRef<HTMLDivElement | null>(null);
   const peta = useRef<L.Map | null>(null);
   const lapisan = useRef<L.GeoJSON | null>(null);
+  const inputCariRef = useRef<HTMLInputElement | null>(null);
 
-  // Nilai terkini disimpan di ref juga, supaya penggambaran ulang peta saat
-  // penggeser ditarik tidak perlu membangun ulang seluruh lapisan.
   const siapRef = useRef<DataLentera | null>(null);
   const tahunRef = useRef<number | null>(null);
   const ukuranRef = useRef<string>("kejadian");
@@ -59,14 +66,48 @@ export default function App() {
   const [tahun, setTahun] = useState<number | null>(null);
   const [dipilih, setDipilih] = useState<Wilayah | null>(null);
   const [sedangMain, setSedangMain] = useState(false);
-  const [halaman, setHalaman] = useState<"peta" | "riwayat" | "tentang">(() => {
-    const hal = new URLSearchParams(window.location.search).get("hal");
-    return hal === "tentang" || hal === "riwayat" ? hal : "peta";
+  const [lapisanTampak, setLapisanTampak] = useState(true);
+  const [panelRingkasanTutup, setPanelRingkasanTutup] = useState(false);
+
+  const [halaman, setHalaman] = useState<HalamanTipe>(() => {
+    const hal = new URLSearchParams(window.location.search).get("hal") as HalamanTipe | null;
+    const daftarValid: HalamanTipe[] = [
+      "peta",
+      "daftar",
+      "riwayat",
+      "kejadian",
+      "lapor",
+      "masuk",
+      "bantuan",
+      "tentang",
+      "moderator",
+      "bandingkan",
+    ];
+    if (hal && daftarValid.includes(hal)) return hal;
+    return "peta";
   });
+
+  const [idKejadian, setIdKejadian] = useState<string>(() => {
+    return new URLSearchParams(window.location.search).get("kejadian") || "37410";
+  });
+
+  const [lebarLayar, setLebarLayar] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth : 1200
+  );
 
   const kodeAwal = useRef(new URLSearchParams(window.location.search).get("kode"));
   const ukuranAwal = useRef(new URLSearchParams(window.location.search).get("ukuran"));
   const tahunAwal = useRef(new URLSearchParams(window.location.search).get("tahun"));
+
+  useEffect(() => {
+    function onResize() {
+      setLebarLayar(window.innerWidth);
+    }
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  const adalahPonsel = lebarLayar <= 768;
 
   useEffect(() => {
     let batal = false;
@@ -107,7 +148,7 @@ export default function App() {
     if (kode && siap.perKode.has(kode)) setDipilih(siap.perKode.get(kode) ?? null);
   }, [siap]);
 
-  // Simpan keadaan di alamat halaman supaya bisa dibagikan.
+  // Sinkronisasi state ke parameter URL
   useEffect(() => {
     if (!siap) return;
     const url = new URL(window.location.href);
@@ -121,14 +162,18 @@ export default function App() {
     window.history.replaceState({}, "", url);
   }, [dipilih, siap, ukuran, halaman, tahun]);
 
-  const ambang = useMemo(() => {
-    if (!siap || tahun === null) return [1, 2, 3, 4, 5];
+  const { ambang, maxNilai } = useMemo(() => {
+    if (!siap || tahun === null) return { ambang: [1, 2, 3, 4, 5], maxNilai: 128 };
     const nilai: number[] = [];
+    let max = 0;
     for (const w of siap.wilayah) {
       const v = ambilNilai(siap, w.kode, tahun, ukuran);
-      if (v !== null) nilai.push(v);
+      if (v !== null) {
+        nilai.push(v);
+        if (v > max) max = v;
+      }
     }
-    return hitungAmbang(nilai);
+    return { ambang: hitungAmbang(nilai), maxNilai: max };
   }, [siap, tahun, ukuran]);
 
   useEffect(() => {
@@ -142,9 +187,7 @@ export default function App() {
   }, [ambang]);
 
   const labelUkuran = UKURAN_UTAMA.find((u) => u.id === ukuran)?.label ?? "Kejadian";
-  const satuan = UKURAN_UTAMA.find((u) => u.id === ukuran)?.satuan ?? "";
 
-  /** Hitung nilai dan warna untuk satu kode wilayah, memakai keadaan terkini. */
   const hitung = useCallback((kode: string | null) => {
     const d = siapRef.current;
     const th = tahunRef.current;
@@ -169,7 +212,6 @@ export default function App() {
     [hitung],
   );
 
-  /** Warnai ulang seluruh wilayah tanpa menggambar ulang lapisannya. */
   const perbaruiWarna = useCallback(() => {
     const l = lapisan.current;
     if (!l) return;
@@ -177,16 +219,23 @@ export default function App() {
       const jalur = lapis as L.Path & { feature?: FiturPeta };
       const kode = jalur.feature?.properties.kode ?? null;
       const { warna } = hitung(kode);
-      jalur.setStyle({ fillColor: warna, fillOpacity: 1, color: "#fbfaf7", weight: 0.7 });
+      jalur.setStyle({
+        fillColor: warna,
+        fillOpacity: 1,
+        color: "#fbfaf7",
+        weight: 0.7,
+      });
       const el = jalur.getElement() as SVGPathElement | undefined;
-      // Wilayah tanpa catatan memakai pola, bukan warna, dan atribut ini harus
-      // ditulis setelah setStyle karena setStyle menimpanya.
-      if (el) el.setAttribute("fill", kode && hitung(kode).nilai !== null ? warna : "url(#lentera-garis)");
+      if (el) {
+        el.setAttribute(
+          "fill",
+          kode && hitung(kode).nilai !== null ? warna : "url(#lentera-garis)"
+        );
+      }
     });
   }, [hitung]);
 
-  // Siapkan peta. Bergantung pada halaman, karena wadah peta dilepas saat
-  // pengguna membuka halaman Tentang dan harus dibuat ulang saat kembali.
+  // Siapkan Leaflet Map saat masuk halaman peta
   useEffect(() => {
     if (halaman !== "peta" || !wadahPeta.current || peta.current) return;
 
@@ -195,14 +244,11 @@ export default function App() {
       minZoom: 3,
       maxZoom: 9,
       zoomSnap: 0.25,
-      // Tanpa basemap tile, jadi latar ditentukan sendiri dan peta tetap
-      // bisa dipakai tanpa jaringan.
-    }).setView([-2.5, 118], 4);
+    }).setView([-2.5, 118], 4.75);
 
-    L.control.zoom({ position: "bottomleft" }).addTo(m);
     m.attributionControl.setPrefix(false);
     m.attributionControl.addAttribution(
-      'Batas wilayah: <a href="https://www.geoboundaries.org/">geoBoundaries</a> | Data: <a href="https://data.bnpb.go.id/">BNPB</a>',
+      'Batas: <a href="https://www.geoboundaries.org/">geoBoundaries</a> | Data: <a href="https://data.bnpb.go.id/">BNPB</a>',
     );
 
     const pola = document.createElement("div");
@@ -217,13 +263,11 @@ export default function App() {
     };
   }, [halaman]);
 
-  // Gambar lapisan sekali. Perubahan tahun dan ukuran hanya mewarnai ulang,
-  // supaya penggeser tetap mulus saat ditarik.
+  // Gambar GeoJSON sekali
   useEffect(() => {
     if (halaman !== "peta" || !peta.current || !siap) return;
 
     let basi = false;
-
     if (lapisan.current) {
       lapisan.current.remove();
       lapisan.current = null;
@@ -257,7 +301,12 @@ export default function App() {
               (ly as L.Path).setStyle({ weight: 0.7, color: "#fbfaf7" });
               ly.closeTooltip();
             });
-            if (wilayah) ly.on("click", () => setDipilih(wilayah));
+            if (wilayah) {
+              ly.on("click", () => {
+                setDipilih(wilayah);
+                setPanelRingkasanTutup(false);
+              });
+            }
           },
         });
 
@@ -274,13 +323,12 @@ export default function App() {
     };
   }, [halaman, siap, isiTooltip, perbaruiWarna]);
 
-  // Warnai ulang setiap tahun atau ukuran berubah.
   useEffect(() => {
     if (halaman !== "peta") return;
     perbaruiWarna();
   }, [halaman, tahun, ukuran, ambang, perbaruiWarna]);
 
-  // Putaran tahun otomatis.
+  // Putaran tahun otomatis
   useEffect(() => {
     if (!sedangMain || tahun === null || daftarTahun.length === 0) return;
     const i = daftarTahun.indexOf(tahun);
@@ -298,7 +346,6 @@ export default function App() {
       return;
     }
     if (daftarTahun.length === 0) return;
-    // Kalau sudah di tahun terakhir, mulai lagi dari awal.
     if (tahun === daftarTahun[daftarTahun.length - 1]) setTahun(daftarTahun[0]);
     setSedangMain(true);
   }, [sedangMain, daftarTahun, tahun]);
@@ -308,83 +355,72 @@ export default function App() {
     setTahun(t);
   }, []);
 
-  const provinsiDipilih =
-    dipilih && siap ? siap.provinsi.find((p) => p.kode === dipilih.prov) : undefined;
+  const tanganiPilihWilayah = useCallback((w: Wilayah) => {
+    setDipilih(w);
+    setPanelRingkasanTutup(false);
+    if (halaman !== "peta") setHalaman("peta");
+    if (peta.current && w.lat && w.lon) {
+      peta.current.flyTo([w.lat, w.lon], 6.5, { duration: 0.8 });
+    }
+  }, [halaman]);
 
-  const nilaiDipilih =
-    dipilih && siap && tahun !== null
-      ? ambilNilai(siap, dipilih.kode, tahun, ukuran)
-      : null;
-
-  const rincian =
-    dipilih && siap && tahun !== null ? rincianDampak(siap, dipilih.kode, tahun) : [];
-
-  const riwayat = useMemo(() => {
-    if (!dipilih || !siap) return [];
-    return daftarTahun.map((t) => ({
-      tahun: t,
-      nilai: ambilNilai(siap, dipilih.kode, t, ukuran),
-    }));
-  }, [dipilih, siap, daftarTahun, ukuran]);
+  const unduhDataBerkas = useCallback(() => {
+    window.open("/data/wilayah.json", "_blank");
+  }, []);
 
   return (
-    <div
-      className={
-        dipilih && halaman === "peta" ? "aplikasi panel-terbuka" : "aplikasi"
-      }
-    >
-      {halaman === "peta" && <div className="peta" ref={wadahPeta} />}
+    <div className={`aplikasi ${dipilih && !adalahPonsel ? "panel-terbuka" : ""}`}>
+      {/* 1. Bilah Atas Global (Desktop & Mobile) */}
+      <BilahAtas
+        halaman={halaman}
+        onGantiHalaman={(h) => {
+          setHalaman(h);
+        }}
+        onUnduhData={unduhDataBerkas}
+        onBukaPencarian={() => {
+          if (halaman !== "peta") setHalaman("peta");
+          setTimeout(() => inputCariRef.current?.focus(), 100);
+        }}
+      />
 
-      <div className="merek">
-        <h1>Lentera</h1>
-        <p>Dampak bencana Indonesia, dengan asal data yang bisa ditelusuri</p>
-        <nav className="nav-halaman" aria-label="Halaman">
-          <button
-            aria-current={halaman === "peta" ? "page" : undefined}
-            onClick={() => setHalaman("peta")}
-          >
-            Peta
-          </button>
-          <button
-            aria-current={halaman === "riwayat" ? "page" : undefined}
-            onClick={() => setHalaman("riwayat")}
-          >
-            Riwayat
-          </button>
-          <button disabled title="Belum dikerjakan">
-            Lapor
-          </button>
-          <button disabled title="Belum dikerjakan">
-            Bantuan
-          </button>
-          <button
-            aria-current={halaman === "tentang" ? "page" : undefined}
-            onClick={() => setHalaman("tentang")}
-          >
-            Tentang
-          </button>
-        </nav>
-      </div>
-
-      {halaman === "riwayat" && <RiwayatJatim />}
-      {halaman === "tentang" && <Tentang />}
-
+      {/* 2. Peta & Layar Utama (01 & 02) */}
       {halaman === "peta" && (
-        <>
-          <nav className="ukuran" aria-label="Ukuran yang ditampilkan">
-            {UKURAN_UTAMA.map((u) => (
-              <button
-                key={u.id}
-                className={u.id === ukuran ? "aktif" : undefined}
-                aria-pressed={u.id === ukuran}
-                onClick={() => setUkuran(u.id)}
-                disabled={!siap}
-              >
-                {u.label}
-              </button>
-            ))}
-          </nav>
+        <main className="panggung-peta-wadah">
+          <div className="peta" ref={wadahPeta} />
 
+          {/* Kendali Kiri: Pencarian autocomplete, layer toggle, zoom */}
+          {siap && (
+            <KendaliKiri
+              daftarWilayah={siap.wilayah}
+              onPilihWilayah={tanganiPilihWilayah}
+              onZoomIn={() => peta.current?.zoomIn()}
+              onZoomOut={() => peta.current?.zoomOut()}
+              lapisanTampak={lapisanTampak}
+              onToggleLapisan={() => {
+                if (lapisan.current && peta.current) {
+                  if (lapisanTampak) lapisan.current.remove();
+                  else lapisan.current.addTo(peta.current);
+                  setLapisanTampak(!lapisanTampak);
+                }
+              }}
+              onToggleLabel={() => {
+                perbaruiWarna();
+              }}
+              fokusPencarianRef={inputCariRef}
+            />
+          )}
+
+          {/* Legenda Tingkat Kejadian (Kiri Bawah) */}
+          {siap && (
+            <LegendaPeta
+              labelUkuran={labelUkuran}
+              tahun={tahun ?? daftarTahun[0] ?? 2024}
+              ambang={ambang}
+              maxNilai={maxNilai}
+            />
+          )}
+
+          {/* Penggeser Waktu (Tengah Bawah) */}
           <PenggeserTahun
             tahun={tahun ?? daftarTahun[0] ?? 0}
             daftarTahun={daftarTahun}
@@ -393,149 +429,122 @@ export default function App() {
             onPutar={putar}
           />
 
-          <aside className="panel">
-            {galat && <p className="galat">{galat}</p>}
+          {/* DESKTOP PANELS: 01 Ringkasan Nasional ATAU 02 Detail Wilayah */}
+          {!adalahPonsel && siap && (
+            <>
+              {!dipilih && !panelRingkasanTutup && (
+                <PanelRingkasan
+                  siap={siap}
+                  tahun={tahun ?? 2024}
+                  ukuran={ukuran}
+                  onPilihWilayah={tanganiPilihWilayah}
+                  onTutup={() => setPanelRingkasanTutup(true)}
+                />
+              )}
 
-            {!galat && !siap && <p className="tenang">Memuat data...</p>}
+              {dipilih && (
+                <PanelDetail
+                  wilayah={dipilih}
+                  siap={siap}
+                  tahun={tahun ?? 2024}
+                  ukuran={ukuran}
+                  onPilihTahun={pilihTahun}
+                  onKembali={() => setDipilih(null)}
+                  onTutup={() => setDipilih(null)}
+                  onBukaRiwayatJatim={() => setHalaman("riwayat")}
+                  onBukaTransparansi={() => setHalaman("bantuan")}
+                />
+              )}
 
-            {siap && !dipilih && (
-              <>
-                <p className="tenang">
-                  Pilih satu wilayah di peta untuk melihat angkanya. Peta bisa
-                  digeser dan diperbesar.
-                </p>
-                <dl className="ringkas">
-                  <div>
-                    <dt>Wilayah</dt>
-                    <dd>{siap.meta.jumlahWilayah} kabupaten/kota</dd>
-                  </div>
-                  <div>
-                    <dt>Provinsi</dt>
-                    <dd>{siap.meta.jumlahProvinsi}</dd>
-                  </div>
-                  <div>
-                    <dt>Tahun tersedia</dt>
-                    <dd>
-                      {daftarTahun[0]} sampai {daftarTahun[daftarTahun.length - 1]}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Sumber angka</dt>
-                    <dd>{sumberUntuk(ukuran)}</dd>
-                  </div>
-                </dl>
-              </>
-            )}
-
-            {dipilih && siap && (
-              <>
-                <button className="tutup" onClick={() => setDipilih(null)}>
-                  Tutup
+              {panelRingkasanTutup && !dipilih && (
+                <button
+                  type="button"
+                  className="tombol-buka-panel-ringkasan"
+                  onClick={() => setPanelRingkasanTutup(false)}
+                >
+                  Buka Ringkasan Nasional
                 </button>
-                <h2>{dipilih.nama}</h2>
-                <p className="meta">
-                  {provinsiDipilih?.nama ?? "Provinsi tidak diketahui"} | Kode BPS{" "}
-                  {dipilih.kode}
-                </p>
-
-                {nilaiDipilih === null ? (
-                  <p className="angka-besar kosong">
-                    Tidak ada catatan untuk {tahun}
-                  </p>
-                ) : (
-                  <p className="angka-besar">
-                    {fmt(nilaiDipilih)}
-                    <span>
-                      {satuan} pada {tahun}
-                    </span>
-                  </p>
-                )}
-
-                <p className="label-lapisan resmi">Data resmi BNPB</p>
-
-                {rincian.length > 0 && (
-                  <table className="riwayat">
-                    <caption>Rincian dampak {tahun}</caption>
-                    <tbody>
-                      {rincian.map((r) => (
-                        <tr key={r.id}>
-                          <th scope="row">{r.label}</th>
-                          <td>{fmt(r.nilai)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-
-                <table className="riwayat">
-                  <caption>Riwayat {labelUkuran.toLowerCase()}</caption>
-                  <tbody>
-                    {riwayat.map((r) => (
-                      <tr
-                        key={r.tahun}
-                        className={r.tahun === tahun ? "aktif" : undefined}
-                      >
-                        <th scope="row">{r.tahun}</th>
-                        <td>
-                          {r.nilai === null ? "tidak ada catatan" : fmt(r.nilai)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </>
-            )}
-
-            {siap && (
-              <div className="legenda">
-                <p className="legenda-judul">{labelUkuran} per tahun</p>
-                <div className="legenda-baris">
-                  <span className="butir">
-                    <span className="contoh bergaris" />
-                    data tidak tersedia
-                  </span>
-                  <span className="butir">
-                    <span className="contoh" style={{ background: WARNA_KELAS[0] }} />0
-                  </span>
-                  {ambang.map((a, i) => (
-                    <span className="butir" key={`${a}-${i}`}>
-                      <span
-                        className="contoh"
-                        style={{ background: WARNA_KELAS[i + 1] }}
-                      />
-                      {i === 0
-                        ? `1 sampai ${fmt(a)}`
-                        : `${fmt(ambang[i - 1] + 1)} sampai ${fmt(a)}`}
-                    </span>
-                  ))}
-                  <span className="butir">
-                    <span
-                      className="contoh"
-                      style={{
-                        background:
-                          WARNA_KELAS[
-                            Math.min(ambang.length + 1, WARNA_KELAS.length - 1)
-                          ],
-                      }}
-                    />
-                    {fmt(ambang[ambang.length - 1] + 1)} atau lebih
-                  </span>
-                </div>
-              </div>
-            )}
-          </aside>
-
-          {siap && (
-            <footer className="kaki">
-              <p>
-                Sumber: {siap.meta.sumber.nama}, diambil {siap.meta.sumber.diambil}.
-                Angka kejadian dari tabel agregat, angka korban dan kerusakan dari
-                berkas statistik wilayah. Kedua tabel BNPB bisa berbeda.
-              </p>
-            </footer>
+              )}
+            </>
           )}
-        </>
+
+          {/* MOBILE BOTTOM SHEETS: 03 Ponsel Ringkasan ATAU 04 Ponsel Detail */}
+          {adalahPonsel && siap && (
+            <>
+              {!dipilih && (
+                <PonselRingkasan
+                  siap={siap}
+                  tahun={tahun ?? 2024}
+                  onPilihWilayah={tanganiPilihWilayah}
+                />
+              )}
+
+              {dipilih && (
+                <PonselDetail
+                  wilayah={dipilih}
+                  siap={siap}
+                  tahun={tahun ?? 2024}
+                  ukuran={ukuran}
+                  onPilihUkuran={(uk) => setUkuran(uk)}
+                  onPilihTahun={pilihTahun}
+                  onTutup={() => setDipilih(null)}
+                />
+              )}
+            </>
+          )}
+
+          {galat && <p className="pesan-galat-peta">{galat}</p>}
+        </main>
       )}
+
+      {/* 3. Screen 03: Daftar Wilayah */}
+      {halaman === "daftar" && siap && (
+        <DaftarWilayah
+          siap={siap}
+          tahun={tahun ?? 2024}
+          onPilihWilayah={tanganiPilihWilayah}
+        />
+      )}
+
+      {/* 4. Screen 04: Riwayat Kejadian Jawa Timur */}
+      {halaman === "riwayat" && (
+        <RiwayatJatim
+          onPilihKejadian={(id) => {
+            setIdKejadian(id);
+            setHalaman("kejadian");
+          }}
+        />
+      )}
+
+      {/* 5. Screen 05: Detail Kejadian */}
+      {halaman === "kejadian" && (
+        <DetailKejadian
+          idKejadian={idKejadian}
+          onKembali={() => setHalaman("riwayat")}
+        />
+      )}
+
+      {/* 6. Screens 06, 06a, 07, 08: Laporan Warga & Autentikasi Pelapor */}
+      {(halaman === "lapor" || halaman === "masuk") && (
+        <LaporanWarga
+          subHalamanAwal={halaman === "masuk" ? "masuk" : "beranda"}
+          onKembaliKePeta={() => setHalaman("peta")}
+        />
+      )}
+
+      {/* 7. Screens 09, 10, 11: Transparansi Bantuan */}
+      {halaman === "bantuan" && (
+        <TransparansiBantuan onBukaLapor={() => setHalaman("lapor")} />
+      )}
+
+      {/* 8. Screens 12, 13, 14, 15: Tentang dan Sumber Data */}
+      {halaman === "tentang" && <Tentang />}
+
+      {/* 9. Screens 16, 17: Moderator (Internal) */}
+      {halaman === "moderator" && <Moderator />}
+
+      {/* 10. Screen 18: Bandingkan Wilayah dan Tahun */}
+      {halaman === "bandingkan" && <BandingkanWilayah siap={siap} />}
     </div>
   );
 }

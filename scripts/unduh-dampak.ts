@@ -11,7 +11,7 @@
  * Hasil olahannya yang di-commit, ada di public/data.
  */
 
-import { mkdir, readFile, writeFile, access } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 const AKAR = process.cwd();

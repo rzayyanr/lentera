@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lentera, arah visual 2: gelap operasional</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  [hidden]{display:none !important}
+  :root{
+    --bg:#0B0F14; --panel:#121821; --panel2:#0F151D; --line:#212A36;
+    --ink:#E6EDF5; --muted:#8A98A8; --accent:#4CC9F0;
+    --l-resmi:#4CC9F0; --l-warga:#F2A93B; --l-komunitas:#B98BFF;
+    --m0:#1A222C; --m1:#22303B; --m2:#2B4A54; --m3:#356B6E; --m4:#3E8F7E;
+    --m5:#4FB489; --m6:#7FD9A6;
+  }
+  body{font-family:"IBM Plex Sans",-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);line-height:1.45;-webkit-font-smoothing:antialiased}
+  .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+  .shell{display:grid;grid-template-columns:196px 1fr;min-height:100vh}
+
+  .rail{border-right:1px solid var(--line);background:var(--panel2);padding:16px 0}
+  .brand{padding:0 18px 16px;border-bottom:1px solid var(--line);margin-bottom:10px}
+  .brand b{font-size:17px;letter-spacing:-.01em}
+  .brand b i{color:var(--accent);font-style:normal}
+  .brand span{display:block;font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.35}
+  .rail a{display:flex;align-items:center;gap:9px;padding:9px 18px;font-size:13.5px;color:var(--muted);text-decoration:none;border-left:2px solid transparent}
+  .rail a:hover{color:var(--ink);background:#151C25}
+  .rail a[aria-current]{color:var(--ink);background:#151C25;border-left-color:var(--accent)}
+  .rail .dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.75}
+  .railfoot{padding:14px 18px;border-top:1px solid var(--line);margin-top:14px;font-size:10.5px;color:var(--muted)}
+
+  .main{display:flex;flex-direction:column;min-width:0}
+  .topbar{display:flex;align-items:center;gap:8px;padding:11px 16px;border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap}
+  .seg{display:flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+  .seg button{font:inherit;font-size:12px;padding:5px 11px;background:transparent;color:var(--muted);border:0;cursor:pointer}
+  .seg button:hover{color:var(--ink);background:#18202B}
+  .seg button[aria-pressed="true"]{background:#1D2A38;color:var(--accent)}
+  select,input[type=search]{font:inherit;font-size:12px;padding:5px 9px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:4px}
+  input[type=search]{width:190px}
+  .tag{font-size:10.5px;color:var(--muted);border:1px dashed var(--line);border-radius:3px;padding:3px 8px;margin-left:auto}
+
+  .grid{display:grid;grid-template-columns:1fr 352px;gap:12px;padding:12px;flex:1;min-height:0;align-items:start}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+  .cardhead{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--line);font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line)}
+  .kpi{background:var(--panel2);padding:10px 12px}
+  .kpi b{display:block;font-size:22px;font-weight:500}
+  .kpi span{font-size:10.5px;color:var(--muted)}
+  .mapwrap{flex:0 0 auto;background:#0E131A}
+  svg.map{display:block;width:100%;height:auto}
+  .lg{font-size:10.5px;color:var(--muted);margin-right:9px}
+  svg.map path{stroke:#0B0F14;stroke-width:.5;cursor:pointer;transition:opacity .12s}
+  svg.map path:hover{stroke:var(--accent);stroke-width:1}
+  svg.map path.sel{stroke:#fff;stroke-width:2.2;filter:drop-shadow(0 0 3px rgba(0,0,0,.9))}
+  svg.map .pinring{fill:none;stroke:#0B0F14;stroke-width:3.5}
+  svg.map .pindot{fill:var(--accent)}
+  svg.map .pinlabel{font-family:"IBM Plex Sans",sans-serif;font-size:17px;font-weight:600;fill:#E6EDF5;paint-order:stroke;stroke:#0B0F14;stroke-width:4.5;stroke-linejoin:round}
+  svg.map g.nb{fill:#1B2531;stroke:none}
+  .c0{fill:var(--m0)} .c1{fill:var(--m1)} .c2{fill:var(--m2)} .c3{fill:var(--m3)}
+  .c4{fill:var(--m4)} .c5{fill:var(--m5)} .c6{fill:var(--m6)}
+  .legend{display:flex;align-items:center;gap:6px;padding:8px 12px;border-top:1px solid var(--line);font-size:10.5px;color:var(--muted);flex-wrap:wrap}
+  .sw{width:16px;height:9px;display:inline-block}
+  .sw.i{background:repeating-linear-gradient(45deg,#0E131A 0 3px,var(--line) 3px 6px);border:1px solid var(--line)}
+  .sw.c0{background:var(--m0)}.sw.c1{background:var(--m1)}.sw.c2{background:var(--m2)}
+  .sw.c3{background:var(--m3)}.sw.c4{background:var(--m4)}.sw.c5{background:var(--m5)}.sw.c6{background:var(--m6)}
+
+  .tabs{display:flex;border-bottom:1px solid var(--line)}
+  .tabs button{font:inherit;font-size:12px;flex:1;padding:9px 0;background:transparent;border:0;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer}
+  .tabs button:hover{color:var(--ink)}
+  .tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+  .pane{padding:12px;overflow:auto;flex:1}
+  .rname{font-size:19px;font-weight:600}
+  .rsub{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .layers{display:flex;gap:5px;margin:11px 0;flex-wrap:wrap}
+  .lay{font-size:10px;padding:3px 7px;border-radius:3px;border:1px solid}
+  .lay.resmi{color:var(--l-resmi);border-color:color-mix(in srgb,var(--l-resmi) 55%,transparent)}
+  .lay.warga{color:var(--l-warga);border-color:color-mix(in srgb,var(--l-warga) 55%,transparent)}
+  .lay.kom{color:var(--l-komunitas);border-color:color-mix(in srgb,var(--l-komunitas) 55%,transparent)}
+  .big{font-size:40px;font-weight:500}
+  .big small{font-size:11px;color:var(--muted);display:block;margin-top:5px;font-family:"IBM Plex Sans",sans-serif}
+  dl.meta{margin-top:12px;font-size:12px}
+  dl.meta div{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
+  dl.meta dt{color:var(--muted)}
+  dl.meta dd{text-align:right}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)}
+  th{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:500}
+  td.num{text-align:right}
+  tbody tr{cursor:pointer}
+  tbody tr:hover{background:#18202B}
+  .actions{display:flex;gap:7px;margin-top:12px}
+  .btn{font:inherit;font-size:12px;padding:7px 12px;border-radius:4px;border:1px solid var(--accent);background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent);cursor:pointer}
+  .btn.ghost{border-color:var(--line);background:transparent;color:var(--ink)}
+  .btn:hover{filter:brightness(1.15)}
+  .status{display:flex;gap:16px;padding:7px 14px;border-top:1px solid var(--line);background:var(--panel);font-size:10.5px;color:var(--muted);flex-wrap:wrap}
+  .dotg{width:6px;height:6px;border-radius:50%;background:var(--m5);display:inline-block;margin-right:5px}
+  @media (max-width:980px){
+    .shell{grid-template-columns:1fr}
+    .rail{display:none}
+    .grid{grid-template-columns:1fr}
+    .kpis{grid-template-columns:repeat(2,1fr)}
+  }
+  @media (max-width:560px){
+    .topbar{gap:6px;padding:9px 10px}
+    input[type=search]{width:100%}
+    .tag{margin-left:0}
+    .grid{padding:8px;gap:8px}
+    .pane{padding:10px}
+    .status{gap:10px;padding:7px 10px}
+    .seg button{padding:5px 8px}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="rail">
+    <div class="brand"><b>Lentera<i>.</i></b><span>Riwayat dan dampak bencana, asal informasi jelas</span></div>
+    <a href="#" aria-current="page"><span class="dot"></span>Peta dampak</a>
+    <a href="#"><span class="dot"></span>Riwayat kejadian</a>
+    <a href="#"><span class="dot"></span>Laporan warga</a>
+    <a href="#"><span class="dot"></span>Bantuan</a>
+    <a href="#"><span class="dot"></span>Tentang &amp; sumber</a>
+    <a href="#"><span class="dot"></span>Moderator</a>
+    <div class="railfoot">Kompilasi BNPB, ODC-BY<br>Periode 2010 sampai 2024</div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="seg" id="years">
+        <button data-year="2019">2019</button>
+        <button data-year="2021">2021</button>
+        <button data-year="2023">2023</button>
+        <button data-year="2024" aria-pressed="true">2024</button>
+      </div>
+      <select id="jenis">
+        <option>Semua jenis bencana</option>
+        <option>Banjir</option><option>Cuaca ekstrem</option><option>Kebakaran hutan dan lahan</option>
+        <option>Tanah longsor</option><option>Kekeringan</option><option>Gempabumi</option>
+      </select>
+      <input type="search" placeholder="Cari kabupaten atau kota">
+      <div class="seg"><button id="mPeta" aria-pressed="true">Peta</button><button id="mDaftar" aria-pressed="false">Daftar</button></div>
+      <span class="tag">Data contoh untuk mockup</span>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="kpis">
+          <div class="kpi"><b class="mono" id="k1">3.426</b><span>KEJADIAN <span id="ky">2024</span></span></div>
+          <div class="kpi"><b class="mono">9</b><span>JENIS BENCANA</span></div>
+          <div class="kpi"><b class="mono">467</b><span>WILAYAH BERDATA</span></div>
+          <div class="kpi"><b class="mono">3</b><span>LAPORAN MENUNGGU</span></div>
+        </div>
+        <div class="cardhead"><span>Peta dampak per kabupaten/kota</span><span style="margin-left:auto;text-transform:none;letter-spacing:0">Sumber: BNPB</span></div>
+        <div class="mapwrap" id="mapwrap"><svg class="map" id="map" viewBox="0 0 1000 405" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Peta dampak"></svg></div>
+        <div class="legend">
+          <span>KEJADIAN</span>
+          <span class="sw c1"></span><span class="mono lg">0</span>
+          <span class="sw c2"></span><span class="mono lg">1</span>
+          <span class="sw c3"></span><span class="mono lg">2-3</span>
+          <span class="sw c4"></span><span class="mono lg">4-5</span>
+          <span class="sw c5"></span><span class="mono lg">6-9</span>
+          <span class="sw c6"></span><span class="mono lg">&gt;9</span>
+          <span class="sw i"></span><span class="lg">tidak tersedia</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="tabs" id="tabs">
+          <button aria-selected="true" data-tab="dampak">Dampak</button>
+          <button data-tab="riwayat">Riwayat</button>
+          <button data-tab="bantuan">Bantuan</button>
+        </div>
+
+        <div class="pane" id="p-dampak">
+          <div class="rname" id="rnama">Ogan Ilir</div>
+          <div class="rsub" id="rsub">Sumatera Selatan, tingkat kabupaten/kota</div>
+          <div class="layers">
+            <span class="lay resmi">Data resmi BNPB</span>
+            <span class="lay warga">Laporan warga</span>
+            <span class="lay kom">Catatan komunitas</span>
+          </div>
+          <div class="big mono"><span id="rval">70</span><small>kejadian tercatat, tahun <span id="ryear">2024</span></small></div>
+          <dl class="meta">
+            <div><dt>Sumber</dt><dd>Kompilasi BNPB</dd></div>
+            <div><dt>Pembaruan</dt><dd>Agregat 2024</dd></div>
+            <div><dt>Ketelitian lokasi</dt><dd>Kabupaten</dd></div>
+            <div><dt>Koordinat kejadian</dt><dd>Tidak tersedia</dd></div>
+          </dl>
+          <div class="actions">
+            <button class="btn" id="bBanding">Bandingkan</button>
+            <button class="btn ghost" id="bRiwayat">Riwayat</button>
+          </div>
+          <p style="font-size:11px;color:var(--muted);margin-top:11px">Angka berasal dari data agregat. Titik kejadian tidak ditampilkan karena sumbernya tidak memuat koordinat kejadian.</p>
+        </div>
+
+        <div class="pane" id="p-riwayat" hidden>
+          <div class="rname">Riwayat kejadian</div>
+          <div class="rsub">Tersedia per tanggal untuk Jawa Timur</div>
+          <div class="layers"><span class="lay resmi">Data resmi BPBD Jawa Timur</span></div>
+          <table>
+            <thead><tr><th>Waktu</th><th>Tipe</th><th>Kab/Kota</th></tr></thead>
+            <tbody id="tbRiwayat"></tbody>
+          </table>
+          <p style="font-size:11px;color:var(--muted);margin-top:11px">5.609 kejadian tercatat di Jawa Timur sepanjang 2024. Daftar di atas contoh tampilan.</p>
+        </div>
+
+        <div class="pane" id="p-bantuan" hidden>
+          <div class="rname">Catatan bantuan</div>
+          <div class="rsub">Dua lapisan terpisah, tidak digabung</div>
+          <div class="layers">
+            <span class="lay resmi">Data resmi Pemerintah Kota Surabaya</span>
+            <span class="lay kom">Catatan komunitas</span>
+          </div>
+          <table>
+            <thead><tr><th>Tanggal</th><th>Jenis bantuan</th><th>Sumber</th></tr></thead>
+            <tbody id="tbBantuan"></tbody>
+          </table>
+          <p style="font-size:11px;color:var(--muted);margin-top:11px">Alamat jalan, identitas penerima, dan nominal dana tidak ditampilkan.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="status">
+      <span><span class="dotg"></span>Peta siap</span>
+      <span>Data contoh untuk mockup</span>
+      <span>Lapisan resmi dan laporan warga dipisah</span>
+      <span style="margin-left:auto">Chrome, Edge, Firefox</span>
+    </div>
+  </div>
+</div>
+
+<script src="../themes/map-paths.js"></script>
+<script>
+(function(){
+  var YEAR = {2019:0.87, 2021:0.81, 2023:0.92, 2024:1};
+  var map = document.getElementById('map');
+  map.innerHTML = '<g class="nb">' + window.LENTERA_NEIGHBOURS + '</g>' + window.LENTERA_MAP_PATHS;
+  var paths = Array.prototype.slice.call(map.querySelectorAll('path[data-c]'));
+  var prov = {"Ogan Ilir":"Sumatera Selatan","Muara Enim":"Sumatera Selatan","Bintan":"Kepulauan Riau","Karawang":"Jawa Barat","Deli Serdang":"Sumatera Utara","Karo":"Sumatera Utara"};
+  var top = paths.filter(function(p){return p.dataset.v!=='';})
+    .map(function(p){return {n:p.dataset.n,v:parseInt(p.dataset.v,10)};})
+    .sort(function(a,b){return b.v-a.v;}).slice(0,7);
+  document.getElementById('tbRiwayat').innerHTML = [
+    ['02 Jan 2024','Banjir','Kota Surabaya'],['03 Jan 2024','Cuaca ekstrem','Kab. Sidoarjo'],
+    ['05 Jan 2024','Tanah longsor','Kab. Malang'],['08 Jan 2024','Banjir','Kab. Gresik'],
+    ['11 Jan 2024','Kebakaran hutan dan lahan','Kab. Banyuwangi'],['14 Jan 2024','Banjir','Kab. Jember']
+  ].map(function(r){return '<tr><td class="mono">'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>';}).join('');
+  document.getElementById('tbBantuan').innerHTML = [
+    ['02 Jan 2024','Bantuan logistik','Resmi Surabaya'],['03 Jan 2024','Bantuan logistik','Resmi Surabaya'],
+    ['05 Jan 2024','Terpal dan puing','Resmi Surabaya'],['09 Jan 2024','Dapur umum','Komunitas']
+  ].map(function(r){return '<tr><td class="mono">'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>';}).join('');
+
+
+  var pin = null;
+  function marker(p){
+    var seg = (p.getAttribute('d')||'').split('Z')[0].replace('M','').trim().split(/\s+/);
+    var xs=[], ys=[];
+    for (var i=0;i+1<seg.length;i+=2){ xs.push(+seg[i]); ys.push(+seg[i+1]); }
+    if(!xs.length) return;
+    var x=(Math.min.apply(null,xs)+Math.max.apply(null,xs))/2;
+    var y=(Math.min.apply(null,ys)+Math.max.apply(null,ys))/2;
+    if(!pin){
+      pin = document.createElementNS('http://www.w3.org/2000/svg','g');
+      pin.setAttribute('class','pin');
+      pin.innerHTML = '<circle class="pinring" r="11"></circle><circle class="pindot" r="4.5"></circle><text class="pinlabel" x="19" y="7"></text>';
+      map.appendChild(pin);
+    }
+    pin.setAttribute('transform','translate('+x.toFixed(1)+','+y.toFixed(1)+')');
+    pin.querySelector('.pinlabel').textContent = p.dataset.n;
+    map.appendChild(pin);
+  }
+  function show(p, f){
+    paths.forEach(function(q){q.classList.remove('sel');});
+    p.classList.add('sel');
+    map.appendChild(p);
+    document.getElementById('rnama').textContent = p.dataset.n;
+    document.getElementById('rsub').textContent = (prov[p.dataset.n]||'Indonesia') + ', tingkat kabupaten/kota';
+    document.getElementById('rval').textContent = p.dataset.v==='' ? 'Tidak tersedia' : Math.round(parseInt(p.dataset.v,10)*f);
+    marker(p);
+  }
+  paths.forEach(function(p){ p.addEventListener('click', function(){ show(p, YEAR[document.getElementById('ryear').textContent]); }); });
+  document.querySelectorAll('[data-year]').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('[data-year]').forEach(function(x){x.setAttribute('aria-pressed','false');});
+      b.setAttribute('aria-pressed','true');
+      document.getElementById('ryear').textContent = b.dataset.year;
+      var f = YEAR[b.dataset.year];
+      var sel = map.querySelector('path.sel'); if(sel) show(sel, f);
+    });
+  });
+  document.getElementById('tabs').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-tab]'); if(!b) return;
+    document.querySelectorAll('#tabs button').forEach(function(x){x.setAttribute('aria-selected','false');});
+    b.setAttribute('aria-selected','true');
+    ['dampak','riwayat','bantuan'].forEach(function(t){ document.getElementById('p-'+t).hidden = (t !== b.dataset.tab); });
+  });
+  function mode(list){
+    document.getElementById('mapwrap').hidden = list;
+    document.getElementById('mPeta').setAttribute('aria-pressed', String(!list));
+    document.getElementById('mDaftar').setAttribute('aria-pressed', String(list));
+  }
+  document.getElementById('mPeta').addEventListener('click', function(){ mode(false); });
+  document.getElementById('mDaftar').addEventListener('click', function(){ mode(true); });
+  document.getElementById('bRiwayat').addEventListener('click', function(){ document.querySelector('[data-tab=riwayat]').click(); });
+  document.getElementById('bBanding').addEventListener('click', function(){ alert('Mockup: perbandingan dua wilayah atau dua tahun.'); });
+  show(map.querySelector('path[data-n="Ogan Ilir"]') || paths.filter(function(p){return p.dataset.v!=='';})[0], 1);
+})();
+</script>
+</body>
+</html>
