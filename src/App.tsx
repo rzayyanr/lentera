@@ -364,10 +364,6 @@ export default function App() {
     }
   }, [halaman]);
 
-  const unduhDataBerkas = useCallback(() => {
-    window.open("/data/wilayah.json", "_blank");
-  }, []);
-
   return (
     <div className={`aplikasi ${dipilih && !adalahPonsel ? "panel-terbuka" : ""}`}>
       {/* 1. Bilah Atas Global (Desktop & Mobile) */}
@@ -376,7 +372,6 @@ export default function App() {
         onGantiHalaman={(h) => {
           setHalaman(h);
         }}
-        onUnduhData={unduhDataBerkas}
         onBukaPencarian={() => {
           if (halaman !== "peta") setHalaman("peta");
           setTimeout(() => inputCariRef.current?.focus(), 100);

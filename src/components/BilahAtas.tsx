@@ -1,7 +1,6 @@
 import { useState } from "react";
 import logoSvg from "../assets/icons/logo.svg";
 import searchHeaderSvg from "../assets/icons/search-header.svg";
-import accessibilitySvg from "../assets/icons/accessibility.svg";
 
 export type HalamanTipe =
   | "peta"
@@ -18,14 +17,12 @@ export type HalamanTipe =
 interface Props {
   halaman: HalamanTipe;
   onGantiHalaman: (h: HalamanTipe) => void;
-  onUnduhData?: () => void;
   onBukaPencarian?: () => void;
 }
 
 export default function BilahAtas({
   halaman,
   onGantiHalaman,
-  onUnduhData,
   onBukaPencarian,
 }: Props) {
   const [menuPonselTerbuka, setMenuPonselTerbuka] = useState(false);
@@ -91,25 +88,6 @@ export default function BilahAtas({
             aria-label="Cari wilayah"
           >
             <img src={searchHeaderSvg} alt="" width="18" height="18" />
-          </button>
-
-          <button
-            type="button"
-            className="tombol-unduh-data"
-            onClick={onUnduhData}
-            title="Unduh data bencana"
-          >
-            Unduh data
-          </button>
-
-          <button
-            type="button"
-            className="tombol-lingkar"
-            onClick={() => onGantiHalaman("tentang")}
-            title="Aksesibilitas dan integritas data"
-            aria-label="Aksesibilitas dan integritas data"
-          >
-            <img src={accessibilitySvg} alt="" width="18" height="18" />
           </button>
 
           {/* Hamburger toggle for mobile */}

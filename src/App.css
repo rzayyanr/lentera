@@ -180,24 +180,6 @@ body {
   background: #f4f0e6;
 }
 
-.tombol-unduh-data {
-  font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--warna-tinta);
-  background: var(--warna-kartu);
-  border: 1px solid var(--warna-garis);
-  border-radius: 8px;
-  padding: 8px 16px;
-  height: 36px;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.tombol-unduh-data:hover {
-  background: #f4f0e6;
-}
-
 .tombol-menu-ponsel {
   display: none;
   flex-direction: column;
@@ -594,6 +576,15 @@ body {
 .tahun-rentang {
   font-size: 10px;
   color: var(--warna-redup);
+}
+
+/* Penggeser tahun memakai aksen hijau yang sama dengan kontrol lain,
+   bukan biru bawaan peramban. */
+.rel input[type="range"] {
+  width: 100%;
+  margin: 6px 0 0;
+  accent-color: var(--warna-aksen);
+  cursor: pointer;
 }
 
 /* ==========================================================================
@@ -1730,8 +1721,7 @@ body {
 
   .bilah-atas-nav,
   .bilah-atas-subjudul,
-  .bilah-atas-pemisah,
-  .tombol-unduh-data {
+  .bilah-atas-pemisah {
     display: none;
   }
 
