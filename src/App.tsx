@@ -38,6 +38,17 @@ interface FiturPeta {
 
 const JEDA_PUTAR_MS = 650;
 
+/* Batas atas jarak kamera saat mengikuti wilayah yang dipilih. Tanpa batas
+   ini, kabupaten kecil seperti Bandung ditarik sampai zoom 9 dan konteks
+   pulau di sekitarnya hilang sama sekali. */
+const ZOOM_MAKS_WILAYAH = 6.5;
+
+/* Pengurang jarak kamera setelah wilayah dihitung pas dengan kotak bebas,
+   supaya wilayah tidak menempel ke tepi dan masih terlihat wilayah sebelah.
+   Ini hanya berpengaruh pada wilayah besar, karena wilayah kecil sudah
+   dibatasi ZOOM_MAKS_WILAYAH. */
+const ZOOM_KONTEKS = 0.5;
+
 const POLA_SVG = `
 <svg width="0" height="0" aria-hidden="true" style="position:absolute">
   <defs>
@@ -57,6 +68,9 @@ export default function App() {
   // Lapisan per kode wilayah, dipakai untuk mengambil batas wilayah saat
   // kamera peta harus mengikuti pilihan.
   const lapisPerKode = useRef(new Map<string, L.Polygon>());
+  // Wilayah terpilih terakhir, dibaca dari penangan peta supaya garis
+  // penanda tetap benar tanpa memasang ulang lapisan GeoJSON.
+  const dipilihRef = useRef<Wilayah | null>(null);
   // Salinan penangan kamera terbaru, supaya penangan klik pada lapisan
   // GeoJSON tidak perlu dipasang ulang setiap kali panel dibuka atau ditutup.
   const terbangRef = useRef<((w: Wilayah) => void) | null>(null);
@@ -224,15 +238,18 @@ export default function App() {
   const perbaruiWarna = useCallback(() => {
     const l = lapisan.current;
     if (!l) return;
+    // Design system: wilayah terpilih memakai garis tinta lebar 2,4.
+    const kodeTerpilih = dipilihRef.current?.kode ?? null;
     l.eachLayer((lapis) => {
       const jalur = lapis as L.Path & { feature?: FiturPeta };
       const kode = jalur.feature?.properties.kode ?? null;
       const { warna } = hitung(kode);
+      const terpilih = kode !== null && kode === kodeTerpilih;
       jalur.setStyle({
         fillColor: warna,
         fillOpacity: 1,
-        color: "#fbfaf7",
-        weight: 0.7,
+        color: terpilih ? "#16181c" : "#fbfaf7",
+        weight: terpilih ? 2.4 : 0.7,
       });
       const el = jalur.getElement() as SVGPathElement | undefined;
       if (el) {
@@ -308,7 +325,11 @@ export default function App() {
               ly.openTooltip();
             });
             ly.on("mouseout", () => {
-              (ly as L.Path).setStyle({ weight: 0.7, color: "#fbfaf7" });
+              const terpilih = dipilihRef.current?.kode === p.kode;
+              (ly as L.Path).setStyle({
+                weight: terpilih ? 2.4 : 0.7,
+                color: terpilih ? "#16181c" : "#fbfaf7",
+              });
               ly.closeTooltip();
             });
             if (wilayah) {
@@ -345,6 +366,13 @@ export default function App() {
     if (halaman !== "peta") return;
     perbaruiWarna();
   }, [halaman, tahun, ukuran, ambang, perbaruiWarna]);
+
+  // Garis penanda wilayah terpilih ikut berubah setiap kali pilihan berganti.
+  useEffect(() => {
+    dipilihRef.current = dipilih;
+    if (halaman !== "peta") return;
+    perbaruiWarna();
+  }, [dipilih, halaman, perbaruiWarna]);
 
   // Putaran tahun otomatis
   useEffect(() => {
@@ -400,9 +428,14 @@ export default function App() {
       const tepiKanan = adalahPonsel
         ? L.point(16, 300)
         : L.point(panelTerbuka ? 460 : 40, 200);
-      const maxZoom = 7.25;
 
-      const zoom = Math.min(m.getBoundsZoom(batas, false, tepiKiri.add(tepiKanan)), maxZoom);
+      const zoom = Math.max(
+        m.getMinZoom(),
+        Math.min(
+          m.getBoundsZoom(batas, false, tepiKiri.add(tepiKanan)) - ZOOM_KONTEKS,
+          ZOOM_MAKS_WILAYAH,
+        ),
+      );
 
       // Wilayah yang sudah terlihat utuh pada jarak kamera yang sama tidak
       // perlu dianimasikan: menggeser kamera tanpa mengubah apa pun hanya
