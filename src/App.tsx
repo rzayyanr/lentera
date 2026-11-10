@@ -54,6 +54,15 @@ export default function App() {
   const peta = useRef<L.Map | null>(null);
   const lapisan = useRef<L.GeoJSON | null>(null);
   const inputCariRef = useRef<HTMLInputElement | null>(null);
+  // Lapisan per kode wilayah, dipakai untuk mengambil batas wilayah saat
+  // kamera peta harus mengikuti pilihan.
+  const lapisPerKode = useRef(new Map<string, L.Polygon>());
+  // Salinan penangan kamera terbaru, supaya penangan klik pada lapisan
+  // GeoJSON tidak perlu dipasang ulang setiap kali panel dibuka atau ditutup.
+  const terbangRef = useRef<((w: Wilayah) => void) | null>(null);
+  // Wilayah yang dipilih dari halaman lain. Peta baru ada setelah halaman
+  // peta dipasang, jadi penerbangan kamera ditunda sampai lapisan siap.
+  const terbangTertunda = useRef<Wilayah | null>(null);
 
   const siapRef = useRef<DataLentera | null>(null);
   const tahunRef = useRef<number | null>(null);
@@ -260,6 +269,7 @@ export default function App() {
       m.remove();
       peta.current = null;
       lapisan.current = null;
+      lapisPerKode.current.clear();
     };
   }, [halaman]);
 
@@ -272,6 +282,7 @@ export default function App() {
       lapisan.current.remove();
       lapisan.current = null;
     }
+    lapisPerKode.current.clear();
 
     fetch("/geo/wilayah.geojson")
       .then((r) => {
@@ -302,9 +313,11 @@ export default function App() {
               ly.closeTooltip();
             });
             if (wilayah) {
+              lapisPerKode.current.set(wilayah.kode, ly as L.Polygon);
               ly.on("click", () => {
                 setDipilih(wilayah);
                 setPanelRingkasanTutup(false);
+                terbangRef.current?.(wilayah);
               });
             }
           },
@@ -313,6 +326,12 @@ export default function App() {
         l.addTo(peta.current);
         lapisan.current = l;
         perbaruiWarna();
+
+        const tertunda = terbangTertunda.current;
+        if (tertunda) {
+          terbangTertunda.current = null;
+          terbangRef.current?.(tertunda);
+        }
       })
       .catch((e: unknown) => {
         if (!basi) setGalat(e instanceof Error ? e.message : "Peta gagal dimuat");
@@ -355,13 +374,75 @@ export default function App() {
     setTahun(t);
   }, []);
 
+  /* Kamera peta mengikuti wilayah yang dipilih.
+
+     Tiap wilayah berbeda ukuran, jadi zoom dihitung dari batas wilayah, bukan
+     dipaku di satu angka: kabupaten kecil dan provinsi besar dapat jarak
+     kamera yang berbeda.
+
+     flyToBounds saja tidak cukup, karena ia memusatkan wilayah di tengah
+     layar penuh, padahal separuh kanan layar tertutup panel 420px. Karena itu
+     titik tujuan dihitung sendiri: wilayah dipusatkan pada kotak yang tidak
+     tertutup kartu mengapung, lalu flyTo menganimasikan geser dan zoom
+     sekaligus sepanjang busur. */
+  const terbangKeWilayah = useCallback(
+    (w: Wilayah) => {
+      const m = peta.current;
+      const lapis = lapisPerKode.current.get(w.kode);
+      if (!m || !lapis) return;
+
+      const batas = lapis.getBounds();
+      if (!batas.isValid()) return;
+
+      const kurangiGerak = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const panelTerbuka = !adalahPonsel && !panelRingkasanTutup;
+
+      const tepiKiri = adalahPonsel ? L.point(16, 76) : L.point(40, 104);
+      const tepiKanan = adalahPonsel
+        ? L.point(16, 300)
+        : L.point(panelTerbuka ? 460 : 40, 200);
+      const maxZoom = 7.25;
+
+      const zoom = Math.min(m.getBoundsZoom(batas, false, tepiKiri.add(tepiKanan)), maxZoom);
+
+      // Wilayah yang sudah terlihat utuh pada jarak kamera yang sama tidak
+      // perlu dianimasikan: menggeser kamera tanpa mengubah apa pun hanya
+      // membuat pembaca kehilangan jangkar.
+      const sudahPas =
+        Math.abs(zoom - m.getZoom()) < 0.5 && m.getBounds().pad(-0.1).contains(batas);
+      if (sudahPas) return;
+
+      const ukuran = m.getSize();
+      const pusatKotakBebas = L.point(
+        (tepiKiri.x + (ukuran.x - tepiKanan.x)) / 2,
+        (tepiKiri.y + (ukuran.y - tepiKanan.y)) / 2,
+      );
+      const geser = L.point(
+        ukuran.x / 2 - pusatKotakBebas.x,
+        ukuran.y / 2 - pusatKotakBebas.y,
+      );
+      const tujuan = m.unproject(m.project(batas.getCenter(), zoom).add(geser), zoom);
+
+      if (kurangiGerak) m.setView(tujuan, zoom, { animate: false });
+      else m.flyTo(tujuan, zoom, { duration: 0.9, easeLinearity: 0.22 });
+    },
+    [adalahPonsel, panelRingkasanTutup],
+  );
+
+  useEffect(() => {
+    terbangRef.current = terbangKeWilayah;
+  }, [terbangKeWilayah]);
+
   const tanganiPilihWilayah = useCallback((w: Wilayah) => {
     setDipilih(w);
     setPanelRingkasanTutup(false);
-    if (halaman !== "peta") setHalaman("peta");
-    if (peta.current && w.lat && w.lon) {
-      peta.current.flyTo([w.lat, w.lon], 6.5, { duration: 0.8 });
+    if (halaman !== "peta") {
+      // Peta belum terpasang; kamera menyusul setelah lapisan wilayah siap.
+      terbangTertunda.current = w;
+      setHalaman("peta");
+      return;
     }
+    terbangRef.current?.(w);
   }, [halaman]);
 
   return (
