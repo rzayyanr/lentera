@@ -3551,11 +3551,12 @@ body {
    19. RESPONSIVE QUERIES TAMBAHAN
    ========================================================================== */
 
-/* Di bawah 1120px, panel kanan bergeser ke kiri sampai menabrak kartu penggeser
-   tahun. Penggeser dipindah ke atas legenda supaya keduanya tidak bertumpuk,
-   tanpa mengubah tata letak pada lebar 1440. */
-@media (max-width: 1120px) {
-  .penggeser {
+/* Kartu penggeser tahun duduk di samping kanan legenda. Itu baru tidak muat
+   kalau panel ringkasan terbuka pada lebar di bawah 1088px: panel bergeser ke
+   kiri sampai menabrak penggeser (kanan penggeser di 628, kiri panel di
+   lebar - 460). Selama panel tertutup, penggeser tetap di tempatnya. */
+@media (max-width: 1088px) {
+  .aplikasi:has(.panel-ringkasan-nasional) .penggeser {
     left: 40px;
     bottom: 200px;
   }
