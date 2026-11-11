@@ -77,8 +77,10 @@ body {
   justify-content: space-between;
   height: 66px;
   padding: 0 24px;
+  /* Tepi bilah harus sama dengan tepi kartu pencarian (40) dan panel kanan
+     (40). Dulu ada batas 1360px, sehingga di monitor 1920 bilah berhenti di
+     280px padahal kartu di bawahnya mulai di 40px. */
   width: calc(100% - 80px);
-  max-width: 1360px;
   background: var(--warna-kartu);
   border: 1px solid var(--warna-garis);
   border-radius: 14px;
@@ -122,7 +124,31 @@ body {
 .bilah-atas-nav {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 28px;
+  /* Mengisi ruang antara logo dan tombol kanan, lalu isinya ditengahkan di
+     ruang itu. Tanpa ini, di monitor lebar menu menempel ke satu sisi dan
+     sisa ruang menganga di sebelahnya. */
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Di layar lebar, sisi kiri dan kanan dibuat sama lebar supaya menu benar
+   benar berada di tengah bilah, bukan di tengah sisa ruang setelah logo. */
+@media (min-width: 1280px) {
+  .bilah-atas-kiri,
+  .bilah-atas-kanan {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .bilah-atas-kanan {
+    justify-content: flex-end;
+  }
+
+  .bilah-atas-nav {
+    flex: 0 0 auto;
+  }
 }
 
 .bilah-atas-item {
