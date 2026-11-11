@@ -1,10 +1,23 @@
 import { useState, useRef, useEffect } from "react";
 import searchInputSvg from "../assets/icons/search-input.svg";
 import layersSvg from "../assets/icons/layers.svg";
-import eyeSvg from "../assets/icons/eye.svg";
 import zoomInSvg from "../assets/icons/zoom-in.svg";
 import zoomOutSvg from "../assets/icons/zoom-out.svg";
 import type { Wilayah } from "../lib/data";
+
+export type GayaPeta = "padat" | "relief" | "garis" | "satelit";
+
+/** Pilihan gaya peta, urut dari yang paling ringan. */
+const PILIHAN_GAYA: Array<{
+  id: GayaPeta;
+  nama: string;
+  online?: boolean;
+}> = [
+  { id: "padat", nama: "Padat" },
+  { id: "relief", nama: "Relief" },
+  { id: "garis", nama: "Garis" },
+  { id: "satelit", nama: "Satelit", online: true },
+];
 
 interface Props {
   daftarWilayah: Wilayah[];
@@ -13,7 +26,10 @@ interface Props {
   onZoomOut: () => void;
   lapisanTampak: boolean;
   onToggleLapisan: () => void;
-  onToggleLabel?: () => void;
+  gaya: GayaPeta;
+  onGantiGaya: (g: GayaPeta) => void;
+  /** Satelit gagal dimuat, mis. sedang tanpa jaringan. */
+  satelitGagal?: boolean;
   fokusPencarianRef?: React.RefObject<HTMLInputElement | null>;
 }
 
@@ -24,7 +40,9 @@ export default function KendaliKiri({
   onZoomOut,
   lapisanTampak,
   onToggleLapisan,
-  onToggleLabel,
+  gaya,
+  onGantiGaya,
+  satelitGagal = false,
   fokusPencarianRef,
 }: Props) {
   const [kataKunci, setKataKunci] = useState("");
@@ -115,7 +133,37 @@ export default function KendaliKiri({
         )}
       </div>
 
-      {/* Tombol aksi lapisan & visibilitas */}
+      {/* Pemilih gaya peta */}
+      <div className="kartu-gaya-peta" role="group" aria-label="Gaya peta">
+        <span className="gaya-peta-label">Gaya peta</span>
+        {PILIHAN_GAYA.map((g) => (
+          <button
+            key={g.id}
+            type="button"
+            className="gaya-peta-opsi"
+            aria-pressed={gaya === g.id}
+            onClick={() => onGantiGaya(g.id)}
+            title={
+              g.id === "satelit"
+                ? satelitGagal
+                  ? "Satelit tidak tersedia tanpa jaringan"
+                  : "Satelit membutuhkan internet"
+                : "Gaya " + g.nama.toLowerCase()
+            }
+          >
+            <span className={"contoh-gaya-peta " + g.id} aria-hidden="true" />
+            <span className="gaya-peta-nama">{g.nama}</span>
+            {g.online && <span className="gaya-peta-tanda">online</span>}
+          </button>
+        ))}
+        {satelitGagal && (
+          <p className="gaya-peta-galat">
+            Satelit butuh internet. Gaya kembali ke Padat.
+          </p>
+        )}
+      </div>
+
+      {/* Tombol lapisan wilayah */}
       <div className="baris-tombol-utilitas">
         <button
           type="button"
@@ -125,16 +173,6 @@ export default function KendaliKiri({
           aria-label="Alihkan lapisan wilayah"
         >
           <img src={layersSvg} alt="" width="18" height="18" />
-        </button>
-
-        <button
-          type="button"
-          className="tombol-ikon-peta"
-          onClick={onToggleLabel}
-          title="Alihkan visibilitas label"
-          aria-label="Alihkan visibilitas label"
-        >
-          <img src={eyeSvg} alt="" width="18" height="18" />
         </button>
       </div>
 

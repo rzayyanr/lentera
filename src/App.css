@@ -4725,6 +4725,168 @@ body {
   }
 }
 
+/* ==========================================================================
+   GAYA PETA: Padat, Relief, Garis, Satelit
+   Relief dan satelit mengubah latar wadah peta; garis hanya mengubah gaya
+   lapisan wilayah. Poligon setengah transparan supaya latar terlihat.
+   ========================================================================== */
+
+/* Relief: latar kontur lembut, tetap jalan tanpa jaringan. */
+.peta.gaya-relief {
+  background-color: #e7e2d4;
+  background-image:
+    repeating-linear-gradient(115deg, rgba(120, 110, 85, 0.1) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(25deg, rgba(120, 110, 85, 0.07) 0 1px, transparent 1px 13px),
+    radial-gradient(120% 90% at 30% 20%, #f2ecdd 0%, #e2dccb 60%, #d8d2c0 100%);
+}
+
+/* Garis: latar bersih, isi wilayah transparan. */
+.peta.gaya-garis {
+  background: var(--warna-kartu);
+}
+
+/* Satelit: latar gelap sampai ubin citra termuat. */
+.peta.gaya-satelit {
+  background: #24352c;
+}
+
+/* Citra diredupkan lewat filter pada pane ubin saja, sehingga lapisan
+   wilayah di pane lain tidak ikut kena. Foto satelit tetap terbaca sebagai
+   konteks, sementara warna choropleth yang pucat jadi lebih menonjol. */
+.peta.gaya-satelit .leaflet-tile-pane {
+  filter: brightness(0.62) saturate(0.85) contrast(1.05);
+}
+
+/* Pemilih gaya peta */
+.kartu-gaya-peta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+  background: var(--warna-kartu);
+  border: 1px solid var(--warna-garis);
+  border-radius: 12px;
+  box-shadow: var(--bayangan-kartu);
+}
+
+.gaya-peta-label {
+  padding: 2px 4px 4px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: var(--warna-redup);
+}
+
+.gaya-peta-opsi {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--warna-tinta);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.gaya-peta-opsi:hover {
+  background: #f1ece0;
+}
+
+.gaya-peta-opsi[aria-pressed="true"] {
+  background: var(--warna-aksen-muda);
+  border-color: #bfd8d2;
+  font-weight: 600;
+}
+
+.contoh-gaya-peta {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 18px;
+  border: 1px solid var(--warna-garis);
+  border-radius: 4px;
+}
+
+.contoh-gaya-peta.padat {
+  background: linear-gradient(90deg, #e4e1d4 0 33%, #a8c8b1 33% 66%, #226a52 66% 100%);
+}
+
+.contoh-gaya-peta.relief {
+  background: repeating-linear-gradient(120deg, #d8d2c0 0 2px, #efe9dc 2px 6px);
+}
+
+.contoh-gaya-peta.garis {
+  background: var(--warna-kartu);
+  box-shadow: inset 0 0 0 1px #9aa39b;
+}
+
+.contoh-gaya-peta.satelit {
+  background: linear-gradient(150deg, #35503f, #1d2b24);
+}
+
+.gaya-peta-nama {
+  flex: 1;
+}
+
+.gaya-peta-tanda {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--warna-warga, #9e5900);
+}
+
+.gaya-peta-galat {
+  margin: 4px 4px 2px;
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--warna-warga, #9e5900);
+}
+
+
+/* Di ponsel, pemilih gaya dipadatkan jadi satu baris ikon supaya peta tidak
+   terdorong. Nama gaya disembunyikan; judul tombol tetap ada untuk pembaca
+   layar dan tooltip. */
+@media (max-width: 768px) {
+  .kartu-gaya-peta {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .gaya-peta-label {
+    display: none;
+  }
+
+  .gaya-peta-opsi {
+    flex: 1 1 45%;
+    justify-content: flex-start;
+    padding: 6px 8px;
+    font-size: 11.5px;
+  }
+
+  .contoh-gaya-peta {
+    width: 22px;
+    height: 16px;
+  }
+
+  .gaya-peta-tanda {
+    font-size: 8px;
+  }
+
+  .gaya-peta-galat {
+    flex: 1 1 100%;
+    margin: 2px 0 0;
+  }
+}
+
 /* Kartu penggeser tahun duduk di samping kanan legenda. Itu baru tidak muat
    kalau panel kanan terbuka pada lebar sempit: panel bergeser ke kiri sampai
    menabrak penggeser. Kanan penggeser di 628; kiri panel di lebar - 424 pada

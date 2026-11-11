@@ -13,7 +13,7 @@ import {
   type Wilayah,
 } from "./lib/data";
 import BilahAtas, { type HalamanTipe } from "./components/BilahAtas";
-import KendaliKiri from "./components/KendaliKiri";
+import KendaliKiri, { type GayaPeta } from "./components/KendaliKiri";
 import LegendaPeta from "./components/LegendaPeta";
 import PanelRingkasan from "./components/PanelRingkasan";
 import PanelDetail from "./components/PanelDetail";
@@ -96,6 +96,13 @@ export default function App() {
   const [dipilih, setDipilih] = useState<Wilayah | null>(null);
   const [sedangMain, setSedangMain] = useState(false);
   const [lapisanTampak, setLapisanTampak] = useState(true);
+  // Gaya awal selalu padat. Gaya dari URL diterapkan setelah peta dan data
+  // siap, supaya lapisan satelit lewat jalur yang sama dengan pilihan pengguna.
+  const [gayaPeta, setGayaPeta] = useState<GayaPeta>("padat");
+  const [satelitGagal, setSatelitGagal] = useState(false);
+  const lapisSatelit = useRef<L.TileLayer | null>(null);
+  // Dibaca oleh perbaruiWarna tanpa membuat ulang callback-nya.
+  const gayaRef = useRef<GayaPeta>("padat");
   const [panelRingkasanTutup, setPanelRingkasanTutup] = useState(false);
   // Sub-halaman Tentang yang dibuka dari halaman lain, mis. tabel cakupan.
   const [subTentang, setSubTentang] = useState<
@@ -129,6 +136,12 @@ export default function App() {
   );
 
   const kodeAwal = useRef(new URLSearchParams(window.location.search).get("kode"));
+  const gayaUrl = new URLSearchParams(window.location.search).get("gaya");
+  const gayaAwal = useRef<GayaPeta | null>(
+    gayaUrl === "relief" || gayaUrl === "garis" || gayaUrl === "satelit"
+      ? gayaUrl
+      : null,
+  );
   const ukuranAwal = useRef(new URLSearchParams(window.location.search).get("ukuran"));
   const tahunAwal = useRef(new URLSearchParams(window.location.search).get("tahun"));
 
@@ -229,6 +242,10 @@ export default function App() {
       setDipilih(w);
       if (w) terbangTertunda.current = w;
     }
+    if (gayaAwal.current) {
+      setGayaPeta(gayaAwal.current);
+      gayaAwal.current = null;
+    }
   }, [siap]);
 
   // Sinkronisasi state ke parameter URL
@@ -242,8 +259,10 @@ export default function App() {
     if (halaman !== "peta") url.searchParams.set("hal", halaman);
     else url.searchParams.delete("hal");
     if (tahun !== null) url.searchParams.set("tahun", String(tahun));
+    if (gayaPeta !== "padat") url.searchParams.set("gaya", gayaPeta);
+    else url.searchParams.delete("gaya");
     window.history.replaceState({}, "", url);
-  }, [dipilih, siap, ukuran, halaman, tahun]);
+  }, [dipilih, siap, ukuran, halaman, tahun, gayaPeta]);
 
   const { ambang, maxNilai } = useMemo(() => {
     if (!siap || tahun === null) return { ambang: [1, 2, 3, 4, 5], maxNilai: 128 };
@@ -305,11 +324,22 @@ export default function App() {
       const kode = jalur.feature?.properties.kode ?? null;
       const { warna } = hitung(kode);
       const terpilih = kode !== null && kode === kodeTerpilih;
+      // Gaya peta menentukan opasitas isi dan warna garis.
+      const gaya = gayaRef.current;
+      const garisSaja = gaya === "garis";
+      const isiOpasitas =
+        gaya === "relief" ? 0.58 : gaya === "satelit" ? 0.86 : 1;
       jalur.setStyle({
         fillColor: warna,
-        fillOpacity: 1,
-        color: terpilih ? "#16181c" : "#fbfaf7",
-        weight: terpilih ? 2.4 : 0.7,
+        fillOpacity: garisSaja ? 0 : isiOpasitas,
+        color: terpilih
+          ? "#16181c"
+          : garisSaja
+            ? "#5b5f58"
+            : gaya === "satelit"
+              ? "rgba(255,255,255,0.55)"
+              : "#fbfaf7",
+        weight: terpilih ? 2.4 : garisSaja ? 0.55 : 0.7,
       });
       const el = jalur.getElement() as SVGPathElement | undefined;
       if (el) {
@@ -433,6 +463,54 @@ export default function App() {
     if (halaman !== "peta") return;
     perbaruiWarna();
   }, [dipilih, halaman, perbaruiWarna]);
+
+  // Gaya peta disimpan ke ref lebih dulu, lalu lapisan diwarnai ulang.
+  useEffect(() => {
+    gayaRef.current = gayaPeta;
+    if (halaman === "peta") perbaruiWarna();
+  }, [gayaPeta, halaman, perbaruiWarna]);
+
+  // Lapisan satelit hanya dipasang saat gayanya dipilih.
+  useEffect(() => {
+    const m = peta.current;
+    if (!m) return;
+
+    if (gayaPeta !== "satelit") {
+      if (lapisSatelit.current) {
+        lapisSatelit.current.remove();
+        lapisSatelit.current = null;
+      }
+      return;
+    }
+
+    if (lapisSatelit.current) return;
+
+    const lapis = L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      {
+        maxZoom: 9,
+        attribution: "Citra: Esri, Maxar, Earthstar Geographics",
+      },
+    );
+
+    let galat = 0;
+    lapis.on("tileerror", () => {
+      galat += 1;
+      // Tiga ubin gagal biasanya berarti tidak ada jaringan.
+      if (galat >= 3 && gayaRef.current === "satelit") {
+        lapis.remove();
+        lapisSatelit.current = null;
+        setSatelitGagal(true);
+        setGayaPeta("padat");
+      }
+    });
+
+    lapis.addTo(m);
+    lapisSatelit.current = lapis;
+    // Saat halaman dibuka langsung dengan ?gaya=satelit, wadah peta kadang
+    // belum punya ukuran final sehingga Leaflet tidak meminta ubin sama sekali.
+    m.invalidateSize();
+  }, [gayaPeta, halaman, siap]);
 
   // Putaran tahun otomatis
   useEffect(() => {
@@ -597,7 +675,7 @@ export default function App() {
       {/* 2. Peta & Layar Utama (01 & 02) */}
       {halaman === "peta" && (
         <main className="panggung-peta-wadah">
-          <div className="peta" ref={wadahPeta} />
+          <div className={`peta gaya-${gayaPeta}`} ref={wadahPeta} />
 
           {/* Kendali Kiri: Pencarian autocomplete, layer toggle, zoom */}
           {siap && (
@@ -614,9 +692,12 @@ export default function App() {
                   setLapisanTampak(!lapisanTampak);
                 }
               }}
-              onToggleLabel={() => {
-                perbaruiWarna();
+              gaya={gayaPeta}
+              onGantiGaya={(g) => {
+                setSatelitGagal(false);
+                setGayaPeta(g);
               }}
+              satelitGagal={satelitGagal}
               fokusPencarianRef={inputCariRef}
             />
           )}
