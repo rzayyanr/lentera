@@ -1,0 +1,911 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light" />
+<title>Isi Cepat Akun Demo — Lima Varian · Lentera</title>
+<style>
+  :root{
+    --panggung:#f4f0e6; --kartu:#fbfaf7; --tinta:#16181c; --redup:#6c6a63;
+    --garis:#e3ded2; --garis-tipis:#ece8dd; --aksen:#0e5c58; --aksen-muda:#e8f1ee;
+    --sorot:#f1ece0; --bayangan:0 10px 30px rgba(60,50,30,.14);
+    --bayangan-kartu:0 4px 14px rgba(60,50,30,.08);
+    --font:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  [hidden]{display:none !important}
+  body{
+    font-family:var(--font);background:var(--panggung);color:var(--tinta);
+    line-height:1.55;-webkit-font-smoothing:antialiased;padding:26px 20px 70px;
+  }
+  .wadah{max-width:1180px;margin:0 auto}
+  .eyebrow{font-size:10px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--redup)}
+  h1.page{font-size:25px;font-weight:600;letter-spacing:-.02em;margin:4px 0 6px}
+  .deskripsi{font-size:13px;color:var(--redup);max-width:790px}
+  .kredensial{
+    display:flex;flex-wrap:wrap;gap:6px 20px;align-items:center;
+    margin-top:14px;padding:10px 14px;background:var(--kartu);
+    border:1px solid var(--garis);border-radius:10px;
+    font-size:11.5px;color:var(--redup);max-width:860px;
+  }
+  .kredensial b{color:var(--tinta)}
+  .kredensial code{
+    font-family:var(--mono);font-size:10.5px;font-weight:600;color:#3f423f;
+    background:var(--sorot);border:1px solid var(--garis-tipis);
+    padding:1px 5px;border-radius:4px;white-space:nowrap;
+  }
+  .pengalih{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 16px}
+  .segmen{display:inline-flex;flex-wrap:wrap;background:var(--kartu);border:1px solid var(--garis);border-radius:10px;padding:3px;gap:2px}
+  .segmen button{
+    border:0;background:transparent;font-family:var(--font);font-size:12.5px;
+    padding:7px 13px;border-radius:7px;cursor:pointer;color:var(--redup);
+    transition:background .15s,color .15s;
+  }
+  .segmen button:hover{color:var(--tinta)}
+  .segmen button[aria-pressed="true"]{background:var(--tinta);color:#fff;font-weight:600}
+
+  .bingkai{
+    background:var(--kartu);border:1px solid var(--garis);border-radius:16px;
+    overflow:clip;box-shadow:var(--bayangan-kartu);
+  }
+  .panel-kepala{
+    display:flex;justify-content:space-between;gap:24px;align-items:flex-start;
+    padding:20px 26px 18px;border-bottom:1px solid var(--garis-tipis);
+    background:linear-gradient(180deg,#fff,var(--kartu));
+  }
+  .panel-kepala h2{font-size:18px;font-weight:600;letter-spacing:-.015em;margin:3px 0 5px}
+  .panel-desc{font-size:12.5px;color:var(--redup);max-width:680px;line-height:1.55}
+  .panel-nomor{
+    font-size:30px;font-weight:600;letter-spacing:-.04em;color:#ded7c6;
+    line-height:1;flex:none;font-variant-numeric:tabular-nums;padding-top:2px;
+  }
+  .panggung-gate{background:var(--panggung);padding:26px 24px 30px}
+  .panel-catatan{
+    display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;
+    padding:16px 26px 20px;border-top:1px solid var(--garis-tipis);
+  }
+  .panel-catatan span{
+    display:block;font-size:9px;font-weight:700;letter-spacing:.09em;
+    text-transform:uppercase;color:var(--redup);margin-bottom:3px;
+  }
+  .panel-catatan p{font-size:11.5px;color:#4a4c48;line-height:1.5}
+
+  /* ============================ KARTU LOGIN ============================ */
+  .gate-wrap{width:100%;max-width:1000px;margin:0 auto}
+  .gate-wrap .back{
+    display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;
+    color:var(--redup);background:none;border:0;padding:0;margin-bottom:12px;
+    cursor:pointer;font-family:inherit;transition:color .15s;
+  }
+  .gate-wrap .back:hover{color:var(--tinta)}
+  .gate-kartu{
+    display:grid;grid-template-columns:clamp(258px,23vw,340px) minmax(0,1fr);
+    min-height:clamp(480px,58vh,620px);background:#fff;
+    border:1px solid var(--garis);border-radius:14px;overflow:hidden;
+    box-shadow:0 6px 24px rgba(60,50,30,.08);
+  }
+  .gate-visual{
+    position:relative;overflow:hidden;display:flex;flex-direction:column;
+    justify-content:flex-end;gap:4px;
+    padding:26px 26px 30px;color:#eaf2ef;
+    background:linear-gradient(160deg,#0a3a37 0%,#0e5c58 55%,#08302e 100%);
+  }
+  .gate-visual .pola{position:absolute;inset:0;width:100%;height:100%;opacity:.18;pointer-events:none}
+  .gate-visual .label{
+    position:relative;font-size:9.5px;font-weight:700;letter-spacing:.12em;
+    text-transform:uppercase;opacity:.8;margin:0 0 6px;
+  }
+  .gate-visual h2{
+    position:relative;font-size:clamp(16px,1.2vw,21px);line-height:1.4;
+    font-weight:500;letter-spacing:-.01em;margin:0;max-width:320px;color:#fff;
+  }
+  .gate-visual .stat{
+    position:relative;display:flex;gap:18px;margin-top:18px;padding-top:14px;
+    border-top:1px solid rgba(234,242,239,.22);
+  }
+  .gate-visual .stat b{display:block;font-size:clamp(18px,1.3vw,23px);font-weight:600;line-height:1.1;color:#fff}
+  .gate-visual .stat span{font-size:11px;opacity:.72}
+
+  .gate-form{
+    padding:26px clamp(28px,3vw,48px);display:flex;flex-direction:column;
+    justify-content:center;width:100%;
+  }
+  .gate-form > *{width:100%;max-width:480px}
+  .brand-mini{
+    display:inline-flex;align-items:center;gap:7px;margin-bottom:14px;
+    font-size:14px;font-weight:700;letter-spacing:-.01em;color:var(--tinta);
+  }
+  .brand-mini svg{display:block;border-radius:6px}
+  .gate-form h1{font-size:clamp(21px,1.7vw,28px);font-weight:600;line-height:1.25;letter-spacing:-.015em;margin:0 0 6px}
+  .gate-form .lede{
+    font-size:13px;line-height:1.5;color:var(--redup);
+    margin:0 0 17px;max-width:470px;
+  }
+  .field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+  .field label{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--tinta);
+  }
+  .field label .tanda-isi{
+    display:none;font-size:8.5px;font-weight:600;letter-spacing:.03em;
+    text-transform:none;color:var(--aksen);
+  }
+  .field.terisi label .tanda-isi{display:inline}
+  .field input{
+    width:100%;padding:9px 13px;border:1px solid var(--garis);border-radius:7px;
+    background:#fff;font-size:13.5px;font-family:inherit;color:var(--tinta);
+    outline:none;transition:border-color .15s,box-shadow .15s,background .3s;
+  }
+  .field input:focus{border-color:var(--aksen);box-shadow:0 0 0 2.5px rgba(14,92,88,.1)}
+  .field.terisi input{
+    border-color:var(--aksen);box-shadow:0 0 0 3px rgba(14,92,88,.13);
+    animation:kilatIsi .85s ease;
+  }
+  @keyframes kilatIsi{from{background:var(--aksen-muda)}to{background:#fff}}
+  .kotak-input-sandi{position:relative;display:flex;align-items:center;width:100%}
+  .kotak-input-sandi input{padding-right:38px}
+  .tombol-lihat-sandi{
+    position:absolute;right:8px;top:50%;transform:translateY(-50%);
+    background:none;border:none;padding:4px;cursor:pointer;color:var(--redup);
+    display:inline-flex;align-items:center;justify-content:center;
+    border-radius:4px;line-height:1;transition:color .15s;
+  }
+  .tombol-lihat-sandi:hover{color:var(--aksen)}
+  .tautan-baris{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    font-size:11.5px;color:var(--redup);margin:2px 0 14px;
+  }
+  .tautan-baris .ingat{
+    display:flex;align-items:center;gap:7px;margin:0;font-size:11.5px;
+    text-transform:none;letter-spacing:0;font-weight:400;
+  }
+  .tautan-baris .ingat input{width:auto;padding:0;accent-color:var(--aksen)}
+  .tautan-baris a{color:var(--aksen);font-weight:600;text-decoration:none}
+  .tautan-baris a:hover{text-decoration:underline}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    border:1px solid transparent;border-radius:8px;font-family:inherit;
+    font-size:13.5px;font-weight:600;padding:10px 16px;cursor:pointer;
+    transition:background .15s,box-shadow .15s;
+  }
+  .btn-primary{background:var(--aksen);color:#fff}
+  .btn-primary:hover{background:#0b4c49}
+  .btn-block{width:100%}
+  .tautan-tengah{text-align:center;font-size:12px;color:var(--redup);margin:13px 0 0}
+  .tautan-aksen{
+    background:none;border:none;padding:0;font:inherit;color:var(--aksen);
+    font-weight:600;cursor:pointer;
+  }
+  .tautan-aksen:hover{text-decoration:underline}
+  .catatan-privasi{font-size:10.5px;line-height:1.45;color:var(--redup);margin:11px 0 0;max-width:400px}
+
+  /* ============================ BLOK DEMO ============================ */
+  .demo{margin-top:16px;text-align:left}
+  .demo-status{
+    display:flex;align-items:flex-start;gap:5px;min-height:14px;
+    font-size:10px;line-height:1.4;color:var(--redup);margin:9px 0 0;
+  }
+  .demo-status.ok{color:var(--aksen);font-weight:600}
+  .demo-status svg{flex:none;margin-top:1px}
+
+  /* --- Varian 1: panel lembut --- */
+  .demo-lembut{
+    background:#eef6f3;border:1px solid #c6ded7;border-left:3px solid var(--aksen);
+    border-radius:10px;padding:12px 14px 11px;
+  }
+  .demo-kepala{display:flex;align-items:flex-start;gap:8px;margin-bottom:10px}
+  .demo-ikon{
+    flex:none;width:22px;height:22px;display:grid;place-items:center;
+    background:#d9ebe5;color:var(--aksen);border-radius:6px;
+  }
+  .demo-kepala b{display:block;font-size:11.5px;letter-spacing:.01em;line-height:1.3}
+  .demo-kepala span{display:block;font-size:10.5px;color:#4f6b64;line-height:1.4}
+  .demo-tombol{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .demo-pil{
+    display:flex;align-items:center;gap:8px;text-align:left;background:#fff;
+    border:1px solid #c6ded7;border-radius:8px;padding:8px 10px;cursor:pointer;
+    font-family:inherit;transition:border-color .15s,box-shadow .15s,background .15s;
+  }
+  .demo-pil:hover{border-color:var(--aksen);box-shadow:0 2px 6px rgba(14,92,88,.12)}
+  .demo-pil[aria-pressed="true"]{border-color:var(--aksen);background:var(--aksen-muda)}
+  .pil-avatar{
+    flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+    background:var(--aksen-muda);color:var(--aksen);font-size:11px;font-weight:700;
+    transition:background .15s,color .15s;
+  }
+  .demo-pil[aria-pressed="true"] .pil-avatar{background:var(--aksen);color:#fff}
+  .pil-teks b{display:block;font-size:12px;line-height:1.25;color:var(--tinta)}
+  .pil-teks i{display:block;font-style:normal;font-size:9.5px;color:var(--redup);letter-spacing:-.01em}
+
+  /* --- Varian 2: kartu peran --- */
+  .demo-kartu{
+    position:relative;background:#fdf7e8;border:1px solid #e6d3a3;
+    border-radius:12px;padding:17px 14px 12px;margin-top:20px;
+  }
+  .demo-ribbon{
+    position:absolute;top:-9px;left:13px;background:#8a5a00;color:#fff;
+    font-size:8px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
+    padding:3px 8px;border-radius:4px;
+  }
+  .demo-kartu .demo-kepala{margin-bottom:9px}
+  .demo-kartu .demo-kepala b{font-size:12px}
+  .demo-kartu .demo-kepala span{color:#7a6740}
+  .demo-kartu-grid{display:flex;flex-direction:column;gap:7px}
+  .peran-kartu{
+    display:flex;align-items:center;gap:10px;background:#fff;
+    border:1px solid #e6d3a3;border-radius:9px;padding:9px 11px;
+    cursor:pointer;font-family:inherit;text-align:left;
+    transition:border-color .15s,box-shadow .15s,background .15s;
+  }
+  .peran-kartu:hover{border-color:#b98b2e;box-shadow:0 2px 6px rgba(138,90,0,.09)}
+  .peran-kartu[aria-pressed="true"]{border-color:#8a5a00;background:#fffdf6;box-shadow:inset 0 0 0 1px #8a5a00}
+  .peran-avatar{
+    flex:none;width:32px;height:32px;border-radius:8px;display:grid;place-items:center;
+    background:#f4e6c6;color:#7a5310;font-size:12px;font-weight:700;
+  }
+  .peran-kartu[data-peran="moderator"] .peran-avatar{background:var(--aksen-muda);color:var(--aksen)}
+  .peran-isi{flex:1;min-width:0}
+  .peran-isi b{display:block;font-size:12.5px;line-height:1.25}
+  .peran-isi i{display:block;font-style:normal;font-family:var(--mono);font-size:9.5px;color:var(--redup);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .peran-isi em{display:block;font-style:normal;font-size:9.5px;color:#8a6d2f;margin-top:1px}
+  .peran-panah{flex:none;font-size:13px;color:#b08a3c;font-weight:600;min-width:14px;text-align:center}
+  .peran-panah::before{content:"\2192"}
+  .peran-kartu[aria-pressed="true"] .peran-panah{color:#8a5a00}
+  .peran-kartu[aria-pressed="true"] .peran-panah::before{content:"\2713"}
+  .demo-kartu .demo-status{color:#7a6740}
+  .demo-kartu .demo-status.ok{color:#7a5310}
+
+  /* --- Varian 3: strip gelap --- */
+  .demo-strip{
+    display:flex;align-items:center;gap:10px;margin-top:14px;
+    background:#16181c;border-radius:9px;padding:8px 10px 8px 12px;
+  }
+  .strip-kiri{display:flex;align-items:center;gap:6px;flex:1;min-width:0;color:#cfd3d6;font-size:10.5px}
+  .strip-kiri b{color:#fff;font-size:11px;letter-spacing:.01em;white-space:nowrap}
+  .strip-bolt{display:inline-flex;color:#f0c24b;flex:none}
+  .strip-sub{white-space:nowrap;opacity:.75}
+  .strip-tombol{display:flex;gap:4px;flex:none}
+  .strip-tombol button{
+    font-family:inherit;font-size:11px;font-weight:600;padding:5px 10px;border-radius:6px;
+    cursor:pointer;border:1px solid rgba(255,255,255,.25);background:transparent;
+    color:#f4f0e6;transition:background .15s,color .15s,border-color .15s;
+  }
+  .strip-tombol button:hover{background:rgba(255,255,255,.12)}
+  .strip-tombol button[aria-pressed="true"]{background:#f4f0e6;color:#16181c;border-color:#f4f0e6}
+  .demo-status-strip{margin:7px 0 0;font-size:10px}
+  .demo-status-strip.ok{color:var(--aksen)}
+
+  /* --- Varian 4: tiket demo --- */
+  .demo-tiket{
+    position:relative;margin-top:18px;background:#fdfaf2;
+    border:1.5px dashed #c9b78a;border-radius:10px;padding:13px 14px 10px;
+  }
+  .tiket-stamp{
+    position:absolute;top:-8px;right:12px;background:var(--panggung);
+    border:1px solid #c9b78a;color:#8a6d2f;font-size:8px;font-weight:700;
+    letter-spacing:.14em;text-transform:uppercase;padding:2px 7px;border-radius:999px;
+  }
+  .tiket-kepala b{display:block;font-size:12px;line-height:1.3}
+  .tiket-kepala span{display:block;font-size:10.5px;color:var(--redup);margin-top:1px}
+  .tiket-pil{display:flex;align-items:stretch;gap:8px;margin-top:10px}
+  .tiket-pil button{
+    position:relative;flex:1;display:flex;flex-direction:column;align-items:flex-start;
+    gap:1px;background:#fff;border:1px solid var(--garis);border-radius:8px;
+    padding:7px 10px 7px 22px;cursor:pointer;font-family:inherit;
+    font-size:11.5px;font-weight:600;color:var(--tinta);
+    transition:border-color .15s,background .15s,box-shadow .15s;
+  }
+  .tiket-pil button:hover{border-color:#c9b78a;background:#fffdf7}
+  .tiket-pil button[aria-pressed="true"]{border-color:#8a6d2f;background:#fff8e3;box-shadow:inset 0 0 0 1px #8a6d2f}
+  .titik{
+    position:absolute;left:10px;top:12px;width:6px;height:6px;border-radius:50%;
+    background:#c9a227;box-shadow:0 0 0 2px rgba(201,162,39,.16);
+  }
+  .titik.moderator{background:var(--aksen);box-shadow:0 0 0 2px rgba(14,92,88,.14)}
+  .tiket-pil button i{font-style:normal;font-size:9.5px;font-weight:400;color:var(--redup)}
+  .tiket-garis{
+    flex:none;width:1px;
+    background:repeating-linear-gradient(to bottom,#d8c9a4 0 3px,transparent 3px 6px);
+  }
+  .demo-tiket .demo-status{color:#7a6740}
+  .demo-tiket .demo-status.ok{color:#7a5310}
+
+  /* --- Varian 5: sorotan gradien --- */
+  .demo-gradien{
+    margin-top:16px;padding:1.5px;border-radius:11px;
+    background:linear-gradient(115deg,#0e5c58,#37a08f 46%,#d8b35c);
+    box-shadow:0 4px 14px rgba(14,92,88,.15);
+  }
+  .gradien-dalam{background:#fff;border-radius:9.5px;padding:12px 13px 10px}
+  .gradien-kepala{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
+  .gradien-kepala > div{display:flex;align-items:center;gap:6px;min-width:0}
+  .gradien-kepala b{font-size:12px;line-height:1.3;white-space:nowrap}
+  .gradien-badge{
+    display:inline-block;font-size:8px;font-weight:700;letter-spacing:.09em;
+    text-transform:uppercase;color:#fff;white-space:nowrap;
+    background:linear-gradient(120deg,#0e5c58,#37a08f);padding:3px 6px;border-radius:4px;
+  }
+  .gradien-catatan{font-size:9.5px;color:var(--redup);white-space:nowrap}
+  .gradien-segmen{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--sorot);padding:3px;border-radius:8px}
+  .gradien-segmen button{
+    border:0;background:transparent;border-radius:6px;padding:7px 9px;
+    text-align:left;cursor:pointer;font-family:inherit;transition:background .15s,box-shadow .15s;
+  }
+  .gradien-segmen button:hover{background:rgba(255,255,255,.72)}
+  .gradien-segmen button[aria-pressed="true"]{background:#fff;box-shadow:0 1px 4px rgba(60,50,30,.16)}
+  .gradien-segmen button span{display:block;font-size:11.5px;font-weight:600;color:var(--tinta);line-height:1.3}
+  .gradien-segmen button[aria-pressed="true"] span{color:var(--aksen)}
+  .gradien-segmen button i{display:block;font-style:normal;font-size:9px;color:var(--redup);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .demo-gradien .demo-status{color:#4f6b64}
+  .demo-gradien .demo-status.ok{color:var(--aksen)}
+
+  /* --- toast --- */
+  .toast{
+    position:fixed;left:50%;bottom:24px;transform:translate(-50%,10px);
+    background:var(--tinta);color:#f4f0e6;font-size:12.5px;font-weight:500;
+    padding:10px 16px;border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,.25);
+    opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:50;
+    max-width:calc(100vw - 40px);text-align:center;
+  }
+  .toast.tampil{opacity:1;transform:translate(-50%,0)}
+
+  .catatan-akhir{
+    margin-top:22px;padding:16px 18px;background:var(--kartu);
+    border:1px solid var(--garis);border-radius:12px;
+    font-size:11.5px;color:var(--redup);line-height:1.65;max-width:920px;
+  }
+  .catatan-akhir b{color:var(--tinta)}
+  .catatan-akhir code{
+    font-family:var(--mono);font-size:10.5px;background:var(--sorot);
+    padding:1px 5px;border-radius:4px;color:#3f423f;
+  }
+
+  @media (max-width:900px){
+    .gate-kartu{grid-template-columns:1fr;min-height:0}
+    .gate-visual{min-height:150px;padding:20px}
+    .gate-visual h2{font-size:15px}
+    .gate-visual .stat{margin-top:12px;padding-top:10px;gap:16px}
+    .gate-form{padding:22px 20px 26px}
+    .panel-catatan{grid-template-columns:1fr;gap:12px;padding:14px 20px 18px}
+    .panel-kepala{padding:17px 20px 15px}
+    .panel-nomor{font-size:24px}
+    .panggung-gate{padding:18px 12px 22px}
+  }
+  @media (max-width:620px){
+    body{padding:18px 14px 50px}
+    .gate-form{padding:20px 16px 24px}
+    .gate-form h1{font-size:19px}
+    .demo-tombol{grid-template-columns:1fr}
+    .tiket-pil{flex-direction:column}
+    .tiket-garis{width:auto;height:1px;background:repeating-linear-gradient(to right,#d8c9a4 0 3px,transparent 3px 6px)}
+    .gradien-segmen{grid-template-columns:1fr}
+    .gradien-catatan{display:none}
+    .demo-strip{flex-wrap:wrap;gap:7px}
+    .strip-kiri{flex:1 1 100%}
+    .strip-tombol{width:100%}
+    .strip-tombol button{flex:1}
+    .panel-nomor{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.001ms !important;transition-duration:.001ms !important}
+  }
+</style>
+</head>
+<body>
+<div class="wadah">
+  <header>
+    <p class="eyebrow">Eksplorasi Komponen</p>
+    <h1 class="page">Isi cepat akun demo — lima arah</h1>
+    <p class="deskripsi">
+      Satu tambahan yang sama untuk <b>GerbangLogin</b>: container di bawah formulir berisi dua tombol
+      yang mengisi email dan sandi otomatis—satu untuk akun warga, satu untuk akun moderator.
+      Yang berbeda di tiap varian hanya cara container disorot dan ditempatkan.
+    </p>
+    <div class="kredensial">
+      <span><b>Warga</b> <code>warga.demo@gmail.com</code> / <code>warga12345</code></span>
+      <span><b>Moderator</b> <code>admin@gmail.com</code> / <code>admin123</code></span>
+      <span>Kredensial warga di berkas ini masih placeholder.</span>
+    </div>
+  </header>
+
+  <div class="pengalih">
+    <div class="segmen" id="segmen">
+      <button type="button" data-varian="1" aria-pressed="true">1 · Panel lembut</button>
+      <button type="button" data-varian="2" aria-pressed="false">2 · Kartu peran</button>
+      <button type="button" data-varian="3" aria-pressed="false">3 · Strip gelap</button>
+      <button type="button" data-varian="4" aria-pressed="false">4 · Tiket demo</button>
+      <button type="button" data-varian="5" aria-pressed="false">5 · Sorotan gradien</button>
+    </div>
+  </div>
+
+  <!-- ==================== VARIAN 1 ==================== -->
+  <section class="bingkai" data-panel="1">
+    <header class="panel-kepala">
+      <div>
+        <p class="eyebrow">Varian 1 · Panel lembut</p>
+        <h2>Sorotan hijau pucat tepat di bawah formulir</h2>
+        <p class="panel-desc">
+          Kotak hijau pucat dengan garis aksen kiri, satu baris penjelasan, dan dua tombol ringkas.
+          Diletakkan setelah tombol Masuk, sebelum tautan daftar akun.
+        </p>
+      </div>
+      <span class="panel-nomor">01</span>
+    </header>
+    <div class="panggung-gate"><div class="gate-host" data-varian="1"></div></div>
+    <footer class="panel-catatan">
+      <div><span>Penempatan</span><p>Di luar form, langsung setelah tombol Masuk.</p></div>
+      <div><span>Kekuatan</span><p>Paling menyatu dengan bahasa visual form dan tidak menambah tinggi berlebih.</p></div>
+      <div><span>Risiko</span><p>Sorotannya halus—bisa terlewat kalau mata langsung menuju tombol Masuk.</p></div>
+    </footer>
+  </section>
+
+  <!-- ==================== VARIAN 2 ==================== -->
+  <section class="bingkai" data-panel="2" hidden>
+    <header class="panel-kepala">
+      <div>
+        <p class="eyebrow">Varian 2 · Kartu peran</p>
+        <h2>Dua kartu peran dengan pita “Akses cepat”</h2>
+        <p class="panel-desc">
+          Kartu krem dengan avatar inisial, alamat email, dan tujuan setelah masuk. Paling eksplisit
+          menjelaskan dua jalur akun, dengan sorotan paling hangat di antara kelima varian.
+        </p>
+      </div>
+      <span class="panel-nomor">02</span>
+    </header>
+    <div class="panggung-gate"><div class="gate-host" data-varian="2"></div></div>
+    <footer class="panel-catatan">
+      <div><span>Penempatan</span><p>Setelah form, mengambil ruang setinggi dua kartu bertumpuk.</p></div>
+      <div><span>Kekuatan</span><p>Paling jelas untuk penguji; email terlihat sebelum diklik.</p></div>
+      <div><span>Risiko</span><p>Paling berat secara visual dan paling banyak memakai ruang vertikal.</p></div>
+    </footer>
+  </section>
+
+  <!-- ==================== VARIAN 3 ==================== -->
+  <section class="bingkai" data-panel="3" hidden>
+    <header class="panel-kepala">
+      <div>
+        <p class="eyebrow">Varian 3 · Strip gelap</p>
+        <h2>Satu baris gelap menempel di tombol Masuk</h2>
+        <p class="panel-desc">
+          Strip gelap ringkas dengan label “Isi cepat” dan dua tombol kecil, berada di dalam form
+          langsung di bawah tombol Masuk. Kontras tinggi dengan tinggi hanya sekitar 36px.
+        </p>
+      </div>
+      <span class="panel-nomor">03</span>
+    </header>
+    <div class="panggung-gate"><div class="gate-host" data-varian="3"></div></div>
+    <footer class="panel-catatan">
+      <div><span>Penempatan</span><p>Di dalam form, langsung setelah tombol Masuk.</p></div>
+      <div><span>Kekuatan</span><p>Paling dekat dengan jempol dan mata; tautan daftar tidak bergeser.</p></div>
+      <div><span>Risiko</span><p>Tema gelap bisa terasa dari sistem lain; label harus tetap singkat.</p></div>
+    </footer>
+  </section>
+
+  <!-- ==================== VARIAN 4 ==================== -->
+  <section class="bingkai" data-panel="4" hidden>
+    <header class="panel-kepala">
+      <div>
+        <p class="eyebrow">Varian 4 · Tiket demo</p>
+        <h2>Bingkai putus-putus dengan stempel DEMO</h2>
+        <p class="panel-desc">
+          Bingkai krem bergaris putus-putus, stempel “DEMO”, dan dua pilihan dengan titik warna.
+          Sengaja terasa seperti alat bantu pengujian, bukan bagian dari alur warga sehari-hari.
+        </p>
+      </div>
+      <span class="panel-nomor">04</span>
+    </header>
+    <div class="panggung-gate"><div class="gate-host" data-varian="4"></div></div>
+    <footer class="panel-catatan">
+      <div><span>Penempatan</span><p>Setelah form, sebelum tautan daftar.</p></div>
+      <div><span>Kekuatan</span><p>Jujur bahwa ini hanya untuk demo dan tidak bersaing dengan alur produksi.</p></div>
+      <div><span>Risiko</span><p>Bisa terbaca sebagai elemen dekoratif atau sementara yang terlupakan.</p></div>
+    </footer>
+  </section>
+
+  <!-- ==================== VARIAN 5 ==================== -->
+  <section class="bingkai" data-panel="5" hidden>
+    <header class="panel-kepala">
+      <div>
+        <p class="eyebrow">Varian 5 · Sorotan gradien</p>
+        <h2>Bingkai gradien dengan pemilih peran</h2>
+        <p class="panel-desc">
+          Bingkai gradien hijau–emas membungkus panel putih berisi dua segmen peran. Saat dipilih,
+          segmen aktif menyala dan kolom email serta sandi diberi cincin hijau.
+        </p>
+      </div>
+      <span class="panel-nomor">05</span>
+    </header>
+    <div class="panggung-gate"><div class="gate-host" data-varian="5"></div></div>
+    <footer class="panel-catatan">
+      <div><span>Penempatan</span><p>Setelah form, sebelum tautan daftar.</p></div>
+      <div><span>Kekuatan</span><p>Paling ter-highlight tanpa keluar dari palet Lentera; terasa seperti kontrol.</p></div>
+      <div><span>Risiko</span><p>Gradien menambah bahasa visual baru; jangan dipakai di banyak tempat.</p></div>
+    </footer>
+  </section>
+
+  <p class="catatan-akhir">
+    <b>Cara kerja pratinjau.</b> Klik salah satu tombol akun untuk mengisi kolom EMAIL dan SANDI,
+    lalu tekan <b>Masuk</b>. Login tidak benar-benar dikirim—halaman ini hanya untuk menilai desain.
+    Tombol mata pada kolom sandi tetap berfungsi. Saat satu varian disetujui, container-nya dipindahkan
+    ke <code>src/components/GerbangLogin.tsx</code> dan tombolnya cukup memanggil
+    <code>setEmail(...)</code> + <code>setSandi(...)</code>.
+  </p>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+  const AKUN = {
+    warga: {
+      email: "warga.demo@gmail.com",
+      sandi: "warga12345",
+      label: "warga",
+      tujuan: "halaman warga",
+    },
+    moderator: {
+      email: "admin@gmail.com",
+      sandi: "admin123",
+      label: "moderator",
+      tujuan: "pusat moderasi",
+    },
+  };
+
+  const IKON = {
+    mata:
+      '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>',
+    mataTutup:
+      '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>',
+    flask:
+      '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2v6L4.5 17.5A2.5 2.5 0 0 0 6.8 21h10.4a2.5 2.5 0 0 0 2.3-3.5L15 8V2"/><path d="M9 2h6"/><path d="M7 15h10"/></svg>',
+    bolt:
+      '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4.5 13.5H10l-1 8.5 8.5-11.5H12l1-8.5Z"/></svg>',
+    centang:
+      '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m20 6-11 11-5-5"/></svg>',
+  };
+
+  const POLA = `
+    <svg class="pola pola-garis" viewBox="0 0 440 700" preserveAspectRatio="none" fill="none" aria-hidden="true">
+      <g stroke="#eaf2ef" stroke-width="1.4">
+        <path d="M-40 90 C 80 40, 150 160, 260 110 S 400 60, 500 130"/>
+        <path d="M-40 150 C 80 100, 150 220, 260 170 S 400 120, 500 190"/>
+        <path d="M-40 210 C 80 160, 150 280, 260 230 S 400 180, 500 250"/>
+        <path d="M-40 270 C 80 220, 150 340, 260 290 S 400 240, 500 310"/>
+        <path d="M-40 330 C 80 280, 150 400, 260 350 S 400 300, 500 370"/>
+        <path d="M-40 390 C 80 340, 150 460, 260 410 S 400 360, 500 430"/>
+        <path d="M-40 450 C 80 400, 150 520, 260 470 S 400 420, 500 490"/>
+        <path d="M-40 510 C 80 460, 150 580, 260 530 S 400 480, 500 550"/>
+        <path d="M-40 570 C 80 520, 150 640, 260 590 S 400 540, 500 610"/>
+        <path d="M-40 630 C 80 580, 150 700, 260 650 S 400 600, 500 670"/>
+      </g>
+      <g fill="#eaf2ef">
+        <circle cx="118" cy="164" r="4"/><circle cx="152" cy="286" r="3"/>
+        <circle cx="238" cy="224" r="5"/><circle cx="300" cy="412" r="3.5"/>
+        <circle cx="205" cy="512" r="4"/><circle cx="330" cy="566" r="3"/>
+      </g>
+    </svg>`;
+
+  const LOGO = `
+    <svg width="24" height="24" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+      <rect width="28" height="28" rx="8" fill="#0E5C58"/>
+      <path d="M14 6.5 18.5 14 14 21.5 9.5 14 14 6.5Z" fill="#FBFAF7"/>
+      <circle cx="14" cy="14" r="2" fill="#0E5C58"/>
+    </svg>`;
+
+  const DEMO = {
+    "1": `
+      <div class="demo demo-lembut">
+        <div class="demo-kepala">
+          <span class="demo-ikon">${IKON.flask}</span>
+          <div>
+            <b>Akun demo</b>
+            <span>Klik untuk mengisi email dan sandi otomatis.</span>
+          </div>
+        </div>
+        <div class="demo-tombol">
+          <button type="button" class="demo-pil" data-peran="warga" aria-pressed="false">
+            <span class="pil-avatar">W</span>
+            <span class="pil-teks"><b>Warga</b><i>${AKUN.warga.email}</i></span>
+          </button>
+          <button type="button" class="demo-pil" data-peran="moderator" aria-pressed="false">
+            <span class="pil-avatar">M</span>
+            <span class="pil-teks"><b>Moderator</b><i>${AKUN.moderator.email}</i></span>
+          </button>
+        </div>
+        <p class="demo-status" data-status aria-live="polite">Belum ada akun dipilih.</p>
+      </div>`,
+
+    "2": `
+      <div class="demo demo-kartu">
+        <span class="demo-ribbon">Akses cepat</span>
+        <div class="demo-kepala">
+          <div>
+            <b>Coba sebagai</b>
+            <span>Isi otomatis, lalu tekan Masuk.</span>
+          </div>
+        </div>
+        <div class="demo-kartu-grid">
+          <button type="button" class="peran-kartu" data-peran="warga" aria-pressed="false">
+            <span class="peran-avatar">W</span>
+            <span class="peran-isi">
+              <b>Akun warga</b>
+              <i>${AKUN.warga.email}</i>
+              <em>Masuk ke halaman lapor warga</em>
+            </span>
+            <span class="peran-panah" aria-hidden="true"></span>
+          </button>
+          <button type="button" class="peran-kartu" data-peran="moderator" aria-pressed="false">
+            <span class="peran-avatar">M</span>
+            <span class="peran-isi">
+              <b>Akun moderator</b>
+              <i>${AKUN.moderator.email}</i>
+              <em>Masuk ke pusat moderasi</em>
+            </span>
+            <span class="peran-panah" aria-hidden="true"></span>
+          </button>
+        </div>
+        <p class="demo-status" data-status aria-live="polite">Belum ada akun dipilih.</p>
+      </div>`,
+
+    "3": `
+        <div class="demo demo-strip">
+          <div class="strip-kiri">
+            <span class="strip-bolt">${IKON.bolt}</span>
+            <b>Isi cepat</b><span class="strip-sub">akun demo</span>
+          </div>
+          <div class="strip-tombol">
+            <button type="button" data-peran="warga" aria-pressed="false">Warga</button>
+            <button type="button" data-peran="moderator" aria-pressed="false">Moderator</button>
+          </div>
+        </div>
+        <p class="demo-status demo-status-strip" data-status aria-live="polite">Pilih akun demo untuk mengisi formulir.</p>`,
+
+    "4": `
+      <div class="demo demo-tiket">
+        <span class="tiket-stamp">Demo</span>
+        <div class="tiket-kepala">
+          <b>Masuk instan</b>
+          <span>Dua akun uji siap pakai.</span>
+        </div>
+        <div class="tiket-pil">
+          <button type="button" data-peran="warga" aria-pressed="false">
+            <span class="titik"></span>
+            Warga
+            <i>${AKUN.warga.email}</i>
+          </button>
+          <span class="tiket-garis" aria-hidden="true"></span>
+          <button type="button" data-peran="moderator" aria-pressed="false">
+            <span class="titik moderator"></span>
+            Moderator
+            <i>${AKUN.moderator.email}</i>
+          </button>
+        </div>
+        <p class="demo-status" data-status aria-live="polite">Belum ada akun dipilih.</p>
+      </div>`,
+
+    "5": `
+      <div class="demo demo-gradien">
+        <div class="gradien-dalam">
+          <div class="gradien-kepala">
+            <div>
+              <span class="gradien-badge">Akun demo</span>
+              <b>Masuk sebagai</b>
+            </div>
+            <span class="gradien-catatan">Terisi otomatis</span>
+          </div>
+          <div class="gradien-segmen">
+            <button type="button" data-peran="warga" aria-pressed="false">
+              <span>Warga</span>
+              <i>${AKUN.warga.email}</i>
+            </button>
+            <button type="button" data-peran="moderator" aria-pressed="false">
+              <span>Moderator</span>
+              <i>${AKUN.moderator.email}</i>
+            </button>
+          </div>
+          <p class="demo-status" data-status aria-live="polite">Belum ada akun dipilih.</p>
+        </div>
+      </div>`,
+  };
+
+  function kartuLogin(varian) {
+    const id = "g" + varian;
+    const demoDalamForm = varian === "3" ? DEMO[varian] : "";
+    const demoSetelahForm = varian === "3" ? "" : DEMO[varian];
+    return `
+      <div class="gate-wrap">
+        <button type="button" class="back">\u2190 Kembali ke Peta</button>
+        <div class="gate-kartu">
+          <aside class="gate-visual">
+            ${POLA}
+            <p class="label">Lentera \u00b7 Laporan warga</p>
+            <h2>Satu akun untuk melaporkan dampak bencana di sekitarmu.</h2>
+            <div class="stat">
+              <div><b>1.284</b><span>Laporan terverifikasi</span></div>
+              <div><b>34</b><span>Wilayah terjangkau</span></div>
+            </div>
+          </aside>
+
+          <section class="gate-form">
+            <div class="brand-mini">${LOGO}<span>Lentera</span></div>
+
+            <div class="panel-masuk">
+              <h1>Masuk ke Lentera</h1>
+              <p class="lede">
+                Menu Lapor hanya bisa dibuka setelah kamu masuk. Akun menentukan apakah kamu
+                diarahkan ke halaman warga atau halaman moderator.
+              </p>
+
+              <form class="form-masuk" novalidate>
+                <div class="field">
+                  <label for="${id}-email">EMAIL <span class="tanda-isi">${IKON.centang} terisi</span></label>
+                  <input id="${id}-email" data-email type="email" placeholder="nama@email.com" autocomplete="email" />
+                </div>
+                <div class="field">
+                  <label for="${id}-sandi">SANDI <span class="tanda-isi">${IKON.centang} terisi</span></label>
+                  <div class="kotak-input-sandi">
+                    <input id="${id}-sandi" data-sandi type="password" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" autocomplete="current-password" />
+                    <button type="button" class="tombol-lihat-sandi" aria-label="Lihat sandi">${IKON.mata}</button>
+                  </div>
+                </div>
+                <div class="tautan-baris">
+                  <label class="ingat"><input type="checkbox" /> Ingat saya</label>
+                  <a href="#" data-lupa>Lupa sandi?</a>
+                </div>
+                <button class="btn btn-primary btn-block" type="submit">Masuk</button>
+                ${demoDalamForm}
+              </form>
+
+              ${demoSetelahForm}
+
+              <p class="tautan-tengah">
+                Belum punya akun?
+                <button type="button" class="tautan-aksen" data-ke-daftar>Daftar akun warga</button>
+              </p>
+              <p class="catatan-privasi">
+                Data akun hanya dipakai untuk menautkan laporan dengan pelapor. Peran moderator
+                ditetapkan oleh pengelola, bukan dipilih saat login.
+              </p>
+            </div>
+          </section>
+        </div>
+      </div>`;
+  }
+
+  document.querySelectorAll(".gate-host").forEach((host) => {
+    host.innerHTML = kartuLogin(host.dataset.varian);
+  });
+
+  const toast = document.getElementById("toast");
+  let toastTimer = null;
+  function tampilToast(pesan) {
+    toast.textContent = pesan;
+    toast.classList.add("tampil");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("tampil"), 2600);
+  }
+
+  function isiAkun(host, peran, tombol) {
+    const akun = AKUN[peran];
+    if (!akun) return;
+    const form = host.querySelector(".form-masuk");
+    const email = form.querySelector("[data-email]");
+    const sandi = form.querySelector("[data-sandi]");
+    const fieldEmail = email.closest(".field");
+    const fieldSandi = sandi.closest(".field");
+
+    email.value = akun.email;
+    sandi.value = akun.sandi;
+
+    [fieldEmail, fieldSandi].forEach((field) => {
+      field.classList.remove("terisi");
+      void field.offsetWidth;
+      field.classList.add("terisi");
+    });
+
+    host.querySelectorAll("[data-peran]").forEach((b) => {
+      b.setAttribute("aria-pressed", String(b === tombol));
+    });
+
+    const status = host.querySelector("[data-status]");
+    if (status) {
+      status.classList.add("ok");
+      status.innerHTML =
+        IKON.centang +
+        " Email dan sandi " + akun.label + " terisi. Tekan Masuk untuk membuka " + akun.tujuan + ".";
+    }
+
+    tampilToast("Akun " + akun.label + " terisi \u2014 " + akun.email);
+  }
+
+  document.addEventListener("click", (event) => {
+    const tombolAkun = event.target.closest("[data-peran]");
+    if (tombolAkun) {
+      isiAkun(tombolAkun.closest(".gate-host"), tombolAkun.dataset.peran, tombolAkun);
+      return;
+    }
+
+    const tombolMata = event.target.closest(".tombol-lihat-sandi");
+    if (tombolMata) {
+      const input = tombolMata.closest(".kotak-input-sandi").querySelector("[data-sandi]");
+      const terbuka = input.type === "text";
+      input.type = terbuka ? "password" : "text";
+      tombolMata.innerHTML = terbuka ? IKON.mata : IKON.mataTutup;
+      tombolMata.setAttribute("aria-label", terbuka ? "Lihat sandi" : "Sembunyikan sandi");
+      return;
+    }
+
+    const lupa = event.target.closest("[data-lupa]");
+    if (lupa) {
+      event.preventDefault();
+      tampilToast("Di aplikasi, tautan ini membuka pemulihan sandi.");
+      return;
+    }
+
+    const keDaftar = event.target.closest("[data-ke-daftar]");
+    if (keDaftar) {
+      tampilToast("Di aplikasi, tombol ini beralih ke formulir daftar akun.");
+      return;
+    }
+
+    const kembali = event.target.closest(".back");
+    if (kembali) {
+      tampilToast("Di aplikasi, tombol ini kembali ke peta.");
+    }
+  });
+
+  document.addEventListener("submit", (event) => {
+    if (!event.target.matches(".form-masuk")) return;
+    event.preventDefault();
+    const form = event.target;
+    const email = form.querySelector("[data-email]");
+    const sandi = form.querySelector("[data-sandi]");
+
+    if (!email.value.trim()) {
+      const field = email.closest(".field");
+      field.classList.remove("terisi");
+      void field.offsetWidth;
+      field.classList.add("terisi");
+      email.focus();
+      tampilToast("Isi email dulu \u2014 atau pakai tombol akun demo di bawah.");
+      return;
+    }
+    if (!sandi.value.trim()) {
+      const field = sandi.closest(".field");
+      field.classList.remove("terisi");
+      void field.offsetWidth;
+      field.classList.add("terisi");
+      sandi.focus();
+      tampilToast("Sandi masih kosong \u2014 atau pakai tombol akun demo.");
+      return;
+    }
+    tampilToast("Mode pratinjau: kredensial tidak dikirim ke Supabase.");
+  });
+
+  const tombolVarian = Array.from(document.querySelectorAll("#segmen button"));
+  const panelVarian = Array.from(document.querySelectorAll("[data-panel]"));
+
+  function pilihVarian(nomor, perbaruiHash) {
+    panelVarian.forEach((panel) => {
+      panel.hidden = panel.dataset.panel !== nomor;
+    });
+    tombolVarian.forEach((tombol) => {
+      tombol.setAttribute("aria-pressed", String(tombol.dataset.varian === nomor));
+    });
+    if (perbaruiHash && location.hash !== "#" + nomor) {
+      history.replaceState(null, "", "#" + nomor);
+    }
+  }
+
+  tombolVarian.forEach((tombol) => {
+    tombol.addEventListener("click", () => pilihVarian(tombol.dataset.varian, true));
+  });
+
+  const hash = location.hash.replace("#", "");
+  if (["1", "2", "3", "4", "5"].includes(hash)) {
+    pilihVarian(hash, false);
+  }
+</script>
+</body>
+</html>
