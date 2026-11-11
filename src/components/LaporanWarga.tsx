@@ -524,6 +524,26 @@ export default function LaporanWarga({
               Laporan warga tidak dicampur dengan data resmi. Setiap laporan wajib terhubung dengan akun warga yang sah agar ketertelusuran data terjaga dan dapat diverifikasi oleh moderator.
             </p>
 
+            {/* Indikator Penyimpanan Backend */}
+            <div style={{ marginBottom: 16 }}>
+              <span
+                className="badge-lapisan"
+                style={{
+                  background: apakahSupabaseAktif ? "#e6f4ea" : "#fef3c7",
+                  color: apakahSupabaseAktif ? "#137333" : "#92400e",
+                  border: `1px solid ${apakahSupabaseAktif ? "#a8dab5" : "#fcd34d"}`,
+                  fontSize: "11px",
+                  padding: "4px 8px",
+                  borderRadius: "4px",
+                  fontWeight: 600,
+                }}
+              >
+                {apakahSupabaseAktif
+                  ? "● Cloud Database Aktif (Supabase Auth & PostgreSQL)"
+                  : "○ Mode Lokal Terisolasi (LocalStorage)"}
+              </span>
+            </div>
+
             {/* Banner Peringatan Bukan Kanal Darurat */}
             <div className="banner-peringatan-darurat">
               <span className="ikon-tanda-seru" aria-hidden="true">!</span>
