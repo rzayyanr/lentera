@@ -8,9 +8,11 @@ Empat arah visual, semuanya dirender dengan peta Indonesia asli dan data BNPB 20
 | 002-gelap-operasional | Tema gelap, padat, seperti alat kerja | Dieksplorasi |
 | 003-peta-dulu | Peta penuh layar, tema terang sejuk | Dieksplorasi |
 | 004-gabungan-peta-editorial | Peta penuh layar dengan gaya editorial | Dipilih untuk tampilan pertama |
-| 011-gulir-daftar-wilayah | Tiga variasi gulir untuk daftar wilayah dan panel detail | Dieksplorasi |
+| 011-gulir-daftar-wilayah | Tiga variasi gulir untuk daftar wilayah dan panel detail | Dipilih: daftar variasi 2, panel variasi 1 |
 
 ## Keputusan
+
+11 November 2026: gulir daftar wilayah memakai variasi 2 (tepi pudar, batang samar) dan panel detail variasi 1 (kepala melekat) dari 011. Dipindahkan ke 04-design-system bagian 7e dan diterapkan di App.css.
 
 19 Oktober 2026: arah 004 dipilih untuk semua layar, bukan hanya layar pertama. Tampilan pertama memakai peta bersih, panel detail baru muncul setelah pengguna memilih wilayah.
 

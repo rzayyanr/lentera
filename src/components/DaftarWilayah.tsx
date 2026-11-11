@@ -9,7 +9,7 @@
  * halaman Bandingkan, jadi gaya dan animasinya konsisten.
  */
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import searchInputSvg from "../assets/icons/search-input.svg";
 import PemilihWilayah from "./PemilihWilayah";
 import {
@@ -41,6 +41,8 @@ export default function DaftarWilayah({ siap, tahun, onPilihWilayah }: Props) {
   const [urutan, setUrutan] = useState<Urutan>("tinggi");
   const [kodeTerpilih, setKodeTerpilih] = useState<string | null>(null);
   const detailRef = useRef<HTMLElement | null>(null);
+  const gulirRef = useRef<HTMLDivElement | null>(null);
+  const bilahRef = useRef<HTMLSpanElement | null>(null);
 
   const iTahun = siap.meta.tahun.indexOf(tahun);
 
@@ -121,6 +123,37 @@ export default function DaftarWilayah({ siap, tahun, onPilihWilayah }: Props) {
 
   const maksRiwayat = Math.max(1, ...riwayat.map((r) => r.nilai));
 
+  // Tepi pudar dan batang gulir samar: keduanya butuh tahu posisi gulir,
+  // jadi dihitung di sini dan dititipkan sebagai kelas serta tinggi bilah.
+  useEffect(() => {
+    const el = gulirRef.current;
+    if (!el) return;
+
+    function perbarui() {
+      if (!el) return;
+      const maks = el.scrollHeight - el.clientHeight;
+      el.classList.toggle("di-atas", el.scrollTop > 4);
+      el.classList.toggle("di-bawah", el.scrollTop < maks - 4);
+
+      const bilah = bilahRef.current;
+      if (!bilah) return;
+      const jalur = Math.max(1, el.clientHeight - 12);
+      const tinggi = Math.max(24, (el.clientHeight / el.scrollHeight) * jalur);
+      bilah.style.height = `${tinggi}px`;
+      bilah.style.top = `${maks > 0 ? (el.scrollTop / maks) * (jalur - tinggi) : 0}px`;
+    }
+
+    perbarui();
+    el.addEventListener("scroll", perbarui, { passive: true });
+    // Daftar berubah tinggi saat penyaring diganti atau jendela diubah ukuran.
+    const pengamat = new ResizeObserver(perbarui);
+    pengamat.observe(el);
+    return () => {
+      el.removeEventListener("scroll", perbarui);
+      pengamat.disconnect();
+    };
+  }, [daftarTersaring.length]);
+
   return (
     <div
       className="halaman-daftar-wilayah"
@@ -179,7 +212,13 @@ export default function DaftarWilayah({ siap, tahun, onPilihWilayah }: Props) {
               <span className="dw-jumlah">{daftarTersaring.length} wilayah</span>
             </div>
 
-            <div className="dw-gulir" role="listbox" aria-label="Daftar wilayah">
+            <div className="dw-wadah-gulir">
+              <div
+                className="dw-gulir"
+                role="listbox"
+                aria-label="Daftar wilayah"
+                ref={gulirRef}
+              >
               {daftarTersaring.length === 0 && (
                 <p className="dw-kosong">Tidak ada wilayah yang cocok.</p>
               )}
@@ -217,6 +256,10 @@ export default function DaftarWilayah({ siap, tahun, onPilihWilayah }: Props) {
                   </button>
                 );
               })}
+              </div>
+              <span className="dw-bilah" aria-hidden="true">
+                <span ref={bilahRef} />
+              </span>
             </div>
           </div>
 
@@ -226,16 +269,18 @@ export default function DaftarWilayah({ siap, tahun, onPilihWilayah }: Props) {
               <p className="dw-detail-kosong">Pilih satu wilayah di daftar.</p>
             ) : (
               <>
-                <p className="dw-detail-eyebrow">Wilayah terpilih</p>
-                <h2 className="dw-detail-nama">
-                  {namaWilayahRapi(barisTerpilih.wilayah.nama)}
-                </h2>
-                <p className="dw-detail-meta">
-                  {barisTerpilih.namaProvinsi} · kode BPS {barisTerpilih.wilayah.kode}
-                </p>
+                <div className="dw-detail-kepala">
+                  <p className="dw-detail-eyebrow">Wilayah terpilih</p>
+                  <h2 className="dw-detail-nama">
+                    {namaWilayahRapi(barisTerpilih.wilayah.nama)}
+                  </h2>
+                  <p className="dw-detail-meta">
+                    {barisTerpilih.namaProvinsi} · kode BPS {barisTerpilih.wilayah.kode}
+                  </p>
 
-                <p className="dw-detail-angka">{fmt(barisTerpilih.nilai)}</p>
-                <p className="dw-detail-satuan">kejadian pada {tahun}</p>
+                  <p className="dw-detail-angka">{fmt(barisTerpilih.nilai)}</p>
+                  <p className="dw-detail-satuan">kejadian pada {tahun}</p>
+                </div>
 
                 <div
                   className="dw-detail-grafik"

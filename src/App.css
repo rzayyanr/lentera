@@ -4437,10 +4437,80 @@ body {
   white-space: nowrap;
 }
 
+/* Daftar digulir. Batang gulir bawaan disembunyikan: Windows menggambarnya
+   tebal dan gelap. Sebagai gantinya tepi atas/bawah dilunakkan gradien, dan
+   batang 4px muncul hanya saat kursor berada di atas daftar. Kelas `di-atas`
+   dan `di-bawah` dipasang DaftarWilayah.tsx mengikuti posisi gulir. */
+.dw-wadah-gulir {
+  position: relative;
+}
+
 .dw-gulir {
   max-height: clamp(360px, 56vh, 560px);
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.dw-gulir::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.dw-gulir::before,
+.dw-gulir::after {
+  content: "";
+  position: sticky;
+  left: 0;
+  display: block;
+  height: 22px;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.dw-gulir::before {
+  top: 0;
+  margin-bottom: -22px;
+  background: linear-gradient(to bottom, var(--warna-kartu) 25%, rgba(251, 250, 247, 0));
+}
+
+.dw-gulir::after {
+  bottom: 0;
+  margin-top: -22px;
+  background: linear-gradient(to top, var(--warna-kartu) 25%, rgba(251, 250, 247, 0));
+}
+
+.dw-gulir.di-atas::before,
+.dw-gulir.di-bawah::after {
+  opacity: 1;
+}
+
+/* Batang gulir samar: hanya petunjuk, tidak bisa diseret. */
+.dw-bilah {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  right: 4px;
+  width: 4px;
+  border-radius: 999px;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.dw-wadah-gulir:hover .dw-bilah {
+  opacity: 1;
+}
+
+.dw-bilah span {
+  position: absolute;
+  left: 0;
+  width: 4px;
+  border-radius: 999px;
+  background: #cec7b7;
 }
 
 .dw-baris {
@@ -4530,6 +4600,45 @@ body {
 @media (max-width: 980px) {
   .dw-detail::after {
     display: none;
+  }
+}
+
+/* Kepala panel menempel saat tabel 15 tahun digulir: nama wilayah dan angka
+   tahun terpilih tetap terlihat. `top: -20px` menutup padding atas panel
+   supaya tidak ada celah saat kepala menempel. */
+.dw-detail-kepala {
+  position: sticky;
+  top: -20px;
+  z-index: 2;
+  margin: -20px -20px 0;
+  padding: 20px 20px 12px;
+  /* Latar harus pekat: isi panel lewat di bawah kepala saat digulir, dan
+     gradien tembus pandang membuat tabel serta tombol tampak menembusnya. */
+  background: #fff;
+  border-bottom: 1px solid var(--warna-garis-tipis);
+  box-shadow: 0 8px 12px -10px rgba(60, 50, 30, 0.22);
+}
+
+/* Angka utama diperkecil saat menempel supaya sisa ruang untuk tabel cukup. */
+.dw-detail-kepala .dw-detail-angka {
+  margin: 10px 0 2px;
+  font-size: 30px;
+}
+
+@media (max-width: 980px) {
+  /* Di ponsel panel tidak dibatasi tinggi, jadi kepala tidak perlu menempel
+     dan bisa menabrak bilah atas yang mengapung. */
+  .dw-detail-kepala {
+    position: static;
+    margin: 0;
+    padding: 0;
+    background: none;
+    border-bottom: 0;
+  }
+
+  .dw-detail-kepala .dw-detail-angka {
+    margin: 16px 0 2px;
+    font-size: 40px;
   }
 }
 
