@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Eksplorasi Dropdown Pencarian — Lentera</title>
+<style>
+  /* Token warna Lentera */
+  :root {
+    --panggung: #f4f0e6;
+    --kartu: #fbfaf7;
+    --tinta: #16181c;
+    --redup: #6c6a63;
+    --garis: #e3ded2;
+    --garis-tipis: #ece8dd;
+    --aksen: #0e5c58;
+    --aksen-muda: #e8f1ee;
+    --sorot: #f1ece0;
+    --bayangan: 0 10px 30px rgba(60, 50, 30, 0.14);
+    --bayangan-kartu: 0 4px 14px rgba(60, 50, 30, 0.08);
+    --font: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  [hidden] { display: none !important; }
+
+  body {
+    font-family: var(--font);
+    background: var(--panggung);
+    color: var(--tinta);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    padding: 28px 20px 80px;
+  }
+
+  .wadah { max-width: 1180px; margin: 0 auto; }
+
+  /* Kepala halaman */
+  .kepala { margin-bottom: 22px; }
+  .eyebrow {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.9px;
+    text-transform: uppercase; color: var(--redup);
+  }
+  h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; margin: 4px 0 6px; }
+  .deskripsi { font-size: 13px; color: var(--redup); max-width: 720px; }
+
+  /* Bilah kendali bersama */
+  .kendali {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    margin: 18px 0 24px;
+  }
+  .kendali-label { font-size: 10px; font-weight: 700; letter-spacing: 0.6px; color: var(--redup); text-transform: uppercase; }
+  .segmen { display: inline-flex; background: var(--kartu); border: 1px solid var(--garis); border-radius: 10px; padding: 3px; gap: 2px; }
+  .segmen button {
+    border: 0; background: transparent; font-family: var(--font); font-size: 12px;
+    padding: 6px 12px; border-radius: 7px; cursor: pointer; color: var(--redup);
+  }
+  .segmen button[aria-pressed="true"] { background: var(--tinta); color: #fff; font-weight: 600; }
+
+  /* Grid varian */
+  .grid-varian { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; align-items: start; }
+  @media (max-width: 1000px) { .grid-varian { grid-template-columns: 1fr; } }
+
+  .varian { background: var(--kartu); border: 1px solid var(--garis); border-radius: 14px; padding: 16px; box-shadow: var(--bayangan-kartu); min-width: 0; }
+  .varian-kepala { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+  .varian-nama { font-size: 13px; font-weight: 600; }
+  .varian-tag { font-size: 9.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--aksen); background: var(--aksen-muda); border-radius: 4px; padding: 2px 6px; }
+  .varian-catatan { font-size: 11px; color: var(--redup); margin: 0 0 14px; min-height: 32px; overflow-wrap: anywhere; }
+
+  /* ---------- Varian 1: Popover kartu ---------- */
+  .pemicu {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    width: 100%; padding: 10px 12px; background: #fff;
+    border: 1px solid var(--garis); border-radius: 10px; cursor: pointer;
+    font-family: var(--font); font-size: 12.5px; color: var(--tinta); text-align: left;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .pemicu:hover { border-color: #cfc7b4; }
+  .pemicu[aria-expanded="true"] { border-color: var(--aksen); box-shadow: 0 0 0 3px rgba(14, 92, 88, 0.12); }
+  .pemicu-nilai { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pemicu-nilai.kosong { color: #a8a49a; }
+  .pemicu-ikon { flex: 0 0 auto; width: 12px; height: 12px; opacity: 0.55; }
+
+  .popover {
+    position: relative; z-index: 40; margin-top: 8px;
+    background: #fff; border: 1px solid var(--garis); border-radius: 12px;
+    box-shadow: var(--bayangan); overflow: hidden;
+  }
+  .cari-baris { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--garis-tipis); }
+  .cari-baris input {
+    flex: 1; border: 0; outline: 0; background: transparent;
+    font-family: var(--font); font-size: 12.5px; color: var(--tinta);
+  }
+  .cari-baris input::placeholder { color: #a8a49a; }
+  .cari-ikon { width: 14px; height: 14px; opacity: 0.5; flex: 0 0 auto; }
+
+  .daftar { max-height: 264px; overflow-y: auto; padding: 4px; overscroll-behavior: contain; }
+  .daftar::-webkit-scrollbar { width: 10px; }
+  .daftar::-webkit-scrollbar-thumb { background: #ded7c8; border-radius: 6px; border: 3px solid #fff; }
+  .daftar::-webkit-scrollbar-track { background: transparent; }
+
+  .butir {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px; border-radius: 8px; cursor: pointer; border: 0; background: transparent;
+    font-family: var(--font); font-size: 12.5px; color: var(--tinta); width: 100%; text-align: left;
+  }
+  .butir:hover, .butir.aktif { background: var(--sorot); }
+  .butir[aria-selected="true"] { background: var(--aksen-muda); }
+  .butir-isi { flex: 1; min-width: 0; }
+  .butir-nama { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .butir-sub { display: block; font-size: 10.5px; color: var(--redup); }
+  .butir-centang { width: 14px; height: 14px; flex: 0 0 auto; color: var(--aksen); opacity: 0; }
+  .butir[aria-selected="true"] .butir-centang { opacity: 1; }
+  .kaki-daftar { padding: 8px 12px; border-top: 1px solid var(--garis-tipis); font-size: 10.5px; color: var(--redup); display: flex; flex-wrap: wrap; gap: 4px 10px; justify-content: space-between; }
+  .kosong { padding: 20px 12px; text-align: center; font-size: 12px; color: var(--redup); }
+
+  /* ---------- Varian 2: Command palette ---------- */
+  .palette {
+    background: #fff; border: 1px solid var(--garis); border-radius: 12px;
+    box-shadow: var(--bayangan); overflow: hidden;
+  }
+  .palette-cari { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--garis-tipis); }
+  .palette-cari input { flex: 1; border: 0; outline: 0; font-family: var(--font); font-size: 13px; background: transparent; }
+  .kbd {
+    font-size: 9.5px; font-weight: 700; letter-spacing: 0.4px; color: var(--redup);
+    background: var(--panggung); border: 1px solid var(--garis); border-radius: 4px; padding: 2px 5px;
+  }
+  .palette-daftar { max-height: 280px; overflow-y: auto; padding: 4px 0; }
+  .kelompok-label {
+    position: sticky; top: 0; z-index: 1;
+    padding: 6px 14px; background: #fff;
+    font-size: 9.5px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase;
+    color: var(--redup); border-bottom: 1px solid var(--garis-tipis);
+  }
+  .palette-baris {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    padding: 8px 14px; border: 0; background: transparent; cursor: pointer;
+    font-family: var(--font); font-size: 12.5px; color: var(--tinta); text-align: left;
+  }
+  .palette-baris:hover, .palette-baris.aktif { background: var(--sorot); }
+  .palette-baris[aria-selected="true"] { color: var(--aksen); font-weight: 600; }
+  .palette-kode { margin-left: auto; font-size: 10px; color: #a8a49a; font-variant-numeric: tabular-nums; }
+  .palette-kaki { display: flex; flex-wrap: wrap; gap: 6px 12px; padding: 8px 14px; border-top: 1px solid var(--garis-tipis); font-size: 10px; color: var(--redup); }
+  mark { background: #ffe9a8; color: inherit; padding: 0 1px; border-radius: 2px; }
+
+  /* ---------- Varian 3: Lembar sentuh ---------- */
+  .lembar {
+    background: #fff; border: 1px solid var(--garis); border-radius: 12px; overflow: hidden;
+  }
+  .lembar-cari { display: flex; align-items: center; gap: 8px; padding: 12px; border-bottom: 1px solid var(--garis-tipis); }
+  .lembar-cari input { flex: 1; border: 0; outline: 0; font-family: var(--font); font-size: 13px; background: transparent; }
+  .chip-baris { display: flex; gap: 6px; overflow-x: auto; padding: 8px 12px; border-bottom: 1px solid var(--garis-tipis); scrollbar-width: none; }
+  .chip-baris::-webkit-scrollbar { display: none; }
+  .chip {
+    flex: 0 0 auto; border: 1px solid var(--garis); background: #fff; color: var(--redup);
+    border-radius: 999px; padding: 5px 11px; font-family: var(--font); font-size: 11px; cursor: pointer;
+  }
+  .chip[aria-pressed="true"] { background: var(--tinta); border-color: var(--tinta); color: #fff; font-weight: 600; }
+  .lembar-daftar { max-height: 300px; overflow-y: auto; }
+  .lembar-baris {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;
+    min-height: 56px; padding: 10px 14px; border: 0; border-bottom: 1px solid var(--garis-tipis);
+    background: transparent; font-family: var(--font); font-size: 13.5px; color: var(--tinta);
+    text-align: left; cursor: pointer;
+  }
+  .lembar-baris:hover, .lembar-baris.aktif { background: var(--sorot); }
+  .lembar-baris[aria-selected="true"] { background: var(--aksen-muda); font-weight: 600; }
+  .lembar-sub { display: block; font-size: 11px; color: var(--redup); font-weight: 400; }
+  .lembar-baris:last-child { border-bottom: 0; }
+  .lembar-kaki { position: sticky; bottom: 0; background: #fff; padding: 8px 14px; border-top: 1px solid var(--garis-tipis); font-size: 10.5px; color: var(--redup); display: flex; flex-wrap: wrap; gap: 4px 10px; justify-content: space-between; }
+
+  /* Pemilihan aktif ditampilkan di luar varian */
+  .hasil-pilihan {
+    margin-top: 12px; padding: 10px 12px; border-radius: 8px;
+    background: var(--aksen-muda); border: 1px solid #cfe0da;
+    font-size: 11.5px; color: var(--aksen);
+  }
+  .hasil-pilihan b { font-weight: 600; }
+
+  .catatan-bawah { margin-top: 28px; font-size: 11.5px; color: var(--redup); max-width: 860px; line-height: 1.6; }
+  .catatan-bawah b { color: var(--tinta); }
+</style>
+</head>
+<body>
+<div class="wadah">
+
+  <div class="kepala">
+    <p class="eyebrow">Eksplorasi Komponen</p>
+    <h1>Dropdown dengan pencarian dan gulir</h1>
+    <p class="deskripsi">
+      Tiga arah desain untuk dua kebutuhan yang sama: memilih 1 dari 38 provinsi, dan memilih 1 dari 510 kabupaten/kota.
+      Semuanya bisa diketik, digulir, dan dipilih dengan papan ketik.
+    </p>
+  </div>
+
+  <div class="kendali">
+    <span class="kendali-label">Isi daftar</span>
+    <div class="segmen" id="segmen-data">
+      <button type="button" data-data="wilayah" aria-pressed="true">510 kabupaten/kota</button>
+      <button type="button" data-data="provinsi" aria-pressed="false">38 provinsi</button>
+    </div>
+  </div>
+
+  <div class="grid-varian">
+
+    <!-- VARIAN 1 -->
+    <section class="varian" id="v1">
+      <div class="varian-kepala">
+        <h2 class="varian-nama">1. Popover kartu</h2>
+        <span class="varian-tag">ringan</span>
+      </div>
+      <p class="varian-catatan">Panel mengapung di bawah pemicu, daftar bergulir di dalam kartu. Paling dekat dengan gaya panel Lentera sekarang.</p>
+
+      <button type="button" class="pemicu" id="pemicu-v1" aria-expanded="false" aria-controls="popover-v1">
+        <span class="pemicu-nilai kosong" id="nilai-v1">Pilih kabupaten atau kota</span>
+        <svg class="pemicu-ikon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+
+      <div class="popover" id="popover-v1" hidden>
+        <div class="cari-baris">
+          <svg class="cari-ikon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input type="text" id="cari-v1" placeholder="Ketik nama wilayah atau kode BPS" autocomplete="off" />
+        </div>
+        <div class="daftar" id="daftar-v1" role="listbox"></div>
+        <div class="kaki-daftar">
+          <span id="hitung-v1">0 hasil</span>
+          <span>↑ ↓ lalu ↵</span>
+        </div>
+      </div>
+
+      <div class="hasil-pilihan" id="hasil-v1">Belum ada pilihan.</div>
+    </section>
+
+    <!-- VARIAN 2 -->
+    <section class="varian" id="v2">
+      <div class="varian-kepala">
+        <h2 class="varian-nama">2. Command palette</h2>
+        <span class="varian-tag">padat</span>
+      </div>
+      <p class="varian-catatan">Panel selalu terbuka dengan kolom cari di paling atas, hasil dikelompokkan per pulau. Untuk pengguna yang memilih lewat papan ketik.</p>
+
+      <div class="palette">
+        <div class="palette-cari">
+          <svg class="cari-ikon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input type="text" id="cari-v2" placeholder="Cari wilayah…" autocomplete="off" aria-label="Cari wilayah" />
+          <span class="kbd">ESC</span>
+        </div>
+        <div class="palette-daftar" id="daftar-v2" role="listbox"></div>
+        <div class="palette-kaki">
+          <span><span class="kbd">↑</span> <span class="kbd">↓</span> navigasi</span>
+          <span><span class="kbd">↵</span> pilih</span>
+          <span id="hitung-v2">0 hasil</span>
+        </div>
+      </div>
+
+      <div class="hasil-pilihan" id="hasil-v2">Belum ada pilihan.</div>
+    </section>
+
+    <!-- VARIAN 3 -->
+    <section class="varian" id="v3">
+      <div class="varian-kepala">
+        <h2 class="varian-nama">3. Lembar sentuh</h2>
+        <span class="varian-tag">ponsel</span>
+      </div>
+      <p class="varian-catatan">Daftar terbuka di dalam aliran halaman, bukan mengapung. Baris 56px, ada chip pulau untuk mempersempit sebelum mengetik.</p>
+
+      <button type="button" class="pemicu" id="pemicu-v3" aria-expanded="false" aria-controls="lembar-v3">
+        <span class="pemicu-nilai kosong" id="nilai-v3">Pilih kabupaten atau kota</span>
+        <svg class="pemicu-ikon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+
+      <div class="lembar" id="lembar-v3" hidden>
+        <div class="lembar-cari">
+          <svg class="cari-ikon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input type="text" id="cari-v3" placeholder="Cari kabupaten, kota, atau provinsi" autocomplete="off" aria-label="Cari wilayah" />
+        </div>
+        <div class="chip-baris" id="chip-v3"></div>
+        <div class="lembar-daftar" id="daftar-v3" role="listbox"></div>
+        <div class="lembar-kaki">
+          <span id="hitung-v3">0 hasil</span>
+          <span>Ketuk untuk memilih</span>
+        </div>
+      </div>
+
+      <div class="hasil-pilihan" id="hasil-v3">Belum ada pilihan.</div>
+    </section>
+
+  </div>
+
+  <p class="catatan-bawah">
+    <b>Cara menilai:</b> coba ketik "aceh", "surabaya", atau kode seperti "3578" pada tiap varian, lalu gulir daftarnya.
+    Varian 1 dan 3 juga menutup saat klik di luar atau menekan Esc.
+    Pada data 510 kabupaten, varian 1 paling rapi untuk panel samping, varian 2 paling cepat untuk pengguna papan ketik, dan varian 3 paling nyaman di ponsel.
+  </p>
+
+</div>
+
+<script>
+const DATA = {"provData":[{"kode":"11","nama":"Aceh","pulau":"Sumatera"},{"kode":"51","nama":"Bali","pulau":"Bali & Nusa Tenggara"},{"kode":"36","nama":"Banten","pulau":"Jawa"},{"kode":"17","nama":"Bengkulu","pulau":"Sumatera"},{"kode":"34","nama":"Daerah Istimewa Yogyakarta","pulau":"Jawa"},{"kode":"31","nama":"DKI Jakarta","pulau":"Jawa"},{"kode":"75","nama":"Gorontalo","pulau":"Sulawesi"},{"kode":"15","nama":"Jambi","pulau":"Sumatera"},{"kode":"32","nama":"Jawa Barat","pulau":"Jawa"},{"kode":"33","nama":"Jawa Tengah","pulau":"Jawa"},{"kode":"35","nama":"Jawa Timur","pulau":"Jawa"},{"kode":"61","nama":"Kalimantan Barat","pulau":"Kalimantan"},{"kode":"63","nama":"Kalimantan Selatan","pulau":"Kalimantan"},{"kode":"62","nama":"Kalimantan Tengah","pulau":"Kalimantan"},{"kode":"64","nama":"Kalimantan Timur","pulau":"Kalimantan"},{"kode":"65","nama":"Kalimantan Utara","pulau":"Kalimantan"},{"kode":"19","nama":"Kepulauan Bangka Belitung","pulau":"Sumatera"},{"kode":"21","nama":"Kepulauan Riau","pulau":"Sumatera"},{"kode":"18","nama":"Lampung","pulau":"Sumatera"},{"kode":"81","nama":"Maluku","pulau":"Maluku & Papua"},{"kode":"82","nama":"Maluku Utara","pulau":"Maluku & Papua"},{"kode":"52","nama":"Nusa Tenggara Barat","pulau":"Bali & Nusa Tenggara"},{"kode":"53","nama":"Nusa Tenggara Timur","pulau":"Bali & Nusa Tenggara"},{"kode":"91","nama":"Papua","pulau":"Maluku & Papua"},{"kode":"92","nama":"Papua Barat","pulau":"Maluku & Papua"},{"kode":"96","nama":"Papua Barat Daya","pulau":"Maluku & Papua"},{"kode":"95","nama":"Papua Pegunungan","pulau":"Maluku & Papua"},{"kode":"93","nama":"Papua Selatan","pulau":"Maluku & Papua"},{"kode":"94","nama":"Papua Tengah","pulau":"Maluku & Papua"},{"kode":"14","nama":"Riau","pulau":"Sumatera"},{"kode":"76","nama":"Sulawesi Barat","pulau":"Sulawesi"},{"kode":"73","nama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"72","nama":"Sulawesi Tengah","pulau":"Sulawesi"},{"kode":"74","nama":"Sulawesi Tenggara","pulau":"Sulawesi"},{"kode":"71","nama":"Sulawesi Utara","pulau":"Sulawesi"},{"kode":"13","nama":"Sumatera Barat","pulau":"Sumatera"},{"kode":"16","nama":"Sumatera Selatan","pulau":"Sumatera"},{"kode":"12","nama":"Sumatera Utara","pulau":"Sumatera"}],"wilData":[{"kode":"1105","nama":"Aceh Barat","provKode":"11","provNama":"Aceh","pulau":"Sumatera"},{"kode":"1112","nama":"Aceh Barat Daya","provKode":"11","provNama":"Aceh","pulau":"Sumatera"},{"kode":"1106","nama":"Aceh Besar","provKode":"11","provNama":"Aceh","pulau":"Sumatera"},{"kode":"1114","nama":"Aceh Jaya","provKode":"11","provNama":"Aceh","pulau":"Sumatera"},{"kode":"1101","nama":"Aceh Selatan","provKode":"11","provNama":"Aceh","pulau":"Sumatera"},{"kode":"1110","nama":"Aceh Singkil","provKode":"11","provNama":"Aceh","pulau":"Sumatera"},{"kode":"1116","nama":"Aceh Tamiang","provKode":"11","provNama":"Aceh","pulau":"Sumatera"},{"kode":"1104","nama":"Aceh Tengah","provKode":"11","provNama":"Aceh","pulau":"Sumatera"},{"kode":"1102","nama":"Aceh Tenggara","provKode":"11","provNama":"Aceh","pulau":"Sumatera"},{"kode":"1103","nama":"Aceh Timur","provKode":"11","provNama":"Aceh","pulau":"Sumatera"},{"kode":"1108","nama":"Aceh Utara","provKode":"11","provNama":"Aceh","pulau":"Sumatera"},{"kode":"3101","nama":"Adm. Kep. Seribu","provKode":"31","provNama":"DKI Jakarta","pulau":"Jawa"},{"kode":"1306","nama":"Agam","provKode":"13","provNama":"Sumatera Barat","pulau":"Sumatera"},{"kode":"5305","nama":"Alor","provKode":"53","provNama":"Nusa Tenggara Timur","pulau":"Bali & Nusa Tenggara"},{"kode":"1209","nama":"Asahan","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"9304","nama":"Asmat","provKode":"93","provNama":"Papua Selatan","pulau":"Maluku & Papua"},{"kode":"5103","nama":"Badung","provKode":"51","provNama":"Bali","pulau":"Bali & Nusa Tenggara"},{"kode":"6311","nama":"Balangan","provKode":"63","provNama":"Kalimantan Selatan","pulau":"Kalimantan"},{"kode":"3204","nama":"Bandung","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"3217","nama":"Bandung Barat","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"7201","nama":"Banggai","provKode":"72","provNama":"Sulawesi Tengah","pulau":"Sulawesi"},{"kode":"7207","nama":"Banggai Kepulauan","provKode":"72","provNama":"Sulawesi Tengah","pulau":"Sulawesi"},{"kode":"7211","nama":"Banggai Laut","provKode":"72","provNama":"Sulawesi Tengah","pulau":"Sulawesi"},{"kode":"1901","nama":"Bangka","provKode":"19","provNama":"Kepulauan Bangka Belitung","pulau":"Sumatera"},{"kode":"1905","nama":"Bangka Barat","provKode":"19","provNama":"Kepulauan Bangka Belitung","pulau":"Sumatera"},{"kode":"1903","nama":"Bangka Selatan","provKode":"19","provNama":"Kepulauan Bangka Belitung","pulau":"Sumatera"},{"kode":"1904","nama":"Bangka Tengah","provKode":"19","provNama":"Kepulauan Bangka Belitung","pulau":"Sumatera"},{"kode":"3526","nama":"Bangkalan","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"5106","nama":"Bangli","provKode":"51","provNama":"Bali","pulau":"Bali & Nusa Tenggara"},{"kode":"6303","nama":"Banjar","provKode":"63","provNama":"Kalimantan Selatan","pulau":"Kalimantan"},{"kode":"3304","nama":"Banjarnegara","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"7303","nama":"Bantaeng","provKode":"73","provNama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"3402","nama":"Bantul","provKode":"34","provNama":"Daerah Istimewa Yogyakarta","pulau":"Jawa"},{"kode":"1607","nama":"Banyuasin","provKode":"16","provNama":"Sumatera Selatan","pulau":"Sumatera"},{"kode":"3302","nama":"Banyumas","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"3510","nama":"Banyuwangi","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"6304","nama":"Barito Kuala","provKode":"63","provNama":"Kalimantan Selatan","pulau":"Kalimantan"},{"kode":"6204","nama":"Barito Selatan","provKode":"62","provNama":"Kalimantan Tengah","pulau":"Kalimantan"},{"kode":"6213","nama":"Barito Timur","provKode":"62","provNama":"Kalimantan Tengah","pulau":"Kalimantan"},{"kode":"6205","nama":"Barito Utara","provKode":"62","provNama":"Kalimantan Tengah","pulau":"Kalimantan"},{"kode":"7311","nama":"Barru","provKode":"73","provNama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"3325","nama":"Batang","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"1504","nama":"Batanghari","provKode":"15","provNama":"Jambi","pulau":"Sumatera"},{"kode":"1219","nama":"Batu Bara","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"3216","nama":"Bekasi","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"1902","nama":"Belitung","provKode":"19","provNama":"Kepulauan Bangka Belitung","pulau":"Sumatera"},{"kode":"1906","nama":"Belitung Timur","provKode":"19","provNama":"Kepulauan Bangka Belitung","pulau":"Sumatera"},{"kode":"5304","nama":"Belu","provKode":"53","provNama":"Nusa Tenggara Timur","pulau":"Bali & Nusa Tenggara"},{"kode":"1117","nama":"Bener Meriah","provKode":"11","provNama":"Aceh","pulau":"Sumatera"},{"kode":"1403","nama":"Bengkalis","provKode":"14","provNama":"Riau","pulau":"Sumatera"},{"kode":"6107","nama":"Bengkayang","provKode":"61","provNama":"Kalimantan Barat","pulau":"Kalimantan"},{"kode":"1701","nama":"Bengkulu Selatan","provKode":"17","provNama":"Bengkulu","pulau":"Sumatera"},{"kode":"1709","nama":"Bengkulu Tengah","provKode":"17","provNama":"Bengkulu","pulau":"Sumatera"},{"kode":"1703","nama":"Bengkulu Utara","provKode":"17","provNama":"Bengkulu","pulau":"Sumatera"},{"kode":"6403","nama":"Berau","provKode":"64","provNama":"Kalimantan Timur","pulau":"Kalimantan"},{"kode":"9106","nama":"Biak Numfor","provKode":"91","provNama":"Papua","pulau":"Maluku & Papua"},{"kode":"5206","nama":"Bima","provKode":"52","provNama":"Nusa Tenggara Barat","pulau":"Bali & Nusa Tenggara"},{"kode":"2101","nama":"Bintan","provKode":"21","provNama":"Kepulauan Riau","pulau":"Sumatera"},{"kode":"1111","nama":"Bireuen","provKode":"11","provNama":"Aceh","pulau":"Sumatera"},{"kode":"3505","nama":"Blitar","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"3316","nama":"Blora","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"7502","nama":"Boalemo","provKode":"75","provNama":"Gorontalo","pulau":"Sulawesi"},{"kode":"3201","nama":"Bogor","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"3522","nama":"Bojonegoro","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"7101","nama":"Bolaang Mongondow","provKode":"71","provNama":"Sulawesi Utara","pulau":"Sulawesi"},{"kode":"7111","nama":"Bolaang Mongondow Selatan","provKode":"71","provNama":"Sulawesi Utara","pulau":"Sulawesi"},{"kode":"7110","nama":"Bolaang Mongondow Timur","provKode":"71","provNama":"Sulawesi Utara","pulau":"Sulawesi"},{"kode":"7108","nama":"Bolaang Mongondow Utara","provKode":"71","provNama":"Sulawesi Utara","pulau":"Sulawesi"},{"kode":"7406","nama":"Bombana","provKode":"74","provNama":"Sulawesi Tenggara","pulau":"Sulawesi"},{"kode":"3511","nama":"Bondowoso","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"7308","nama":"Bone","provKode":"73","provNama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"7503","nama":"Bone Bolango","provKode":"75","provNama":"Gorontalo","pulau":"Sulawesi"},{"kode":"9302","nama":"Boven Digoel","provKode":"93","provNama":"Papua Selatan","pulau":"Maluku & Papua"},{"kode":"3309","nama":"Boyolali","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"3329","nama":"Brebes","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"5108","nama":"Buleleng","provKode":"51","provNama":"Bali","pulau":"Bali & Nusa Tenggara"},{"kode":"7302","nama":"Bulukumba","provKode":"73","provNama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"6501","nama":"Bulungan","provKode":"65","provNama":"Kalimantan Utara","pulau":"Kalimantan"},{"kode":"1508","nama":"Bungo","provKode":"15","provNama":"Jambi","pulau":"Sumatera"},{"kode":"7205","nama":"Buol","provKode":"72","provNama":"Sulawesi Tengah","pulau":"Sulawesi"},{"kode":"8104","nama":"Buru","provKode":"81","provNama":"Maluku","pulau":"Maluku & Papua"},{"kode":"8109","nama":"Buru Selatan","provKode":"81","provNama":"Maluku","pulau":"Maluku & Papua"},{"kode":"7404","nama":"Buton","provKode":"74","provNama":"Sulawesi Tenggara","pulau":"Sulawesi"},{"kode":"7415","nama":"Buton Selatan","provKode":"74","provNama":"Sulawesi Tenggara","pulau":"Sulawesi"},{"kode":"7414","nama":"Buton Tengah","provKode":"74","provNama":"Sulawesi Tenggara","pulau":"Sulawesi"},{"kode":"7410","nama":"Buton Utara","provKode":"74","provNama":"Sulawesi Tenggara","pulau":"Sulawesi"},{"kode":"3207","nama":"Ciamis","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"3203","nama":"Cianjur","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"3301","nama":"Cilacap","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"3209","nama":"Cirebon","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"1211","nama":"Dairi","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"9408","nama":"Deiyai","provKode":"94","provNama":"Papua Tengah","pulau":"Maluku & Papua"},{"kode":"1207","nama":"Deli Serdang","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"3321","nama":"Demak","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"1310","nama":"Dharmasraya","provKode":"13","provNama":"Sumatera Barat","pulau":"Sumatera"},{"kode":"9406","nama":"Dogiyai","provKode":"94","provNama":"Papua Tengah","pulau":"Maluku & Papua"},{"kode":"5205","nama":"Dompu","provKode":"52","provNama":"Nusa Tenggara Barat","pulau":"Bali & Nusa Tenggara"},{"kode":"7203","nama":"Donggala","provKode":"72","provNama":"Sulawesi Tengah","pulau":"Sulawesi"},{"kode":"1611","nama":"Empat Lawang","provKode":"16","provNama":"Sumatera Selatan","pulau":"Sumatera"},{"kode":"5308","nama":"Ende","provKode":"53","provNama":"Nusa Tenggara Timur","pulau":"Bali & Nusa Tenggara"},{"kode":"7316","nama":"Enrekang","provKode":"73","provNama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"9203","nama":"Fak Fak","provKode":"92","provNama":"Papua Barat","pulau":"Maluku & Papua"},{"kode":"5306","nama":"Flores Timur","provKode":"53","provNama":"Nusa Tenggara Timur","pulau":"Bali & Nusa Tenggara"},{"kode":"3205","nama":"Garut","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"1113","nama":"Gayo Lues","provKode":"11","provNama":"Aceh","pulau":"Sumatera"},{"kode":"5104","nama":"Gianyar","provKode":"51","provNama":"Bali","pulau":"Bali & Nusa Tenggara"},{"kode":"7501","nama":"Gorontalo","provKode":"75","provNama":"Gorontalo","pulau":"Sulawesi"},{"kode":"7505","nama":"Gorontalo Utara","provKode":"75","provNama":"Gorontalo","pulau":"Sulawesi"},{"kode":"7306","nama":"Gowa","provKode":"73","provNama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"3525","nama":"Gresik","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"3315","nama":"Grobogan","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"6210","nama":"Gunung Mas","provKode":"62","provNama":"Kalimantan Tengah","pulau":"Kalimantan"},{"kode":"3403","nama":"Gunungkidul","provKode":"34","provNama":"Daerah Istimewa Yogyakarta","pulau":"Jawa"},{"kode":"8201","nama":"Halmahera Barat","provKode":"82","provNama":"Maluku Utara","pulau":"Maluku & Papua"},{"kode":"8204","nama":"Halmahera Selatan","provKode":"82","provNama":"Maluku Utara","pulau":"Maluku & Papua"},{"kode":"8202","nama":"Halmahera Tengah","provKode":"82","provNama":"Maluku Utara","pulau":"Maluku & Papua"},{"kode":"8206","nama":"Halmahera Timur","provKode":"82","provNama":"Maluku Utara","pulau":"Maluku & Papua"},{"kode":"8203","nama":"Halmahera Utara","provKode":"82","provNama":"Maluku Utara","pulau":"Maluku & Papua"},{"kode":"6306","nama":"Hulu Sungai Selatan","provKode":"63","provNama":"Kalimantan Selatan","pulau":"Kalimantan"},{"kode":"6307","nama":"Hulu Sungai Tengah","provKode":"63","provNama":"Kalimantan Selatan","pulau":"Kalimantan"},{"kode":"6308","nama":"Hulu Sungai Utara","provKode":"63","provNama":"Kalimantan Selatan","pulau":"Kalimantan"},{"kode":"1216","nama":"Humbang Hasundutan","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"1404","nama":"Indragiri Hilir","provKode":"14","provNama":"Riau","pulau":"Sumatera"},{"kode":"1402","nama":"Indragiri Hulu","provKode":"14","provNama":"Riau","pulau":"Sumatera"},{"kode":"3212","nama":"Indramayu","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"9407","nama":"Intan Jaya","provKode":"94","provNama":"Papua Tengah","pulau":"Maluku & Papua"},{"kode":"9103","nama":"Jayapura","provKode":"91","provNama":"Papua","pulau":"Maluku & Papua"},{"kode":"9501","nama":"Jayawijaya","provKode":"95","provNama":"Papua Pegunungan","pulau":"Maluku & Papua"},{"kode":"3509","nama":"Jember","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"5101","nama":"Jembrana","provKode":"51","provNama":"Bali","pulau":"Bali & Nusa Tenggara"},{"kode":"7304","nama":"Jeneponto","provKode":"73","provNama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"3320","nama":"Jepara","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"3517","nama":"Jombang","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"9502","nama":"Kab Pegunungan Bintang","provKode":"95","provNama":"Papua Pegunungan","pulau":"Maluku & Papua"},{"kode":"1401","nama":"Kampar","provKode":"14","provNama":"Riau","pulau":"Sumatera"},{"kode":"6203","nama":"Kapuas","provKode":"62","provNama":"Kalimantan Tengah","pulau":"Kalimantan"},{"kode":"6106","nama":"Kapuas Hulu","provKode":"61","provNama":"Kalimantan Barat","pulau":"Kalimantan"},{"kode":"3313","nama":"Karanganyar","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"5107","nama":"Karangasem","provKode":"51","provNama":"Bali","pulau":"Bali & Nusa Tenggara"},{"kode":"3215","nama":"Karawang","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"2102","nama":"Karimun","provKode":"21","provNama":"Kepulauan Riau","pulau":"Sumatera"},{"kode":"1206","nama":"Karo","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"6206","nama":"Katingan","provKode":"62","provNama":"Kalimantan Tengah","pulau":"Kalimantan"},{"kode":"1704","nama":"Kaur","provKode":"17","provNama":"Bengkulu","pulau":"Sumatera"},{"kode":"6111","nama":"Kayong Utara","provKode":"61","provNama":"Kalimantan Barat","pulau":"Kalimantan"},{"kode":"3305","nama":"Kebumen","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"3506","nama":"Kediri","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"9111","nama":"Keerom","provKode":"91","provNama":"Papua","pulau":"Maluku & Papua"},{"kode":"3324","nama":"Kendal","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"7109","nama":"Kep. Siau Tagulandang Biaro","provKode":"71","provNama":"Sulawesi Utara","pulau":"Sulawesi"},{"kode":"1708","nama":"Kepahiang","provKode":"17","provNama":"Bengkulu","pulau":"Sumatera"},{"kode":"2105","nama":"Kepulauan Anambas","provKode":"21","provNama":"Kepulauan Riau","pulau":"Sumatera"},{"kode":"8107","nama":"Kepulauan Aru","provKode":"81","provNama":"Maluku","pulau":"Maluku & Papua"},{"kode":"1309","nama":"Kepulauan Mentawai","provKode":"13","provNama":"Sumatera Barat","pulau":"Sumatera"},{"kode":"1410","nama":"Kepulauan Meranti","provKode":"14","provNama":"Riau","pulau":"Sumatera"},{"kode":"7103","nama":"Kepulauan Sangihe","provKode":"71","provNama":"Sulawesi Utara","pulau":"Sulawesi"},{"kode":"7301","nama":"Kepulauan Selayar","provKode":"73","provNama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"8205","nama":"Kepulauan Sula","provKode":"82","provNama":"Maluku Utara","pulau":"Maluku & Papua"},{"kode":"7104","nama":"Kepulauan Talaud","provKode":"71","provNama":"Sulawesi Utara","pulau":"Sulawesi"},{"kode":"8103","nama":"Kepulauan Tanimbar","provKode":"81","provNama":"Maluku","pulau":"Maluku & Papua"},{"kode":"9105","nama":"Kepulauan Yapen","provKode":"91","provNama":"Papua","pulau":"Maluku & Papua"},{"kode":"1501","nama":"Kerinci","provKode":"15","provNama":"Jambi","pulau":"Sumatera"},{"kode":"6104","nama":"Ketapang","provKode":"61","provNama":"Kalimantan Barat","pulau":"Kalimantan"},{"kode":"3310","nama":"Klaten","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"5105","nama":"Klungkung","provKode":"51","provNama":"Bali","pulau":"Bali & Nusa Tenggara"},{"kode":"7401","nama":"Kolaka","provKode":"74","provNama":"Sulawesi Tenggara","pulau":"Sulawesi"},{"kode":"7411","nama":"Kolaka Timur","provKode":"74","provNama":"Sulawesi Tenggara","pulau":"Sulawesi"},{"kode":"7408","nama":"Kolaka Utara","provKode":"74","provNama":"Sulawesi Tenggara","pulau":"Sulawesi"},{"kode":"7402","nama":"Konawe","provKode":"74","provNama":"Sulawesi Tenggara","pulau":"Sulawesi"},{"kode":"7405","nama":"Konawe Selatan","provKode":"74","provNama":"Sulawesi Tenggara","pulau":"Sulawesi"},{"kode":"7409","nama":"Konawe Utara","provKode":"74","provNama":"Sulawesi Tenggara","pulau":"Sulawesi"},{"kode":"3173","nama":"Kota Adm. Jakarta Barat","provKode":"31","provNama":"DKI Jakarta","pulau":"Jawa"},{"kode":"3171","nama":"Kota Adm. Jakarta Pusat","provKode":"31","provNama":"DKI Jakarta","pulau":"Jawa"},{"kode":"3174","nama":"Kota Adm. Jakarta Selatan","provKode":"31","provNama":"DKI Jakarta","pulau":"Jawa"},{"kode":"3175","nama":"Kota Adm. Jakarta Timur","provKode":"31","provNama":"DKI Jakarta","pulau":"Jawa"},{"kode":"3172","nama":"Kota Adm. Jakarta Utara","provKode":"31","provNama":"DKI Jakarta","pulau":"Jawa"},{"kode":"8171","nama":"Kota Ambon","provKode":"81","provNama":"Maluku","pulau":"Maluku & Papua"},{"kode":"6471","nama":"Kota Balikpapan","provKode":"64","provNama":"Kalimantan Timur","pulau":"Kalimantan"},{"kode":"1171","nama":"Kota Banda Aceh","provKode":"11","provNama":"Aceh","pulau":"Sumatera"},{"kode":"1871","nama":"Kota Bandar Lampung","provKode":"18","provNama":"Lampung","pulau":"Sumatera"},{"kode":"3273","nama":"Kota Bandung","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"3279","nama":"Kota Banjar","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"6372","nama":"Kota Banjarbaru","provKode":"63","provNama":"Kalimantan Selatan","pulau":"Kalimantan"},{"kode":"6371","nama":"Kota Banjarmasin","provKode":"63","provNama":"Kalimantan Selatan","pulau":"Kalimantan"},{"kode":"2171","nama":"Kota Batam","provKode":"21","provNama":"Kepulauan Riau","pulau":"Sumatera"},{"kode":"3579","nama":"Kota Batu","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"7472","nama":"Kota Bau Bau","provKode":"74","provNama":"Sulawesi Tenggara","pulau":"Sulawesi"},{"kode":"3275","nama":"Kota Bekasi","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"1771","nama":"Kota Bengkulu","provKode":"17","provNama":"Bengkulu","pulau":"Sumatera"},{"kode":"5272","nama":"Kota Bima","provKode":"52","provNama":"Nusa Tenggara Barat","pulau":"Bali & Nusa Tenggara"},{"kode":"1275","nama":"Kota Binjai","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"7172","nama":"Kota Bitung","provKode":"71","provNama":"Sulawesi Utara","pulau":"Sulawesi"},{"kode":"3572","nama":"Kota Blitar","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"3271","nama":"Kota Bogor","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"6474","nama":"Kota Bontang","provKode":"64","provNama":"Kalimantan Timur","pulau":"Kalimantan"},{"kode":"1375","nama":"Kota Bukittinggi","provKode":"13","provNama":"Sumatera Barat","pulau":"Sumatera"},{"kode":"3672","nama":"Kota Cilegon","provKode":"36","provNama":"Banten","pulau":"Jawa"},{"kode":"3277","nama":"Kota Cimahi","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"3274","nama":"Kota Cirebon","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"5171","nama":"Kota Denpasar","provKode":"51","provNama":"Bali","pulau":"Bali & Nusa Tenggara"},{"kode":"3276","nama":"Kota Depok","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"1472","nama":"Kota Dumai","provKode":"14","provNama":"Riau","pulau":"Sumatera"},{"kode":"7571","nama":"Kota Gorontalo","provKode":"75","provNama":"Gorontalo","pulau":"Sulawesi"},{"kode":"1278","nama":"Kota Gunungsitoli","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"1571","nama":"Kota Jambi","provKode":"15","provNama":"Jambi","pulau":"Sumatera"},{"kode":"9171","nama":"Kota Jayapura","provKode":"91","provNama":"Papua","pulau":"Maluku & Papua"},{"kode":"3571","nama":"Kota Kediri","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"7471","nama":"Kota Kendari","provKode":"74","provNama":"Sulawesi Tenggara","pulau":"Sulawesi"},{"kode":"7174","nama":"Kota Kotamobagu","provKode":"71","provNama":"Sulawesi Utara","pulau":"Sulawesi"},{"kode":"5371","nama":"Kota Kupang","provKode":"53","provNama":"Nusa Tenggara Timur","pulau":"Bali & Nusa Tenggara"},{"kode":"1174","nama":"Kota Langsa","provKode":"11","provNama":"Aceh","pulau":"Sumatera"},{"kode":"1173","nama":"Kota Lhokseumawe","provKode":"11","provNama":"Aceh","pulau":"Sumatera"},{"kode":"1673","nama":"Kota Lubuk Linggau","provKode":"16","provNama":"Sumatera Selatan","pulau":"Sumatera"},{"kode":"3577","nama":"Kota Madiun","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"3371","nama":"Kota Magelang","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"7371","nama":"Kota Makassar","provKode":"73","provNama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"3573","nama":"Kota Malang","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"7171","nama":"Kota Manado","provKode":"71","provNama":"Sulawesi Utara","pulau":"Sulawesi"},{"kode":"5271","nama":"Kota Mataram","provKode":"52","provNama":"Nusa Tenggara Barat","pulau":"Bali & Nusa Tenggara"},{"kode":"1271","nama":"Kota Medan","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"1872","nama":"Kota Metro","provKode":"18","provNama":"Lampung","pulau":"Sumatera"},{"kode":"3576","nama":"Kota Mojokerto","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"1371","nama":"Kota Padang","provKode":"13","provNama":"Sumatera Barat","pulau":"Sumatera"},{"kode":"1374","nama":"Kota Padang Panjang","provKode":"13","provNama":"Sumatera Barat","pulau":"Sumatera"},{"kode":"1277","nama":"Kota Padang Sidempuan","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"1672","nama":"Kota Pagar Alam","provKode":"16","provNama":"Sumatera Selatan","pulau":"Sumatera"},{"kode":"6271","nama":"Kota Palangkaraya","provKode":"62","provNama":"Kalimantan Tengah","pulau":"Kalimantan"},{"kode":"1671","nama":"Kota Palembang","provKode":"16","provNama":"Sumatera Selatan","pulau":"Sumatera"},{"kode":"7373","nama":"Kota Palopo","provKode":"73","provNama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"7271","nama":"Kota Palu","provKode":"72","provNama":"Sulawesi Tengah","pulau":"Sulawesi"},{"kode":"1971","nama":"Kota Pangkal Pinang","provKode":"19","provNama":"Kepulauan Bangka Belitung","pulau":"Sumatera"},{"kode":"7372","nama":"Kota Parepare","provKode":"73","provNama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"1377","nama":"Kota Pariaman","provKode":"13","provNama":"Sumatera Barat","pulau":"Sumatera"},{"kode":"3575","nama":"Kota Pasuruan","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"1376","nama":"Kota Payakumbuh","provKode":"13","provNama":"Sumatera Barat","pulau":"Sumatera"},{"kode":"3375","nama":"Kota Pekalongan","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"1471","nama":"Kota Pekanbaru","provKode":"14","provNama":"Riau","pulau":"Sumatera"},{"kode":"1272","nama":"Kota Pematangsiantar","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"6171","nama":"Kota Pontianak","provKode":"61","provNama":"Kalimantan Barat","pulau":"Kalimantan"},{"kode":"1674","nama":"Kota Prabumulih","provKode":"16","provNama":"Sumatera Selatan","pulau":"Sumatera"},{"kode":"3574","nama":"Kota Probolinggo","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"1172","nama":"Kota Sabang","provKode":"11","provNama":"Aceh","pulau":"Sumatera"},{"kode":"3373","nama":"Kota Salatiga","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"6472","nama":"Kota Samarinda","provKode":"64","provNama":"Kalimantan Timur","pulau":"Kalimantan"},{"kode":"1373","nama":"Kota Sawahlunto","provKode":"13","provNama":"Sumatera Barat","pulau":"Sumatera"},{"kode":"3374","nama":"Kota Semarang","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"3673","nama":"Kota Serang","provKode":"36","provNama":"Banten","pulau":"Jawa"},{"kode":"1273","nama":"Kota Sibolga","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"6172","nama":"Kota Singkawang","provKode":"61","provNama":"Kalimantan Barat","pulau":"Kalimantan"},{"kode":"1372","nama":"Kota Solok","provKode":"13","provNama":"Sumatera Barat","pulau":"Sumatera"},{"kode":"9671","nama":"Kota Sorong","provKode":"96","provNama":"Papua Barat Daya","pulau":"Maluku & Papua"},{"kode":"1175","nama":"Kota Subulussalam","provKode":"11","provNama":"Aceh","pulau":"Sumatera"},{"kode":"3272","nama":"Kota Sukabumi","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"1572","nama":"Kota Sungai Penuh","provKode":"15","provNama":"Jambi","pulau":"Sumatera"},{"kode":"3578","nama":"Kota Surabaya","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"3372","nama":"Kota Surakarta","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"3671","nama":"Kota Tangerang","provKode":"36","provNama":"Banten","pulau":"Jawa"},{"kode":"3674","nama":"Kota Tangerang Selatan","provKode":"36","provNama":"Banten","pulau":"Jawa"},{"kode":"1274","nama":"Kota Tanjung Balai","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"2172","nama":"Kota Tanjung Pinang","provKode":"21","provNama":"Kepulauan Riau","pulau":"Sumatera"},{"kode":"6571","nama":"Kota Tarakan","provKode":"65","provNama":"Kalimantan Utara","pulau":"Kalimantan"},{"kode":"3278","nama":"Kota Tasikmalaya","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"1276","nama":"Kota Tebing Tinggi","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"3376","nama":"Kota Tegal","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"8271","nama":"Kota Ternate","provKode":"82","provNama":"Maluku Utara","pulau":"Maluku & Papua"},{"kode":"8272","nama":"Kota Tidore Kepulauan","provKode":"82","provNama":"Maluku Utara","pulau":"Maluku & Papua"},{"kode":"7173","nama":"Kota Tomohon","provKode":"71","provNama":"Sulawesi Utara","pulau":"Sulawesi"},{"kode":"8172","nama":"Kota Tual","provKode":"81","provNama":"Maluku","pulau":"Maluku & Papua"},{"kode":"3471","nama":"Kota Yogyakarta","provKode":"34","provNama":"Daerah Istimewa Yogyakarta","pulau":"Jawa"},{"kode":"6302","nama":"Kotabaru","provKode":"63","provNama":"Kalimantan Selatan","pulau":"Kalimantan"},{"kode":"6201","nama":"Kotawaringin Barat","provKode":"62","provNama":"Kalimantan Tengah","pulau":"Kalimantan"},{"kode":"6202","nama":"Kotawaringin Timur","provKode":"62","provNama":"Kalimantan Tengah","pulau":"Kalimantan"},{"kode":"1409","nama":"Kuantan Singingi","provKode":"14","provNama":"Riau","pulau":"Sumatera"},{"kode":"6112","nama":"Kubu Raya","provKode":"61","provNama":"Kalimantan Barat","pulau":"Kalimantan"},{"kode":"3319","nama":"Kudus","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"3401","nama":"Kulon Progo","provKode":"34","provNama":"Daerah Istimewa Yogyakarta","pulau":"Jawa"},{"kode":"3208","nama":"Kuningan","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"5301","nama":"Kupang","provKode":"53","provNama":"Nusa Tenggara Timur","pulau":"Bali & Nusa Tenggara"},{"kode":"6407","nama":"Kutai Barat","provKode":"64","provNama":"Kalimantan Timur","pulau":"Kalimantan"},{"kode":"6402","nama":"Kutai Kartanegara","provKode":"64","provNama":"Kalimantan Timur","pulau":"Kalimantan"},{"kode":"6408","nama":"Kutai Timur","provKode":"64","provNama":"Kalimantan Timur","pulau":"Kalimantan"},{"kode":"1210","nama":"Labuhanbatu","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"1222","nama":"Labuhanbatu Selatan","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"1223","nama":"Labuhanbatu Utara","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"1604","nama":"Lahat","provKode":"16","provNama":"Sumatera Selatan","pulau":"Sumatera"},{"kode":"6209","nama":"Lamandau","provKode":"62","provNama":"Kalimantan Tengah","pulau":"Kalimantan"},{"kode":"3524","nama":"Lamongan","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"1804","nama":"Lampung Barat","provKode":"18","provNama":"Lampung","pulau":"Sumatera"},{"kode":"1801","nama":"Lampung Selatan","provKode":"18","provNama":"Lampung","pulau":"Sumatera"},{"kode":"1802","nama":"Lampung Tengah","provKode":"18","provNama":"Lampung","pulau":"Sumatera"},{"kode":"1807","nama":"Lampung Timur","provKode":"18","provNama":"Lampung","pulau":"Sumatera"},{"kode":"1803","nama":"Lampung Utara","provKode":"18","provNama":"Lampung","pulau":"Sumatera"},{"kode":"6108","nama":"Landak","provKode":"61","provNama":"Kalimantan Barat","pulau":"Kalimantan"},{"kode":"1205","nama":"Langkat","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"9507","nama":"Lanny Jaya","provKode":"95","provNama":"Papua Pegunungan","pulau":"Maluku & Papua"},{"kode":"3602","nama":"Lebak","provKode":"36","provNama":"Banten","pulau":"Jawa"},{"kode":"1707","nama":"Lebong","provKode":"17","provNama":"Bengkulu","pulau":"Sumatera"},{"kode":"5313","nama":"Lembata","provKode":"53","provNama":"Nusa Tenggara Timur","pulau":"Bali & Nusa Tenggara"},{"kode":"1307","nama":"Lima Puluh Kota","provKode":"13","provNama":"Sumatera Barat","pulau":"Sumatera"},{"kode":"2104","nama":"Lingga","provKode":"21","provNama":"Kepulauan Riau","pulau":"Sumatera"},{"kode":"5201","nama":"Lombok Barat","provKode":"52","provNama":"Nusa Tenggara Barat","pulau":"Bali & Nusa Tenggara"},{"kode":"5202","nama":"Lombok Tengah","provKode":"52","provNama":"Nusa Tenggara Barat","pulau":"Bali & Nusa Tenggara"},{"kode":"5203","nama":"Lombok Timur","provKode":"52","provNama":"Nusa Tenggara Barat","pulau":"Bali & Nusa Tenggara"},{"kode":"5208","nama":"Lombok Utara","provKode":"52","provNama":"Nusa Tenggara Barat","pulau":"Bali & Nusa Tenggara"},{"kode":"3508","nama":"Lumajang","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"7317","nama":"Luwu","provKode":"73","provNama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"7324","nama":"Luwu Timur","provKode":"73","provNama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"7322","nama":"Luwu Utara","provKode":"73","provNama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"3519","nama":"Madiun","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"3308","nama":"Magelang","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"3520","nama":"Magetan","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"6411","nama":"Mahakam Ulu","provKode":"64","provNama":"Kalimantan Timur","pulau":"Kalimantan"},{"kode":"3210","nama":"Majalengka","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"7605","nama":"Majene","provKode":"76","provNama":"Sulawesi Barat","pulau":"Sulawesi"},{"kode":"5321","nama":"Malaka","provKode":"53","provNama":"Nusa Tenggara Timur","pulau":"Bali & Nusa Tenggara"},{"kode":"3507","nama":"Malang","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"6502","nama":"Malinau","provKode":"65","provNama":"Kalimantan Utara","pulau":"Kalimantan"},{"kode":"8108","nama":"Maluku Barat Daya","provKode":"81","provNama":"Maluku","pulau":"Maluku & Papua"},{"kode":"8101","nama":"Maluku Tengah","provKode":"81","provNama":"Maluku","pulau":"Maluku & Papua"},{"kode":"8102","nama":"Maluku Tenggara","provKode":"81","provNama":"Maluku","pulau":"Maluku & Papua"},{"kode":"7603","nama":"Mamasa","provKode":"76","provNama":"Sulawesi Barat","pulau":"Sulawesi"},{"kode":"9120","nama":"Mamberamo Raya","provKode":"91","provNama":"Papua","pulau":"Maluku & Papua"},{"kode":"9505","nama":"Mamberamo Tengah","provKode":"95","provNama":"Papua Pegunungan","pulau":"Maluku & Papua"},{"kode":"7602","nama":"Mamuju","provKode":"76","provNama":"Sulawesi Barat","pulau":"Sulawesi"},{"kode":"7606","nama":"Mamuju Tengah","provKode":"76","provNama":"Sulawesi Barat","pulau":"Sulawesi"},{"kode":"1213","nama":"Mandailing Natal","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"5310","nama":"Manggarai","provKode":"53","provNama":"Nusa Tenggara Timur","pulau":"Bali & Nusa Tenggara"},{"kode":"5315","nama":"Manggarai Barat","provKode":"53","provNama":"Nusa Tenggara Timur","pulau":"Bali & Nusa Tenggara"},{"kode":"5319","nama":"Manggarai Timur","provKode":"53","provNama":"Nusa Tenggara Timur","pulau":"Bali & Nusa Tenggara"},{"kode":"9202","nama":"Manokwari","provKode":"92","provNama":"Papua Barat","pulau":"Maluku & Papua"},{"kode":"9211","nama":"Manokwari Selatan","provKode":"92","provNama":"Papua Barat","pulau":"Maluku & Papua"},{"kode":"9303","nama":"Mappi","provKode":"93","provNama":"Papua Selatan","pulau":"Maluku & Papua"},{"kode":"7309","nama":"Maros","provKode":"73","provNama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"9605","nama":"Maybrat","provKode":"96","provNama":"Papua Barat Daya","pulau":"Maluku & Papua"},{"kode":"6110","nama":"Melawi","provKode":"61","provNama":"Kalimantan Barat","pulau":"Kalimantan"},{"kode":"6102","nama":"Mempawah","provKode":"61","provNama":"Kalimantan Barat","pulau":"Kalimantan"},{"kode":"1502","nama":"Merangin","provKode":"15","provNama":"Jambi","pulau":"Sumatera"},{"kode":"9301","nama":"Merauke","provKode":"93","provNama":"Papua Selatan","pulau":"Maluku & Papua"},{"kode":"1811","nama":"Mesuji","provKode":"18","provNama":"Lampung","pulau":"Sumatera"},{"kode":"9404","nama":"Mimika","provKode":"94","provNama":"Papua Tengah","pulau":"Maluku & Papua"},{"kode":"7102","nama":"Minahasa","provKode":"71","provNama":"Sulawesi Utara","pulau":"Sulawesi"},{"kode":"7105","nama":"Minahasa Selatan","provKode":"71","provNama":"Sulawesi Utara","pulau":"Sulawesi"},{"kode":"7107","nama":"Minahasa Tenggara","provKode":"71","provNama":"Sulawesi Utara","pulau":"Sulawesi"},{"kode":"7106","nama":"Minahasa Utara","provKode":"71","provNama":"Sulawesi Utara","pulau":"Sulawesi"},{"kode":"3516","nama":"Mojokerto","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"7206","nama":"Morowali","provKode":"72","provNama":"Sulawesi Tengah","pulau":"Sulawesi"},{"kode":"7212","nama":"Morowali Utara","provKode":"72","provNama":"Sulawesi Tengah","pulau":"Sulawesi"},{"kode":"1603","nama":"Muara Enim","provKode":"16","provNama":"Sumatera Selatan","pulau":"Sumatera"},{"kode":"1505","nama":"Muaro Jambi","provKode":"15","provNama":"Jambi","pulau":"Sumatera"},{"kode":"1706","nama":"Muko Muko","provKode":"17","provNama":"Bengkulu","pulau":"Sumatera"},{"kode":"7403","nama":"Muna","provKode":"74","provNama":"Sulawesi Tenggara","pulau":"Sulawesi"},{"kode":"7413","nama":"Muna Barat","provKode":"74","provNama":"Sulawesi Tenggara","pulau":"Sulawesi"},{"kode":"6212","nama":"Murung Raya","provKode":"62","provNama":"Kalimantan Tengah","pulau":"Kalimantan"},{"kode":"1606","nama":"Musi Banyuasin","provKode":"16","provNama":"Sumatera Selatan","pulau":"Sumatera"},{"kode":"1605","nama":"Musi Rawas","provKode":"16","provNama":"Sumatera Selatan","pulau":"Sumatera"},{"kode":"1613","nama":"Musi Rawas Utara","provKode":"16","provNama":"Sumatera Selatan","pulau":"Sumatera"},{"kode":"9401","nama":"Nabire","provKode":"94","provNama":"Papua Tengah","pulau":"Maluku & Papua"},{"kode":"1115","nama":"Nagan Raya","provKode":"11","provNama":"Aceh","pulau":"Sumatera"},{"kode":"5316","nama":"Nagekeo","provKode":"53","provNama":"Nusa Tenggara Timur","pulau":"Bali & Nusa Tenggara"},{"kode":"2103","nama":"Natuna","provKode":"21","provNama":"Kepulauan Riau","pulau":"Sumatera"},{"kode":"5309","nama":"Ngada","provKode":"53","provNama":"Nusa Tenggara Timur","pulau":"Bali & Nusa Tenggara"},{"kode":"3518","nama":"Nganjuk","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"3521","nama":"Ngawi","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"1204","nama":"Nias","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"1225","nama":"Nias Barat","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"1214","nama":"Nias Selatan","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"1224","nama":"Nias Utara","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"6503","nama":"Nunukan","provKode":"65","provNama":"Kalimantan Utara","pulau":"Kalimantan"},{"kode":"1610","nama":"Ogan Ilir","provKode":"16","provNama":"Sumatera Selatan","pulau":"Sumatera"},{"kode":"1602","nama":"Ogan Komering Ilir","provKode":"16","provNama":"Sumatera Selatan","pulau":"Sumatera"},{"kode":"1601","nama":"Ogan Komering Ulu","provKode":"16","provNama":"Sumatera Selatan","pulau":"Sumatera"},{"kode":"1609","nama":"Ogan Komering Ulu Selatan","provKode":"16","provNama":"Sumatera Selatan","pulau":"Sumatera"},{"kode":"1608","nama":"Ogan Komering Ulu Timur","provKode":"16","provNama":"Sumatera Selatan","pulau":"Sumatera"},{"kode":"3501","nama":"Pacitan","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"1221","nama":"Padang Lawas","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"1220","nama":"Padang Lawas Utara","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"1305","nama":"Padang Pariaman","provKode":"13","provNama":"Sumatera Barat","pulau":"Sumatera"},{"kode":"1215","nama":"Pakpak Bharat","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"3528","nama":"Pamekasan","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"3601","nama":"Pandeglang","provKode":"36","provNama":"Banten","pulau":"Jawa"},{"kode":"3218","nama":"Pangandaran","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"7310","nama":"Pangkajene Dan Kepulauan","provKode":"73","provNama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"9403","nama":"Paniai","provKode":"94","provNama":"Papua Tengah","pulau":"Maluku & Papua"},{"kode":"7208","nama":"Parigi Moutong","provKode":"72","provNama":"Sulawesi Tengah","pulau":"Sulawesi"},{"kode":"1308","nama":"Pasaman","provKode":"13","provNama":"Sumatera Barat","pulau":"Sumatera"},{"kode":"1312","nama":"Pasaman Barat","provKode":"13","provNama":"Sumatera Barat","pulau":"Sumatera"},{"kode":"7601","nama":"Pasangkayu","provKode":"76","provNama":"Sulawesi Barat","pulau":"Sulawesi"},{"kode":"6401","nama":"Paser","provKode":"64","provNama":"Kalimantan Timur","pulau":"Kalimantan"},{"kode":"3514","nama":"Pasuruan","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"3318","nama":"Pati","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"9212","nama":"Pegunungan Arfak","provKode":"92","provNama":"Papua Barat","pulau":"Maluku & Papua"},{"kode":"3326","nama":"Pekalongan","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"1405","nama":"Pelalawan","provKode":"14","provNama":"Riau","pulau":"Sumatera"},{"kode":"3327","nama":"Pemalang","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"6409","nama":"Penajam Paser Utara","provKode":"64","provNama":"Kalimantan Timur","pulau":"Kalimantan"},{"kode":"1612","nama":"Penukal Abab Lematang Ilir","provKode":"16","provNama":"Sumatera Selatan","pulau":"Sumatera"},{"kode":"1809","nama":"Pesawaran","provKode":"18","provNama":"Lampung","pulau":"Sumatera"},{"kode":"1813","nama":"Pesisir Barat","provKode":"18","provNama":"Lampung","pulau":"Sumatera"},{"kode":"1301","nama":"Pesisir Selatan","provKode":"13","provNama":"Sumatera Barat","pulau":"Sumatera"},{"kode":"1107","nama":"Pidie","provKode":"11","provNama":"Aceh","pulau":"Sumatera"},{"kode":"1118","nama":"Pidie Jaya","provKode":"11","provNama":"Aceh","pulau":"Sumatera"},{"kode":"7315","nama":"Pinrang","provKode":"73","provNama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"7504","nama":"Pohuwato","provKode":"75","provNama":"Gorontalo","pulau":"Sulawesi"},{"kode":"7604","nama":"Polewali Mandar","provKode":"76","provNama":"Sulawesi Barat","pulau":"Sulawesi"},{"kode":"3502","nama":"Ponorogo","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"7202","nama":"Poso","provKode":"72","provNama":"Sulawesi Tengah","pulau":"Sulawesi"},{"kode":"1810","nama":"Pringsewu","provKode":"18","provNama":"Lampung","pulau":"Sumatera"},{"kode":"3513","nama":"Probolinggo","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"6211","nama":"Pulang Pisau","provKode":"62","provNama":"Kalimantan Tengah","pulau":"Kalimantan"},{"kode":"8207","nama":"Pulau Morotai","provKode":"82","provNama":"Maluku Utara","pulau":"Maluku & Papua"},{"kode":"8208","nama":"Pulau Taliabu","provKode":"82","provNama":"Maluku Utara","pulau":"Maluku & Papua"},{"kode":"9405","nama":"Puncak","provKode":"94","provNama":"Papua Tengah","pulau":"Maluku & Papua"},{"kode":"9402","nama":"Puncak Jaya","provKode":"94","provNama":"Papua Tengah","pulau":"Maluku & Papua"},{"kode":"3303","nama":"Purbalingga","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"3214","nama":"Purwakarta","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"3306","nama":"Purworejo","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"9603","nama":"Raja Ampat","provKode":"96","provNama":"Papua Barat Daya","pulau":"Maluku & Papua"},{"kode":"1702","nama":"Rejang Lebong","provKode":"17","provNama":"Bengkulu","pulau":"Sumatera"},{"kode":"3317","nama":"Rembang","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"1407","nama":"Rokan Hilir","provKode":"14","provNama":"Riau","pulau":"Sumatera"},{"kode":"1406","nama":"Rokan Hulu","provKode":"14","provNama":"Riau","pulau":"Sumatera"},{"kode":"5314","nama":"Rote Ndao","provKode":"53","provNama":"Nusa Tenggara Timur","pulau":"Bali & Nusa Tenggara"},{"kode":"5320","nama":"Sabu Raijua","provKode":"53","provNama":"Nusa Tenggara Timur","pulau":"Bali & Nusa Tenggara"},{"kode":"6101","nama":"Sambas","provKode":"61","provNama":"Kalimantan Barat","pulau":"Kalimantan"},{"kode":"1217","nama":"Samosir","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"3527","nama":"Sampang","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"6103","nama":"Sanggau","provKode":"61","provNama":"Kalimantan Barat","pulau":"Kalimantan"},{"kode":"9110","nama":"Sarmi","provKode":"91","provNama":"Papua","pulau":"Maluku & Papua"},{"kode":"1503","nama":"Sarolangun","provKode":"15","provNama":"Jambi","pulau":"Sumatera"},{"kode":"6109","nama":"Sekadau","provKode":"61","provNama":"Kalimantan Barat","pulau":"Kalimantan"},{"kode":"1705","nama":"Seluma","provKode":"17","provNama":"Bengkulu","pulau":"Sumatera"},{"kode":"3322","nama":"Semarang","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"8106","nama":"Seram Bagian Barat","provKode":"81","provNama":"Maluku","pulau":"Maluku & Papua"},{"kode":"8105","nama":"Seram Bagian Timur","provKode":"81","provNama":"Maluku","pulau":"Maluku & Papua"},{"kode":"3604","nama":"Serang","provKode":"36","provNama":"Banten","pulau":"Jawa"},{"kode":"1218","nama":"Serdang Bedagai","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"6207","nama":"Seruyan","provKode":"62","provNama":"Kalimantan Tengah","pulau":"Kalimantan"},{"kode":"1408","nama":"Siak","provKode":"14","provNama":"Riau","pulau":"Sumatera"},{"kode":"7314","nama":"Sidenreng Rappang","provKode":"73","provNama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"3515","nama":"Sidoarjo","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"7210","nama":"Sigi","provKode":"72","provNama":"Sulawesi Tengah","pulau":"Sulawesi"},{"kode":"1303","nama":"Sijunjung","provKode":"13","provNama":"Sumatera Barat","pulau":"Sumatera"},{"kode":"5307","nama":"Sikka","provKode":"53","provNama":"Nusa Tenggara Timur","pulau":"Bali & Nusa Tenggara"},{"kode":"1208","nama":"Simalungun","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"1109","nama":"Simeulue","provKode":"11","provNama":"Aceh","pulau":"Sumatera"},{"kode":"7307","nama":"Sinjai","provKode":"73","provNama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"6105","nama":"Sintang","provKode":"61","provNama":"Kalimantan Barat","pulau":"Kalimantan"},{"kode":"3512","nama":"Situbondo","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"3404","nama":"Sleman","provKode":"34","provNama":"Daerah Istimewa Yogyakarta","pulau":"Jawa"},{"kode":"1302","nama":"Solok","provKode":"13","provNama":"Sumatera Barat","pulau":"Sumatera"},{"kode":"1311","nama":"Solok Selatan","provKode":"13","provNama":"Sumatera Barat","pulau":"Sumatera"},{"kode":"7312","nama":"Soppeng","provKode":"73","provNama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"9601","nama":"Sorong","provKode":"96","provNama":"Papua Barat Daya","pulau":"Maluku & Papua"},{"kode":"9602","nama":"Sorong Selatan","provKode":"96","provNama":"Papua Barat Daya","pulau":"Maluku & Papua"},{"kode":"3314","nama":"Sragen","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"3213","nama":"Subang","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"3202","nama":"Sukabumi","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"6208","nama":"Sukamara","provKode":"62","provNama":"Kalimantan Tengah","pulau":"Kalimantan"},{"kode":"3311","nama":"Sukoharjo","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"5312","nama":"Sumba Barat","provKode":"53","provNama":"Nusa Tenggara Timur","pulau":"Bali & Nusa Tenggara"},{"kode":"5318","nama":"Sumba Barat Daya","provKode":"53","provNama":"Nusa Tenggara Timur","pulau":"Bali & Nusa Tenggara"},{"kode":"5317","nama":"Sumba Tengah","provKode":"53","provNama":"Nusa Tenggara Timur","pulau":"Bali & Nusa Tenggara"},{"kode":"5311","nama":"Sumba Timur","provKode":"53","provNama":"Nusa Tenggara Timur","pulau":"Bali & Nusa Tenggara"},{"kode":"5204","nama":"Sumbawa","provKode":"52","provNama":"Nusa Tenggara Barat","pulau":"Bali & Nusa Tenggara"},{"kode":"5207","nama":"Sumbawa Barat","provKode":"52","provNama":"Nusa Tenggara Barat","pulau":"Bali & Nusa Tenggara"},{"kode":"3211","nama":"Sumedang","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"3529","nama":"Sumenep","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"9119","nama":"Supiori","provKode":"91","provNama":"Papua","pulau":"Maluku & Papua"},{"kode":"6309","nama":"Tabalong","provKode":"63","provNama":"Kalimantan Selatan","pulau":"Kalimantan"},{"kode":"5102","nama":"Tabanan","provKode":"51","provNama":"Bali","pulau":"Bali & Nusa Tenggara"},{"kode":"7305","nama":"Takalar","provKode":"73","provNama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"9604","nama":"Tambrauw","provKode":"96","provNama":"Papua Barat Daya","pulau":"Maluku & Papua"},{"kode":"6504","nama":"Tana Tidung","provKode":"65","provNama":"Kalimantan Utara","pulau":"Kalimantan"},{"kode":"7318","nama":"Tana Toraja","provKode":"73","provNama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"6310","nama":"Tanah Bumbu","provKode":"63","provNama":"Kalimantan Selatan","pulau":"Kalimantan"},{"kode":"1304","nama":"Tanah Datar","provKode":"13","provNama":"Sumatera Barat","pulau":"Sumatera"},{"kode":"6301","nama":"Tanah Laut","provKode":"63","provNama":"Kalimantan Selatan","pulau":"Kalimantan"},{"kode":"3603","nama":"Tangerang","provKode":"36","provNama":"Banten","pulau":"Jawa"},{"kode":"1806","nama":"Tanggamus","provKode":"18","provNama":"Lampung","pulau":"Sumatera"},{"kode":"1506","nama":"Tanjung Jabung Barat","provKode":"15","provNama":"Jambi","pulau":"Sumatera"},{"kode":"1507","nama":"Tanjung Jabung Timur","provKode":"15","provNama":"Jambi","pulau":"Sumatera"},{"kode":"1203","nama":"Tapanuli Selatan","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"1201","nama":"Tapanuli Tengah","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"1202","nama":"Tapanuli Utara","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"6305","nama":"Tapin","provKode":"63","provNama":"Kalimantan Selatan","pulau":"Kalimantan"},{"kode":"3206","nama":"Tasikmalaya","provKode":"32","provNama":"Jawa Barat","pulau":"Jawa"},{"kode":"1509","nama":"Tebo","provKode":"15","provNama":"Jambi","pulau":"Sumatera"},{"kode":"3328","nama":"Tegal","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"9206","nama":"Teluk Bintuni","provKode":"92","provNama":"Papua Barat","pulau":"Maluku & Papua"},{"kode":"9207","nama":"Teluk Wondama","provKode":"92","provNama":"Papua Barat","pulau":"Maluku & Papua"},{"kode":"3323","nama":"Temanggung","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"5302","nama":"Timor Tengah Selatan","provKode":"53","provNama":"Nusa Tenggara Timur","pulau":"Bali & Nusa Tenggara"},{"kode":"5303","nama":"Timor Tengah Utara","provKode":"53","provNama":"Nusa Tenggara Timur","pulau":"Bali & Nusa Tenggara"},{"kode":"1212","nama":"Toba","provKode":"12","provNama":"Sumatera Utara","pulau":"Sumatera"},{"kode":"7209","nama":"Tojo Una Una","provKode":"72","provNama":"Sulawesi Tengah","pulau":"Sulawesi"},{"kode":"7204","nama":"Toli Toli","provKode":"72","provNama":"Sulawesi Tengah","pulau":"Sulawesi"},{"kode":"9504","nama":"Tolikara","provKode":"95","provNama":"Papua Pegunungan","pulau":"Maluku & Papua"},{"kode":"7326","nama":"Toraja Utara","provKode":"73","provNama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"3503","nama":"Trenggalek","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"3523","nama":"Tuban","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"1805","nama":"Tulang Bawang","provKode":"18","provNama":"Lampung","pulau":"Sumatera"},{"kode":"1812","nama":"Tulang Bawang Barat","provKode":"18","provNama":"Lampung","pulau":"Sumatera"},{"kode":"3504","nama":"Tulungagung","provKode":"35","provNama":"Jawa Timur","pulau":"Jawa"},{"kode":"7313","nama":"Wajo","provKode":"73","provNama":"Sulawesi Selatan","pulau":"Sulawesi"},{"kode":"7407","nama":"Wakatobi","provKode":"74","provNama":"Sulawesi Tenggara","pulau":"Sulawesi"},{"kode":"9115","nama":"Waropen","provKode":"91","provNama":"Papua","pulau":"Maluku & Papua"},{"kode":"1808","nama":"Way Kanan","provKode":"18","provNama":"Lampung","pulau":"Sumatera"},{"kode":"3312","nama":"Wonogiri","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"3307","nama":"Wonosobo","provKode":"33","provNama":"Jawa Tengah","pulau":"Jawa"},{"kode":"9503","nama":"Yahukimo","provKode":"95","provNama":"Papua Pegunungan","pulau":"Maluku & Papua"}]};
+
+/* Isi daftar yang sedang aktif: "wilayah" atau "provinsi". */
+let stateData = "wilayah";
+
+/* ---- Mesin bersama ---- */
+function buatDaftar(jenis) {
+  if (jenis === "provinsi") {
+    return DATA.provData.map((p) => ({
+      kode: p.kode,
+      nama: p.nama,
+      sub: p.pulau,
+      kunci: (p.nama + " " + p.kode).toLowerCase(),
+    }));
+  }
+  return DATA.wilData.map((w) => ({
+    kode: w.kode,
+    nama: w.nama,
+    sub: w.provNama,
+    pulau: w.pulau,
+    kunci: (w.nama + " " + w.provNama + " " + w.kode).toLowerCase(),
+  }));
+}
+
+const URUTAN_PULAU = ["Sumatera", "Jawa", "Bali & Nusa Tenggara", "Kalimantan", "Sulawesi", "Maluku & Papua"];
+
+/** Urutkan per pulau dulu, lalu nama, supaya judul kelompok tidak terulang. */
+function urutkan(daftar) {
+  return [...daftar].sort((a, b) => {
+    const ia = URUTAN_PULAU.indexOf(a.pulau ?? a.sub);
+    const ib = URUTAN_PULAU.indexOf(b.pulau ?? b.sub);
+    if (ia !== ib) return ia - ib;
+    return a.nama.localeCompare(b.nama, "id");
+  });
+}
+
+function saring(daftar, kata) {
+  const q = kata.trim().toLowerCase();
+  if (!q) return daftar;
+  return daftar.filter((d) => d.kunci.includes(q));
+}
+
+function sorot(nama, kata) {
+  const q = kata.trim();
+  if (!q) return document.createTextNode(nama);
+  const i = nama.toLowerCase().indexOf(q.toLowerCase());
+  if (i < 0) return document.createTextNode(nama);
+  const frag = document.createDocumentFragment();
+  frag.append(document.createTextNode(nama.slice(0, i)));
+  const m = document.createElement("mark");
+  m.textContent = nama.slice(i, i + q.length);
+  frag.append(m, document.createTextNode(nama.slice(i + q.length)));
+  return frag;
+}
+
+/* ---- Varian 1: popover ---- */
+(function varian1() {
+  const pemicu = document.getElementById("pemicu-v1");
+  const popover = document.getElementById("popover-v1");
+  const input = document.getElementById("cari-v1");
+  const daftarEl = document.getElementById("daftar-v1");
+  const nilaiEl = document.getElementById("nilai-v1");
+  const hitungEl = document.getElementById("hitung-v1");
+  const hasilEl = document.getElementById("hasil-v1");
+
+  let semua = buatDaftar(stateData);
+  let tampil = semua;
+  let aktif = -1;
+  let terpilih = null;
+
+  function gambar() {
+    daftarEl.innerHTML = "";
+    hitungEl.textContent = tampil.length + " hasil";
+    if (tampil.length === 0) {
+      const k = document.createElement("p");
+      k.className = "kosong";
+      k.textContent = "Tidak ada wilayah yang cocok.";
+      daftarEl.append(k);
+      return;
+    }
+    tampil.forEach((d, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "butir" + (i === aktif ? " aktif" : "");
+      b.setAttribute("role", "option");
+      b.setAttribute("aria-selected", terpilih && terpilih.kode === d.kode ? "true" : "false");
+
+      const isi = document.createElement("span");
+      isi.className = "butir-isi";
+      const n = document.createElement("span");
+      n.className = "butir-nama";
+      n.append(sorot(d.nama, input.value));
+      const s = document.createElement("span");
+      s.className = "butir-sub";
+      s.textContent = d.sub + " · " + d.kode;
+      isi.append(n, s);
+
+      const c = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      c.setAttribute("class", "butir-centang");
+      c.setAttribute("viewBox", "0 0 24 24");
+      c.setAttribute("fill", "none");
+      c.setAttribute("stroke", "currentColor");
+      c.setAttribute("stroke-width", "2.5");
+      c.setAttribute("stroke-linecap", "round");
+      c.innerHTML = '<path d="M20 6 9 17l-5-5"/>';
+
+      b.append(isi, c);
+      b.addEventListener("click", () => pilih(d));
+      daftarEl.append(b);
+    });
+  }
+
+  function buka() {
+    popover.hidden = false;
+    pemicu.setAttribute("aria-expanded", "true");
+    input.focus();
+    aktif = tampil.findIndex((d) => terpilih && d.kode === terpilih.kode);
+    gambar();
+  }
+
+  function tutup() {
+    popover.hidden = true;
+    pemicu.setAttribute("aria-expanded", "false");
+  }
+
+  function pilih(d) {
+    terpilih = d;
+    nilaiEl.textContent = d.nama;
+    nilaiEl.classList.remove("kosong");
+    hasilEl.innerHTML = 'Dipilih: <b>' + d.nama + '</b> — ' + d.sub + ' (' + d.kode + ')';
+    tutup();
+    gambar();
+  }
+
+  pemicu.addEventListener("click", () => (popover.hidden ? buka() : tutup()));
+
+  input.addEventListener("input", () => {
+    tampil = saring(semua, input.value);
+    aktif = tampil.length ? 0 : -1;
+    gambar();
+  });
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") { e.preventDefault(); aktif = Math.min(aktif + 1, tampil.length - 1); gambar(); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); aktif = Math.max(aktif - 1, 0); gambar(); }
+    else if (e.key === "Enter") { e.preventDefault(); if (tampil[aktif]) pilih(tampil[aktif]); }
+    else if (e.key === "Escape") { tutup(); pemicu.focus(); }
+  });
+
+  document.addEventListener("mousedown", (e) => {
+    if (!popover.hidden && !popover.contains(e.target) && !pemicu.contains(e.target)) tutup();
+  });
+
+  window.__v1 = { setData(jenis) { semua = buatDaftar(jenis); tampil = semua; terpilih = null; nilaiEl.textContent = jenis === "provinsi" ? "Pilih provinsi" : "Pilih kabupaten atau kota"; nilaiEl.classList.add("kosong"); hasilEl.textContent = "Belum ada pilihan."; hitungEl.textContent = semua.length + " hasil"; if (!popover.hidden) gambar(); } };
+
+  tampil = semua;
+  gambar();
+  buka();
+})();
+
+/* ---- Varian 2: command palette ---- */
+(function varian2() {
+  const input = document.getElementById("cari-v2");
+  const daftarEl = document.getElementById("daftar-v2");
+  const hitungEl = document.getElementById("hitung-v2");
+  const hasilEl = document.getElementById("hasil-v2");
+
+  let semua = urutkan(buatDaftar(stateData));
+  let tampil = semua;
+  let aktif = 0;
+  let terpilih = null;
+
+  function gambar() {
+    daftarEl.innerHTML = "";
+    hitungEl.textContent = tampil.length + " hasil";
+    if (tampil.length === 0) {
+      const k = document.createElement("p");
+      k.className = "kosong";
+      k.textContent = "Tidak ada wilayah yang cocok.";
+      daftarEl.append(k);
+      return;
+    }
+    let pulauTerakhir = null;
+    tampil.forEach((d, i) => {
+      const grup = d.pulau || d.sub;
+      if (grup !== pulauTerakhir) {
+        pulauTerakhir = grup;
+        const l = document.createElement("div");
+        l.className = "kelompok-label";
+        l.textContent = grup;
+        daftarEl.append(l);
+      }
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "palette-baris" + (i === aktif ? " aktif" : "");
+      b.setAttribute("role", "option");
+      b.setAttribute("aria-selected", terpilih && terpilih.kode === d.kode ? "true" : "false");
+
+      const nama = document.createElement("span");
+      nama.append(sorot(d.nama, input.value));
+      const kode = document.createElement("span");
+      kode.className = "palette-kode";
+      kode.textContent = d.kode;
+
+      b.append(nama, kode);
+      b.addEventListener("click", () => pilih(d));
+      daftarEl.append(b);
+    });
+  }
+
+  function pilih(d) {
+    terpilih = d;
+    hasilEl.innerHTML = 'Dipilih: <b>' + d.nama + '</b> — ' + d.sub + ' (' + d.kode + ')';
+    input.value = "";
+    tampil = semua;
+    aktif = 0;
+    gambar();
+  }
+
+  input.addEventListener("input", () => {
+    tampil = urutkan(saring(semua, input.value));
+    aktif = 0;
+    gambar();
+  });
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") { e.preventDefault(); aktif = Math.min(aktif + 1, tampil.length - 1); gambar(); daftarEl.children[aktif + (tampil.length ? 1 : 0)]?.scrollIntoView({ block: "nearest" }); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); aktif = Math.max(aktif - 1, 0); gambar(); }
+    else if (e.key === "Enter") { e.preventDefault(); if (tampil[aktif]) pilih(tampil[aktif]); }
+    else if (e.key === "Escape") { input.value = ""; tampil = semua; aktif = 0; gambar(); }
+  });
+
+  window.__v2 = { setData(jenis) { semua = urutkan(buatDaftar(jenis)); tampil = semua; terpilih = null; aktif = 0; hasilEl.textContent = "Belum ada pilihan."; gambar(); } };
+
+  tampil = semua;
+  gambar();
+})();
+
+/* ---- Varian 3: lembar sentuh ---- */
+(function varian3() {
+  const pemicu = document.getElementById("pemicu-v3");
+  const lembar = document.getElementById("lembar-v3");
+  const input = document.getElementById("cari-v3");
+  const daftarEl = document.getElementById("daftar-v3");
+  const chipBaris = document.getElementById("chip-v3");
+  const nilaiEl = document.getElementById("nilai-v3");
+  const hitungEl = document.getElementById("hitung-v3");
+  const hasilEl = document.getElementById("hasil-v3");
+
+  let semua = buatDaftar(stateData);
+  let tampil = semua;
+  let terpilih = null;
+  let pulau = "semua";
+
+  const daftarPulau = ["semua", ...URUTAN_PULAU];
+
+  function gambarChip() {
+    chipBaris.innerHTML = "";
+    daftarPulau.forEach((p) => {
+      const c = document.createElement("button");
+      c.type = "button";
+      c.className = "chip";
+      c.textContent = p === "semua" ? "Semua" : p;
+      c.setAttribute("aria-pressed", pulau === p ? "true" : "false");
+      c.addEventListener("click", () => {
+        pulau = p;
+        perbarui();
+      });
+      chipBaris.append(c);
+    });
+  }
+
+  function perbarui() {
+    let hasil = saring(semua, input.value);
+    if (pulau !== "semua") hasil = hasil.filter((d) => d.pulau === pulau);
+    tampil = hasil;
+    gambar();
+    gambarChip();
+  }
+
+  function gambar() {
+    daftarEl.innerHTML = "";
+    hitungEl.textContent = tampil.length + " hasil";
+    if (tampil.length === 0) {
+      const k = document.createElement("p");
+      k.className = "kosong";
+      k.textContent = "Tidak ada wilayah yang cocok.";
+      daftarEl.append(k);
+      return;
+    }
+    tampil.forEach((d) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "lembar-baris";
+      b.setAttribute("role", "option");
+      b.setAttribute("aria-selected", terpilih && terpilih.kode === d.kode ? "true" : "false");
+
+      const kiri = document.createElement("span");
+      const n = document.createTextNode(d.nama);
+      kiri.append(n);
+      const s = document.createElement("span");
+      s.className = "lembar-sub";
+      s.textContent = d.sub + " · " + d.kode;
+      kiri.append(s);
+
+      b.append(kiri);
+      b.addEventListener("click", () => {
+        terpilih = d;
+        nilaiEl.textContent = d.nama;
+        nilaiEl.classList.remove("kosong");
+        hasilEl.innerHTML = 'Dipilih: <b>' + d.nama + '</b> — ' + d.sub + ' (' + d.kode + ')';
+        lembar.hidden = true;
+        pemicu.setAttribute("aria-expanded", "false");
+        gambar();
+      });
+      daftarEl.append(b);
+    });
+  }
+
+  pemicu.addEventListener("click", () => {
+    const buka = lembar.hidden;
+    lembar.hidden = !buka;
+    pemicu.setAttribute("aria-expanded", String(buka));
+    if (buka) { input.value = ""; perbarui(); input.focus(); }
+  });
+
+  input.addEventListener("input", perbarui);
+
+  document.addEventListener("mousedown", (e) => {
+    if (!lembar.hidden && !lembar.contains(e.target) && !pemicu.contains(e.target)) {
+      lembar.hidden = true;
+      pemicu.setAttribute("aria-expanded", "false");
+    }
+  });
+
+  window.__v3 = {
+    setData(jenis) {
+      semua = buatDaftar(jenis);
+      pulau = "semua";
+      terpilih = null;
+      nilaiEl.textContent = jenis === "provinsi" ? "Pilih provinsi" : "Pilih kabupaten atau kota";
+      nilaiEl.classList.add("kosong");
+      hasilEl.textContent = "Belum ada pilihan.";
+      input.value = "";
+      perbarui();
+    },
+  };
+
+  perbarui();
+  lembar.hidden = false;
+  pemicu.setAttribute("aria-expanded", "true");
+})();
+
+/* ---- Pengalih isi daftar ---- */
+
+document.getElementById("segmen-data").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-data]");
+  if (!b) return;
+  stateData = b.dataset.data;
+  [...e.currentTarget.querySelectorAll("button")].forEach((x) =>
+    x.setAttribute("aria-pressed", String(x === b))
+  );
+  window.__v1.setData(stateData);
+  window.__v2.setData(stateData);
+  window.__v3.setData(stateData);
+});
+</script>
+</body>
+</html>
