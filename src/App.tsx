@@ -390,7 +390,7 @@ export default function App() {
     }
     lapisPerKode.current.clear();
 
-    fetch("/geo/wilayah.geojson")
+    fetch(`${import.meta.env.BASE_URL}geo/wilayah.geojson`)
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();

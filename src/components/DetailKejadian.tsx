@@ -41,7 +41,7 @@ export default function DetailKejadian({ idKejadian = "37410", onKembali }: Prop
 
   useEffect(() => {
     let batal = false;
-    fetch("/data/kejadian-jatim.json")
+    fetch(`${import.meta.env.BASE_URL}data/kejadian-jatim.json`)
       .then((r) => r.json())
       .then((d) => {
         if (batal) return;

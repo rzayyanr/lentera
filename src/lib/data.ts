@@ -146,7 +146,10 @@ export const LABEL_UKURAN: Record<string, string> = {
 };
 
 async function ambil<T>(jalur: string): Promise<T> {
-  const res = await fetch(jalur);
+  // BASE_URL berisi "/" saat aplikasi diakar di domain, atau "/lentera/" saat
+  // disajikan di subfolder (mis. GitHub Pages). Berkas data selalu relatif
+  // terhadap akar aplikasi, bukan akar domain.
+  const res = await fetch(`${import.meta.env.BASE_URL}${jalur.replace(/^\//, "")}`);
   if (!res.ok) throw new Error(`Gagal memuat ${jalur}: HTTP ${res.status}`);
   return res.json() as Promise<T>;
 }

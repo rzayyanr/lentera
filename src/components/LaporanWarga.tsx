@@ -146,9 +146,9 @@ export default function LaporanWarga({
   useEffect(() => {
     let batal = false;
     Promise.all([
-      fetch("/data/wilayah.json").then((r) => r.json()).catch(() => []),
-      fetch("/data/provinsi.json").then((r) => r.json()).catch(() => []),
-      fetch("/data/kejadian-jatim.json").then((r) => r.json()).catch(() => null),
+      fetch(`${import.meta.env.BASE_URL}data/wilayah.json`).then((r) => r.json()).catch(() => []),
+      fetch(`${import.meta.env.BASE_URL}data/provinsi.json`).then((r) => r.json()).catch(() => []),
+      fetch(`${import.meta.env.BASE_URL}data/kejadian-jatim.json`).then((r) => r.json()).catch(() => null),
     ]).then(([wil, prov, jatim]) => {
       if (batal) return;
       if (Array.isArray(wil)) setDaftarWilayah(wil);

@@ -50,7 +50,7 @@ export default function DaftarKejadianJatim({ onPilihKejadian }: Props) {
 
   useEffect(() => {
     let batal = false;
-    fetch("/data/kejadian-jatim.json")
+    fetch(`${import.meta.env.BASE_URL}data/kejadian-jatim.json`)
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
