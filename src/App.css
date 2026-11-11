@@ -4379,6 +4379,39 @@ body {
   box-shadow: 0 0 0 2.5px rgba(14, 92, 88, 0.1);
 }
 
+.kotak-input-sandi {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.kotak-input-sandi input {
+  padding-right: 36px !important;
+}
+
+.tombol-lihat-sandi {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--warna-redup, #6c6a63);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  line-height: 1;
+  transition: color 0.15s ease;
+}
+
+.tombol-lihat-sandi:hover {
+  color: var(--warna-aksen, #0e5c58);
+}
+
 .tautan-baris {
   display: flex;
   align-items: center;

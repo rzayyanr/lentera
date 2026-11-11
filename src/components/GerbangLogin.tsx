@@ -18,6 +18,7 @@ export default function GerbangLogin({
   const [mode, setMode] = useState<"masuk" | "daftar">("masuk");
   const [email, setEmail] = useState("");
   const [sandi, setSandi] = useState("");
+  const [lihatSandi, setLihatSandi] = useState(false);
   const [nama, setNama] = useState("");
   const [telepon, setTelepon] = useState("");
   const [ingatSaya, setIngatSaya] = useState(false);
@@ -167,15 +168,38 @@ export default function GerbangLogin({
                   </div>
                   <div className="field">
                     <label htmlFor="sandiMasuk">SANDI</label>
-                    <input
-                      id="sandiMasuk"
-                      type="password"
-                      required
-                      placeholder="••••••••"
-                      autoComplete="current-password"
-                      value={sandi}
-                      onChange={(e) => setSandi(e.target.value)}
-                    />
+                    <div className="kotak-input-sandi">
+                      <input
+                        id="sandiMasuk"
+                        type={lihatSandi ? "text" : "password"}
+                        required
+                        placeholder="••••••••"
+                        autoComplete="current-password"
+                        value={sandi}
+                        onChange={(e) => setSandi(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        className="tombol-lihat-sandi"
+                        onClick={() => setLihatSandi((v) => !v)}
+                        title={lihatSandi ? "Sembunyikan sandi" : "Lihat sandi"}
+                        aria-label={lihatSandi ? "Sembunyikan sandi" : "Lihat sandi"}
+                      >
+                        {lihatSandi ? (
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+                            <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+                            <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+                            <line x1="2" x2="22" y1="2" y2="22" />
+                          </svg>
+                        ) : (
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
                   <div className="tautan-baris">
                     <label style={{ display: "flex", alignItems: "center", gap: 7, margin: 0, fontSize: 12, textTransform: "none", letterSpacing: 0, fontWeight: 400 }}>
@@ -286,15 +310,38 @@ export default function GerbangLogin({
                   </div>
                   <div className="field">
                     <label htmlFor="sandiDaftar">SANDI</label>
-                    <input
-                      id="sandiDaftar"
-                      type="password"
-                      required
-                      placeholder="Minimal 8 karakter"
-                      autoComplete="new-password"
-                      value={sandi}
-                      onChange={(e) => setSandi(e.target.value)}
-                    />
+                    <div className="kotak-input-sandi">
+                      <input
+                        id="sandiDaftar"
+                        type={lihatSandi ? "text" : "password"}
+                        required
+                        placeholder="Minimal 8 karakter"
+                        autoComplete="new-password"
+                        value={sandi}
+                        onChange={(e) => setSandi(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        className="tombol-lihat-sandi"
+                        onClick={() => setLihatSandi((v) => !v)}
+                        title={lihatSandi ? "Sembunyikan sandi" : "Lihat sandi"}
+                        aria-label={lihatSandi ? "Sembunyikan sandi" : "Lihat sandi"}
+                      >
+                        {lihatSandi ? (
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+                            <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+                            <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+                            <line x1="2" x2="22" y1="2" y2="22" />
+                          </svg>
+                        ) : (
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
                   <button
                     className="btn btn-primary btn-block"
