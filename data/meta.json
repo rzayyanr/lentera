@@ -1,0 +1,33 @@
+{
+  "dibuat": "2026-10-21",
+  "tahun": [
+    2010,
+    2011,
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024
+  ],
+  "jumlahWilayah": 510,
+  "jumlahProvinsi": 38,
+  "sumber": {
+    "nama": "Data Bencana Indonesia, BNPB",
+    "url": "https://data.bnpb.go.id/dataset/data-bencana-indonesia",
+    "diambil": "2026-10-21"
+  },
+  "catatan": [
+    "Angka provinsi di aplikasi adalah jumlah kabupaten, bukan tabel provinsi BNPB.",
+    "Pada 2024, tujuh provinsi punya selisih antara kedua tabel BNPB, total 46 kejadian.",
+    "Kode 91 dan 92 mengikuti penamaan BNPB, yang berbeda dari konvensi BPS.",
+    "Nilai kosong berarti tidak dilaporkan, bukan nol."
+  ]
+}

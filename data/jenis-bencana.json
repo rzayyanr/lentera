@@ -1,0 +1,211 @@
+{
+  "tahun": [
+    2010,
+    2011,
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024
+  ],
+  "jenis": [
+    {
+      "jenis": "BANJIR",
+      "nilai": [
+        1060,
+        573,
+        584,
+        725,
+        596,
+        525,
+        824,
+        979,
+        871,
+        784,
+        1518,
+        1794,
+        1531,
+        1255,
+        1420
+      ]
+    },
+    {
+      "jenis": "CUACA EKSTREM",
+      "nilai": [
+        404,
+        441,
+        545,
+        502,
+        618,
+        571,
+        663,
+        887,
+        1113,
+        1387,
+        1386,
+        1577,
+        1068,
+        1261,
+        733
+      ]
+    },
+    {
+      "jenis": "ERUPSI GUNUNG API",
+      "nilai": [
+        4,
+        4,
+        7,
+        8,
+        5,
+        10,
+        7,
+        6,
+        58,
+        7,
+        7,
+        1,
+        1,
+        4,
+        8
+      ]
+    },
+    {
+      "jenis": "GELOMBANG PASANG DAN ABRASI",
+      "nilai": [
+        12,
+        17,
+        29,
+        36,
+        20,
+        7,
+        22,
+        11,
+        53,
+        18,
+        43,
+        91,
+        26,
+        33,
+        27
+      ]
+    },
+    {
+      "jenis": "GEMPABUMI",
+      "nilai": [
+        15,
+        11,
+        15,
+        9,
+        14,
+        26,
+        13,
+        20,
+        28,
+        30,
+        18,
+        24,
+        28,
+        31,
+        15
+      ]
+    },
+    {
+      "jenis": "KEBAKARAN HUTAN DAN LAHAN",
+      "nilai": [
+        4,
+        24,
+        49,
+        26,
+        101,
+        46,
+        178,
+        96,
+        527,
+        746,
+        597,
+        579,
+        252,
+        2051,
+        973
+      ]
+    },
+    {
+      "jenis": "KEKERINGAN",
+      "nilai": [
+        43,
+        219,
+        263,
+        66,
+        7,
+        7,
+        0,
+        19,
+        130,
+        123,
+        26,
+        15,
+        4,
+        174,
+        89
+      ]
+    },
+    {
+      "jenis": "TANAH LONGSOR",
+      "nilai": [
+        402,
+        329,
+        287,
+        294,
+        598,
+        502,
+        599,
+        848,
+        615,
+        719,
+        1054,
+        1321,
+        634,
+        591,
+        207
+      ]
+    },
+    {
+      "jenis": "TSUNAMI",
+      "nilai": [
+        1,
+        1,
+        1,
+        0,
+        2,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "sumber": {
+    "nama": "Jumlah Kejadian Bencana Menurut Jenis Bencana, BNPB",
+    "url": "https://data.bnpb.go.id/dataset/data-bencana-indonesia",
+    "resourceId": "9b41007e-c998-456b-8cbc-385b17986e46",
+    "diambil": "2026-11-10"
+  },
+  "catatan": [
+    "Satu baris per jenis bencana, satu kolom per tahun, seluruh Indonesia.",
+    "Angka ini tidak dipecah per kabupaten. Rincian per kabupaten hanya tersedia untuk total semua jenis."
+  ]
+}
