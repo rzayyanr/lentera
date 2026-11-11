@@ -26,14 +26,13 @@ export default function TransparansiBantuan({
             <p className="remah-kategori">TRANSPARANSI BANTUAN</p>
             <h1 className="judul-halaman-utama">Dua lapisan bantuan, tidak pernah dicampur</h1>
             <p className="deskripsi-halaman-utama">
-              Data bantuan pemerintah dan catatan komunitas ditampilkan terpisah. Setiap baris menyebut sumbernya, dan label lapisan selalu terlihat.
+              Data bantuan pemerintah dan catatan komunitas ditampilkan terpisah. Setiap baris menyebut sumbernya, dan status verifikasi selalu terlihat.
             </p>
 
             {/* Grid 2 Kartu: Resmi vs Komunitas */}
             <div className="grid-dua-kartu-bantuan">
               {/* Card 1: Lapisan resmi */}
               <section className="kartu-opsi-bantuan" data-name="Lapisan resmi">
-                <span className="badge-lapisan resmi">Data resmi</span>
                 <h2 className="judul-opsi-bantuan">Bantuan pemerintah daerah</h2>
                 <p className="subjudul-opsi-bantuan">
                   Alokasi dan penyaluran bantuan yang diterbitkan pemerintah daerah. Angkanya tidak bisa diubah dan tidak digabung dengan catatan warga.
@@ -65,7 +64,6 @@ export default function TransparansiBantuan({
 
               {/* Card 2: Catatan komunitas */}
               <section className="kartu-opsi-bantuan" data-name="Catatan komunitas">
-                <span className="badge-lapisan komunitas">Catatan komunitas</span>
                 <h2 className="judul-opsi-bantuan">Catatan dari warga dan relawan</h2>
                 <p className="subjudul-opsi-bantuan">
                   Informasi lapangan yang belum tentu berasal dari instansi. Selalu diberi label dan status verifikasi.
