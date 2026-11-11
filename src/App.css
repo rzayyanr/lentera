@@ -180,7 +180,7 @@ body {
   background: #efe9dc;
   opacity: 0;
   transform: scale(0.92);
-  transition: opacity 0.18s ease, transform 0.18s ease;
+  transition: opacity 0.18s ease, transform 0.18s ease, background-color 0.18s ease;
 }
 
 .bilah-atas-item:hover::before,
@@ -198,27 +198,21 @@ body {
   color: var(--warna-tinta);
 }
 
-/* Garis bawah hanya untuk item aktif dan tumbuh dari tengah, sehingga saat
-   menu berpindah garisnya memanjang, bukan berganti mendadak. Hover cukup
-   memakai latar; garis tambahan saat hover terlihat menggantung di luar pill. */
-.bilah-atas-item::after {
-  content: "";
-  position: absolute;
-  bottom: -2px;
-  left: 10px;
-  right: 10px;
-  height: 2px;
-  background: var(--warna-aksen);
-  border-radius: 1px;
-  transform: scaleX(0);
-  transform-origin: center;
-  opacity: 0;
-  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.18s ease;
+/* Halaman yang sedang dibuka ditandai latar pill penuh. Sebelumnya memakai
+   garis bawah 2px di luar kotak tombol; saat hover, latar pill muncul dan
+   garis itu tertinggal di bawahnya sehingga terlihat seperti dua penanda yang
+   bertabrakan. */
+.bilah-atas-item.aktif::before {
+  opacity: 1;
+  transform: scale(1);
+  background: var(--warna-aksen-muda);
 }
 
-.bilah-atas-item.aktif::after {
-  transform: scaleX(1);
-  opacity: 1;
+/* Hover pada item aktif hanya memekatkan warna latar, jadi tetap ada respons
+   yang halus tanpa menambah penanda baru. */
+.bilah-atas-item.aktif:hover::before,
+.bilah-atas-item.aktif:focus-visible::before {
+  background: #d5e7e1;
 }
 
 .bilah-atas-item.nonaktif {
