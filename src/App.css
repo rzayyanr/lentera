@@ -4080,6 +4080,11 @@ body {
   width: 14px;
   height: 14px;
   opacity: 0.55;
+  transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.pemilih-panah.terbuka {
+  transform: rotate(180deg);
 }
 
 .pemilih-panel {
@@ -4093,11 +4098,60 @@ body {
   border-radius: 12px;
   box-shadow: var(--bayangan-panel);
   overflow: hidden;
+  /* --geser dibalik untuk panel yang terbuka ke atas, supaya animasinya
+     tetap berasal dari sisi pemicu. */
+  --geser: -6px;
+  transform-origin: top center;
+  animation: pemilih-masuk 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .pemilih-panel.atas {
   top: auto;
   bottom: calc(100% + 8px);
+  --geser: 6px;
+  transform-origin: bottom center;
+}
+
+.pemilih-panel.menutup {
+  animation: pemilih-keluar 130ms ease-in forwards;
+  pointer-events: none;
+}
+
+@keyframes pemilih-masuk {
+  from {
+    opacity: 0;
+    transform: translateY(var(--geser)) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pemilih-keluar {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(var(--geser)) scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pemilih-panel,
+  .pemilih-panel.menutup {
+    animation: none;
+  }
+
+  .pemilih-panah {
+    transition: none;
+  }
+}
+
+.pemilih-panel:focus {
+  outline: none;
 }
 
 .pemilih-cari {

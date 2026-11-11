@@ -36,6 +36,12 @@ export default function BandingkanWilayah({ siap }: Props) {
     }));
   }, [siap]);
 
+  // Pilihan tahun untuk pemilih. Tanpa sub-baris, jadi barisnya ringkas.
+  const butirTahun = useMemo(
+    () => daftarTahun.map((th) => ({ kode: String(th), nama: String(th) })),
+    [daftarTahun],
+  );
+
   const wilayahA = useMemo<Wilayah | null>(() => {
     if (!siap) return null;
     return siap.perKode.get(kodeA) ?? null;
@@ -165,6 +171,7 @@ export default function BandingkanWilayah({ siap }: Props) {
               onPilih={setKodeA}
               placeholder="Pilih kabupaten atau kota"
               label="Wilayah A"
+              petunjukCari="Cari kabupaten atau kota"
             />
           </div>
 
@@ -177,28 +184,21 @@ export default function BandingkanWilayah({ siap }: Props) {
               onPilih={setKodeB}
               placeholder="Pilih kabupaten atau kota"
               label="Wilayah B"
+              petunjukCari="Cari kabupaten atau kota"
             />
           </div>
 
           <div className="item-pemilih-komparasi">
-            <label htmlFor="pilih-tahun-komparasi" className="label-input-kapital">
-              TAHUN
-            </label>
-            <div className="wadah-select-kustom">
-              <select
-                id="pilih-tahun-komparasi"
-                className="select-komparasi"
-                value={tahunPilih}
-                onChange={(e) => setTahunPilih(Number(e.target.value))}
-              >
-                {daftarTahun.map((th) => (
-                  <option key={th} value={th}>
-                    {th}
-                  </option>
-                ))}
-              </select>
-              <span className="panah-dropdown" aria-hidden="true">▾</span>
-            </div>
+            <span className="label-input-kapital">TAHUN</span>
+            <PemilihWilayah
+              idAwalan="bandingkan-tahun"
+              butir={butirTahun}
+              nilai={String(tahunPilih)}
+              onPilih={(kode) => setTahunPilih(Number(kode))}
+              placeholder="Pilih tahun"
+              label="Tahun"
+              tanpaCari
+            />
           </div>
         </div>
 
