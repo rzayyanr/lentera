@@ -4460,8 +4460,12 @@ body {
 
 .gate-kontainer {
   width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
+  /* Di monitor lebar, kartu 800px terlihat kecil dan menyisakan ruang kosong
+     besar. Ukuran kartu ikut lebar jendela, dengan batas atas 1120px. */
+  max-width: clamp(720px, 76vw, 980px);
+  /* auto pada sumbu tegak menengahkan kartu di layar tinggi, dan tidak
+     memotong apa pun saat isinya lebih tinggi dari layar. */
+  margin: auto;
 }
 
 .gate-wrap .back {
@@ -4483,11 +4487,12 @@ body {
 
 .gate-kartu {
   display: grid;
-  grid-template-columns: 290px minmax(0, 1fr);
-  min-height: 440px;
+  /* Kolom kiri ikut melebar di layar besar supaya proporsinya tetap. */
+  grid-template-columns: clamp(280px, 23vw, 380px) minmax(0, 1fr);
+  min-height: clamp(440px, 56vh, 640px);
   background: #fff;
   border: 1px solid var(--warna-garis, #e3ded2);
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
   box-shadow: 0px 6px 24px 0px rgba(60, 50, 30, 0.08);
 }
@@ -4499,7 +4504,7 @@ body {
   flex-direction: column;
   justify-content: flex-end;
   gap: 4px;
-  padding: 24px 24px 28px;
+  padding: clamp(24px, 2vw, 34px) clamp(24px, 2vw, 34px) clamp(28px, 2.4vw, 40px);
   color: #eaf2ef;
   background: linear-gradient(160deg, #0a3a37 0%, #0e5c58 55%, #08302e 100%);
 }
@@ -4525,12 +4530,12 @@ body {
 
 .gate-visual h2 {
   position: relative;
-  font-size: 16px;
+  font-size: clamp(16px, 1.15vw, 21px);
   line-height: 1.4;
   font-weight: 500;
   letter-spacing: -0.01em;
   margin: 0;
-  max-width: 250px;
+  max-width: clamp(250px, 20vw, 320px);
   color: #fff;
 }
 
@@ -4545,7 +4550,7 @@ body {
 
 .gate-visual .stat b {
   display: block;
-  font-size: 18px;
+  font-size: clamp(18px, 1.3vw, 23px);
   font-weight: 600;
   letter-spacing: -0.01em;
   line-height: 1.1;
@@ -4553,17 +4558,24 @@ body {
 }
 
 .gate-visual .stat span {
-  font-size: 10px;
+  font-size: clamp(10px, 0.75vw, 12px);
   opacity: 0.72;
 }
 
 .gate-form {
-  padding: 28px 34px;
+  padding: clamp(28px, 2.4vw, 40px) clamp(34px, 3vw, 52px);
   display: flex;
   flex-direction: column;
   justify-content: center;
   width: 100%;
   box-sizing: border-box;
+}
+
+/* Kolom form tidak ikut melebar tanpa batas: kolom isian selebar 700px lebih
+   sulit dibaca daripada 480px. */
+.gate-form > * {
+  width: 100%;
+  max-width: 480px;
 }
 
 .gate-form .brand-mini {
@@ -4587,7 +4599,7 @@ body {
 }
 
 .gate-form h1 {
-  font-size: 21px;
+  font-size: clamp(21px, 1.6vw, 29px);
   font-weight: 600;
   line-height: 1.25;
   letter-spacing: -0.015em;
@@ -4596,18 +4608,18 @@ body {
 }
 
 .gate-form .lede {
-  font-size: 12.5px;
+  font-size: clamp(12.5px, 0.92vw, 14.5px);
   line-height: 1.5;
   color: var(--warna-redup, #6c6a63);
-  margin: 0 0 16px;
-  max-width: 380px;
+  margin: 0 0 clamp(16px, 1.4vw, 22px);
+  max-width: clamp(380px, 34vw, 520px);
 }
 
 .gate-form .field {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin-bottom: 11px;
+  margin-bottom: clamp(11px, 0.9vw, 15px);
 }
 
 .gate-form .field label {
@@ -4620,11 +4632,11 @@ body {
 
 .gate-form .field input {
   width: 100%;
-  padding: 8px 11px;
+  padding: clamp(8px, 0.7vw, 11px) clamp(11px, 0.9vw, 14px);
   border: 1px solid var(--warna-garis, #e3ded2);
   border-radius: 7px;
   background: #fff;
-  font-size: 13px;
+  font-size: clamp(13px, 0.92vw, 14.5px);
   font-family: inherit;
   color: var(--warna-tinta, #16181c);
   outline: none;
