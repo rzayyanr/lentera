@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import PanelKartu from "./PanelKartu";
 import arrowLeftSvg from "../assets/icons/arrow-left.svg";
 import closeXSvg from "../assets/icons/close-x.svg";
 import arrowUpRightSvg from "../assets/icons/arrow-up-right.svg";
@@ -73,7 +74,7 @@ export default function PanelDetail({
   }, [siap, wilayah.kode, tahunDampakTarget]);
 
   return (
-    <aside className="panel-detail-wilayah" data-node-id="5:168" data-name="Panel · Detail">
+    <PanelKartu className="panel-detail-wilayah" nodeId="5:168" nama="Panel · Detail">
       {/* Baris navigasi kembali & tutup */}
       <div className="panel-kepala">
         <button
@@ -340,6 +341,6 @@ export default function PanelDetail({
           <img src={arrowUpRightSvg} alt="" width="14" height="14" />
         </a>
       </div>
-    </aside>
+    </PanelKartu>
   );
 }

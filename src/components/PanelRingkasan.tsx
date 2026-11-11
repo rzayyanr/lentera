@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import PanelKartu from "./PanelKartu";
 import closeXSvg from "../assets/icons/close-x.svg";
 import {
   fmt,
@@ -59,7 +60,7 @@ export default function PanelRingkasan({
   const totalJenis = jenisTahun.reduce((jumlah, j) => jumlah + j.nilai, 0);
 
   return (
-    <aside className="panel-ringkasan-nasional" data-node-id="5:167" data-name="Panel · Ringkasan">
+    <PanelKartu className="panel-ringkasan-nasional" nodeId="5:167" nama="Panel · Ringkasan">
       {/* Header baris atas */}
       <div className="panel-kepala">
         <p className="panel-eyebrow">RINGKASAN NASIONAL</p>
@@ -191,6 +192,6 @@ export default function PanelRingkasan({
           <dd>{sumberUntuk(ukuran)}</dd>
         </div>
       </dl>
-    </aside>
+    </PanelKartu>
   );
 }

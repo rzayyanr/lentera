@@ -624,22 +624,102 @@ body {
    6. DESKTOP PANELS: 01 Ringkasan Nasional & 02 Detail Wilayah
    ========================================================================== */
 
-.panel-ringkasan-nasional,
-.panel-detail-wilayah {
+/* Kartu panel kanan. Pembungkus memegang posisi, border, dan bayangan;
+   <aside> di dalamnya yang menggulir. Pemisahan ini perlu supaya gradasi
+   tepi bisa menempel di bingkai dan tidak ikut tergulir bersama isi. */
+.bingkai-panel {
   position: absolute;
   top: 104px;
   right: 40px;
   width: var(--lebar-panel);
   max-height: calc(100vh - 128px);
-  overflow-y: auto;
   background: var(--warna-kartu);
   border: 1px solid var(--warna-garis);
   border-radius: 12px;
   box-shadow: var(--bayangan-panel);
   z-index: 500;
+  display: flex;
+}
+
+.panel-ringkasan-nasional,
+.panel-detail-wilayah {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow-y: auto;
   padding: 24px;
   display: flex;
   flex-direction: column;
+  overscroll-behavior: contain;
+
+  /* Scrollbar tidak ditampilkan sama sekali. Isyarat gulir dipindahkan ke
+     gradasi tepi di bawah ini. */
+  scrollbar-width: none;
+}
+
+.panel-ringkasan-nasional::-webkit-scrollbar,
+.panel-detail-wilayah::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+/* Gradasi tepi: hanya menyala saat masih ada isi di luar pandangan. */
+.bingkai-panel::before,
+.bingkai-panel::after {
+  content: "";
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  height: 38px;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.bingkai-panel::before {
+  top: 1px;
+  border-radius: 12px 12px 0 0;
+  background: linear-gradient(var(--warna-kartu) 10%, rgba(251, 250, 247, 0));
+}
+
+.bingkai-panel::after {
+  bottom: 1px;
+  border-radius: 0 0 12px 12px;
+  background: linear-gradient(rgba(251, 250, 247, 0), var(--warna-kartu) 90%);
+}
+
+.bingkai-panel.ada-atas::before {
+  opacity: 1;
+}
+
+.bingkai-panel.ada-bawah::after {
+  opacity: 1;
+}
+
+/* Petunjuk halus di bawah panel; hilang begitu pembaca mulai menggulir. */
+.petunjuk-gulir-panel {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 3;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgba(22, 24, 28, 0.82);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.petunjuk-gulir-panel.tersembunyi {
+  opacity: 0;
 }
 
 .panel-kepala {
