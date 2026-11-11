@@ -1,6 +1,24 @@
-import { useState, useMemo } from "react";
+/**
+ * Halaman Daftar wilayah, bentuk daftar + detail.
+ *
+ * Daftar 510 kabupaten/kota di kiri, riwayat 15 tahun wilayah terpilih di
+ * kanan. Bentuknya mengikuti varian 3 pada
+ * sketches/006-daftar-wilayah/index.html.
+ *
+ * Penyaring provinsi dan urutan memakai PemilihWilayah yang sama dengan
+ * halaman Bandingkan, jadi gaya dan animasinya konsisten.
+ */
+
+import { useMemo, useRef, useState } from "react";
 import searchInputSvg from "../assets/icons/search-input.svg";
-import { fmt, type DataLentera, type Wilayah } from "../lib/data";
+import PemilihWilayah from "./PemilihWilayah";
+import {
+  fmt,
+  namaProvinsiRapi,
+  namaWilayahRapi,
+  type DataLentera,
+  type Wilayah,
+} from "../lib/data";
 
 interface Props {
   siap: DataLentera;
@@ -8,215 +26,265 @@ interface Props {
   onPilihWilayah: (w: Wilayah) => void;
 }
 
-const PER_HALAMAN = 10;
+type Urutan = "tinggi" | "rendah" | "nama" | "kode";
+
+const PILIHAN_URUTAN: Array<{ kode: Urutan; nama: string }> = [
+  { kode: "tinggi", nama: "Kejadian tertinggi" },
+  { kode: "rendah", nama: "Kejadian terendah" },
+  { kode: "nama", nama: "Nama (A–Z)" },
+  { kode: "kode", nama: "Kode BPS" },
+];
 
 export default function DaftarWilayah({ siap, tahun, onPilihWilayah }: Props) {
   const [pencarian, setPencarian] = useState("");
   const [saringProvinsi, setSaringProvinsi] = useState("semua");
-  const [urutan, setUrutan] = useState<"tertinggi" | "terendah" | "nama" | "kode">("tertinggi");
-  const [halaman, setHalaman] = useState(0);
+  const [urutan, setUrutan] = useState<Urutan>("tinggi");
+  const [kodeTerpilih, setKodeTerpilih] = useState<string | null>(null);
+  const detailRef = useRef<HTMLElement | null>(null);
 
   const iTahun = siap.meta.tahun.indexOf(tahun);
 
-  // Buat daftar lengkap dengan nilai tahun ini
   const daftarLengkap = useMemo(() => {
-    return siap.wilayah.map((w) => {
-      const v = iTahun >= 0 ? w.nilai[iTahun] ?? 0 : 0;
-      const prov = siap.provinsi.find((p) => p.kode === w.prov);
-      return {
-        wilayah: w,
-        nilai: v,
-        namaProvinsi: prov?.nama ?? "PROVINSI",
-      };
-    });
+    const namaProv = new Map(
+      siap.provinsi.map((p) => [p.kode, namaProvinsiRapi(p.nama)]),
+    );
+    return siap.wilayah.map((w) => ({
+      wilayah: w,
+      nilai: iTahun >= 0 ? (w.nilai[iTahun] ?? 0) : 0,
+      namaProvinsi: namaProv.get(w.prov) ?? "Provinsi",
+    }));
   }, [siap, iTahun]);
 
-  // Saring berdasarkan pencarian dan provinsi
+  const butirProvinsi = useMemo(() => {
+    const jumlah = new Map<string, number>();
+    for (const w of siap.wilayah) {
+      jumlah.set(w.prov, (jumlah.get(w.prov) ?? 0) + 1);
+    }
+    return [
+      { kode: "semua", nama: "Semua provinsi", sub: `${siap.wilayah.length} kabupaten/kota` },
+      ...siap.provinsi
+        .slice()
+        .sort((a, b) => a.nama.localeCompare(b.nama, "id"))
+        .map((p) => ({
+          kode: p.kode,
+          nama: namaProvinsiRapi(p.nama),
+          sub: `${jumlah.get(p.kode) ?? 0} kabupaten/kota`,
+        })),
+    ];
+  }, [siap]);
+
+  const butirUrutan = useMemo(
+    () => PILIHAN_URUTAN.map((u) => ({ kode: u.kode, nama: u.nama })),
+    [],
+  );
+
   const daftarTersaring = useMemo(() => {
+    const q = pencarian.trim().toLowerCase();
     let hasil = daftarLengkap;
 
-    if (pencarian.trim()) {
-      const q = pencarian.toLowerCase();
+    if (q) {
       hasil = hasil.filter(
         (item) =>
           item.wilayah.nama.toLowerCase().includes(q) ||
           item.wilayah.kode.includes(q) ||
-          item.namaProvinsi.toLowerCase().includes(q)
+          item.namaProvinsi.toLowerCase().includes(q),
       );
     }
-
     if (saringProvinsi !== "semua") {
       hasil = hasil.filter((item) => item.wilayah.prov === saringProvinsi);
     }
 
-    // Urutkan
     const disalin = [...hasil];
-    if (urutan === "tertinggi") {
-      disalin.sort((a, b) => b.nilai - a.nilai);
-    } else if (urutan === "terendah") {
-      disalin.sort((a, b) => a.nilai - b.nilai);
-    } else if (urutan === "nama") {
-      disalin.sort((a, b) => a.wilayah.nama.localeCompare(b.wilayah.nama));
-    } else if (urutan === "kode") {
-      disalin.sort((a, b) => a.wilayah.kode.localeCompare(b.wilayah.kode));
-    }
+    if (urutan === "tinggi") disalin.sort((a, b) => b.nilai - a.nilai);
+    else if (urutan === "rendah") disalin.sort((a, b) => a.nilai - b.nilai);
+    else if (urutan === "nama") {
+      disalin.sort((a, b) => a.wilayah.nama.localeCompare(b.wilayah.nama, "id"));
+    } else disalin.sort((a, b) => a.wilayah.kode.localeCompare(b.wilayah.kode));
 
     return disalin;
   }, [daftarLengkap, pencarian, saringProvinsi, urutan]);
 
-  const totalHalaman = Math.max(1, Math.ceil(daftarTersaring.length / PER_HALAMAN));
-  const dataHalaman = daftarTersaring.slice(
-    halaman * PER_HALAMAN,
-    (halaman + 1) * PER_HALAMAN
-  );
+  // Wilayah yang ditampilkan di panel kanan: pilihan pengguna, atau yang
+  // teratas pada daftar yang sedang tersaring.
+  const barisTerpilih =
+    daftarTersaring.find((item) => item.wilayah.kode === kodeTerpilih) ??
+    daftarTersaring[0] ??
+    null;
+
+  const riwayat = useMemo(() => {
+    if (!barisTerpilih) return [];
+    return siap.meta.tahun.map((th, i) => ({
+      tahun: th,
+      nilai: barisTerpilih.wilayah.nilai[i] ?? 0,
+    }));
+  }, [barisTerpilih, siap]);
+
+  const maksRiwayat = Math.max(1, ...riwayat.map((r) => r.nilai));
 
   return (
-    <div className="halaman-daftar-wilayah" data-node-id="10:612" data-name="03 · Daftar wilayah">
+    <div
+      className="halaman-daftar-wilayah"
+      data-node-id="10:612"
+      data-name="03 · Daftar wilayah"
+    >
       <div className="daftar-wilayah-wadah">
-        {/* Judul & Pengantar */}
         <p className="daftar-eyebrow">DAFTAR WILAYAH</p>
-        <h1 className="daftar-judul">514 kabupaten dan kota</h1>
+        <h1 className="daftar-judul">
+          Pilih wilayah untuk melihat riwayatnya
+        </h1>
         <p className="daftar-deskripsi">
-          Angka kejadian resmi BNPB tahun {tahun}, diurutkan dari yang tertinggi. Pilih satu baris untuk membuka detail wilayah.
+          Angka kejadian resmi BNPB tahun {tahun}. Daftar di kiri, riwayat 15
+          tahun wilayah terpilih di kanan.
         </p>
 
-        {/* Toolbar Penyaring */}
-        <div className="toolbar-penyaring-daftar" data-node-id="10:642" data-name="Penyaring">
-          <div className="pencarian-daftar-kotak">
-            <img src={searchInputSvg} alt="" width="16" height="16" />
-            <input
-              type="text"
-              placeholder="Cari nama atau kode BPS"
-              value={pencarian}
-              onChange={(e) => {
-                setPencarian(e.target.value);
-                setHalaman(0);
-              }}
-              className="input-pencarian-daftar"
-              aria-label="Cari nama atau kode BPS"
-            />
-          </div>
+        <div className="dw-belah">
+          {/* Kiri: penyaring dan daftar */}
+          <div className="dw-kiri">
+            <div className="dw-kendali">
+              <div className="pencarian-daftar-kotak dw-cari">
+                <img src={searchInputSvg} alt="" width="16" height="16" />
+                <input
+                  type="text"
+                  placeholder="Cari nama atau kode BPS"
+                  value={pencarian}
+                  onChange={(e) => setPencarian(e.target.value)}
+                  className="input-pencarian-daftar"
+                  aria-label="Cari nama atau kode BPS"
+                />
+              </div>
 
-          <div className="grup-dropdown-daftar">
-            {/* Dropdown Provinsi */}
-            <div className="select-wadah">
-              <select
-                value={saringProvinsi}
-                onChange={(e) => {
-                  setSaringProvinsi(e.target.value);
-                  setHalaman(0);
-                }}
-                className="select-penyaring"
-                aria-label="Saring menurut provinsi"
-              >
-                <option value="semua">Semua provinsi</option>
-                {siap.provinsi.map((p) => (
-                  <option key={p.kode} value={p.kode}>
-                    {p.nama}
-                  </option>
-                ))}
-              </select>
-              <span className="panah-select" aria-hidden="true">▾</span>
+              <div className="dw-pemilih">
+                <PemilihWilayah
+                  idAwalan="daftar-provinsi"
+                  butir={butirProvinsi}
+                  nilai={saringProvinsi}
+                  onPilih={setSaringProvinsi}
+                  placeholder="Semua provinsi"
+                  label="Provinsi"
+                />
+              </div>
+
+              <div className="dw-pemilih">
+                <PemilihWilayah
+                  idAwalan="daftar-urutan"
+                  butir={butirUrutan}
+                  nilai={urutan}
+                  onPilih={(kode) => setUrutan(kode as Urutan)}
+                  placeholder="Urutan"
+                  label="Urutan"
+                  tanpaCari
+                />
+              </div>
+
+              <span className="dw-jumlah">{daftarTersaring.length} wilayah</span>
             </div>
 
-            {/* Dropdown Urutan */}
-            <div className="select-wadah">
-              <select
-                value={urutan}
-                onChange={(e) => {
-                  setUrutan(e.target.value as "tertinggi" | "terendah" | "nama" | "kode");
-                  setHalaman(0);
-                }}
-                className="select-penyaring"
-                aria-label="Urutan data"
-              >
-                <option value="tertinggi">Kejadian tertinggi</option>
-                <option value="terendah">Kejadian terendah</option>
-                <option value="nama">Nama (A–Z)</option>
-                <option value="kode">Kode BPS</option>
-              </select>
-              <span className="panah-select" aria-hidden="true">▾</span>
+            <div className="dw-gulir" role="listbox" aria-label="Daftar wilayah">
+              {daftarTersaring.length === 0 && (
+                <p className="dw-kosong">Tidak ada wilayah yang cocok.</p>
+              )}
+              {daftarTersaring.map((item) => {
+                const aktif = barisTerpilih?.wilayah.kode === item.wilayah.kode;
+                return (
+                  <button
+                    key={item.wilayah.kode}
+                    type="button"
+                    role="option"
+                    aria-selected={aktif}
+                    className={`dw-baris ${aktif ? "terpilih" : ""}`}
+                    onClick={() => {
+                      setKodeTerpilih(item.wilayah.kode);
+                      // Di layar sempit panel detail ada di bawah daftar, jadi
+                      // gulirkan ke sana supaya pilihan langsung terlihat.
+                      if (window.innerWidth <= 980) {
+                        const kurangiGerak = window.matchMedia(
+                          "(prefers-reduced-motion: reduce)",
+                        ).matches;
+                        detailRef.current?.scrollIntoView({
+                          behavior: kurangiGerak ? "auto" : "smooth",
+                          block: "start",
+                        });
+                      }
+                    }}
+                  >
+                    <span className="dw-baris-isi">
+                      <b>{namaWilayahRapi(item.wilayah.nama)}</b>
+                      <span>
+                        {item.namaProvinsi} · {item.wilayah.kode}
+                      </span>
+                    </span>
+                    <span className="dw-baris-angka">{fmt(item.nilai)}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          <p className="jumlah-temuan-daftar">
-            {daftarTersaring.length} wilayah ditemukan
-          </p>
-        </div>
+          {/* Kanan: riwayat wilayah terpilih */}
+          <aside className="dw-detail" aria-live="polite" ref={detailRef}>
+            {!barisTerpilih ? (
+              <p className="dw-detail-kosong">Pilih satu wilayah di daftar.</p>
+            ) : (
+              <>
+                <p className="dw-detail-eyebrow">Wilayah terpilih</p>
+                <h2 className="dw-detail-nama">
+                  {namaWilayahRapi(barisTerpilih.wilayah.nama)}
+                </h2>
+                <p className="dw-detail-meta">
+                  {barisTerpilih.namaProvinsi} · kode BPS {barisTerpilih.wilayah.kode}
+                </p>
 
-        {/* Kartu Tabel Wilayah */}
-        <div className="kartu-tabel-daftar" data-node-id="10:653" data-name="Tabel">
-          <div className="wadah-gulir-tabel">
-            <table className="tabel-daftar-entri">
-              <thead>
-                <tr>
-                  <th scope="col" style={{ width: "6%" }}>#</th>
-                  <th scope="col" style={{ width: "14%" }}>KODE BPS</th>
-                  <th scope="col" style={{ width: "38%" }}>KABUPATEN / KOTA</th>
-                  <th scope="col" style={{ width: "26%" }}>PROVINSI</th>
-                  <th scope="col" style={{ width: "16%", textAlign: "right" }}>
-                    KEJADIAN {tahun}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {dataHalaman.map((item, index) => {
-                  const nomorUrut = halaman * PER_HALAMAN + index + 1;
-                  return (
-                    <tr
-                      key={item.wilayah.kode}
-                      onClick={() => onPilihWilayah(item.wilayah)}
-                      className="baris-tabel-interaktif"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") onPilihWilayah(item.wilayah);
+                <p className="dw-detail-angka">{fmt(barisTerpilih.nilai)}</p>
+                <p className="dw-detail-satuan">kejadian pada {tahun}</p>
+
+                <div
+                  className="dw-detail-grafik"
+                  role="img"
+                  aria-label={`Riwayat kejadian ${siap.meta.tahun[0]} sampai ${siap.meta.tahun[siap.meta.tahun.length - 1]}`}
+                >
+                  {riwayat.map((r) => (
+                    <span
+                      key={r.tahun}
+                      className={`dw-batang ${r.tahun === tahun ? "aktif" : ""}`}
+                      style={{
+                        height: `${Math.max(2, Math.round((r.nilai / maksRiwayat) * 64))}px`,
                       }}
-                    >
-                      <td className="kolom-nomor">{nomorUrut}</td>
-                      <td className="kolom-kode">{item.wilayah.kode}</td>
-                      <td className="kolom-kabupaten">{item.wilayah.nama}</td>
-                      <td className="kolom-provinsi">{item.namaProvinsi}</td>
-                      <td className="kolom-kejadian">{fmt(item.nilai)}</td>
+                      title={`${r.tahun}: ${fmt(r.nilai)} kejadian`}
+                    />
+                  ))}
+                </div>
+                <div className="dw-tahun">
+                  <span>{siap.meta.tahun[0]}</span>
+                  <span>{siap.meta.tahun[siap.meta.tahun.length - 1]}</span>
+                </div>
+
+                <button
+                  type="button"
+                  className="tombol-aksi-utama dw-tombol-peta"
+                  onClick={() => onPilihWilayah(barisTerpilih.wilayah)}
+                >
+                  Buka wilayah di peta
+                </button>
+
+                <table className="dw-tabel">
+                  <thead>
+                    <tr>
+                      <th scope="col">Tahun</th>
+                      <th scope="col">Kejadian</th>
                     </tr>
-                  );
-                })}
-                {dataHalaman.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="tabel-kosong">
-                      Tidak ada kabupaten/kota yang cocok dengan filter yang dipilih.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Baris Paginasi */}
-          {totalHalaman > 1 && (
-            <div className="baris-paginasi-daftar">
-              <button
-                type="button"
-                className="tombol-paginasi"
-                disabled={halaman === 0}
-                onClick={() => setHalaman((h) => Math.max(0, h - 1))}
-              >
-                ← Sebelumnya
-              </button>
-
-              <span className="teks-halaman-saat-ini">
-                Halaman {halaman + 1} dari {totalHalaman}
-              </span>
-
-              <button
-                type="button"
-                className="tombol-paginasi"
-                disabled={halaman >= totalHalaman - 1}
-                onClick={() => setHalaman((h) => Math.min(totalHalaman - 1, h + 1))}
-              >
-                Berikutnya →
-              </button>
-            </div>
-          )}
+                  </thead>
+                  <tbody>
+                    {riwayat.map((r) => (
+                      <tr key={r.tahun} className={r.tahun === tahun ? "aktif" : undefined}>
+                        <td>{r.tahun}</td>
+                        <td>{fmt(r.nilai)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            )}
+          </aside>
         </div>
       </div>
     </div>

@@ -1335,19 +1335,6 @@ body {
   line-height: 1.5;
 }
 
-.toolbar-penyaring-daftar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  height: 64px;
-  padding: 0 16px;
-  background: var(--warna-kartu);
-  border: 1px solid var(--warna-garis);
-  border-radius: 12px;
-  margin-bottom: 16px;
-}
-
 .pencarian-daftar-kotak {
   display: flex;
   align-items: center;
@@ -1374,30 +1361,6 @@ body {
   color: var(--warna-redup);
 }
 
-.grup-dropdown-daftar {
-  display: flex;
-  gap: 12px;
-}
-
-.select-wadah {
-  position: relative;
-  display: inline-block;
-}
-
-.select-penyaring {
-  appearance: none;
-  font-family: var(--font-sans);
-  font-size: 10.5px;
-  font-weight: 600;
-  color: var(--warna-tinta);
-  background: var(--warna-kartu);
-  border: 1px solid var(--warna-garis);
-  border-radius: 4px;
-  padding: 6px 24px 6px 10px;
-  cursor: pointer;
-  outline: none;
-}
-
 .panah-select {
   position: absolute;
   right: 8px;
@@ -1408,78 +1371,8 @@ body {
   pointer-events: none;
 }
 
-.jumlah-temuan-daftar {
-  margin: 0;
-  font-size: 11px;
-  color: var(--warna-redup);
-}
-
-.kartu-tabel-daftar {
-  background: var(--warna-kartu);
-  border: 1px solid var(--warna-garis);
-  border-radius: 12px;
-  padding: 16px 24px 20px;
-}
-
 .wadah-gulir-tabel {
   overflow-x: auto;
-}
-
-.tabel-daftar-entri {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-}
-
-.tabel-daftar-entri th {
-  text-align: left;
-  padding: 12px 14px 10px 0;
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.76px;
-  text-transform: uppercase;
-  color: var(--warna-redup);
-  border-bottom: 1px solid var(--warna-garis);
-}
-
-.tabel-daftar-entri td {
-  padding: 13px 14px 13px 0;
-  border-bottom: 1px solid var(--warna-garis-tipis);
-  color: var(--warna-tinta);
-}
-
-.baris-tabel-interaktif {
-  cursor: pointer;
-  transition: background 0.12s;
-}
-
-.baris-tabel-interaktif:hover {
-  background: #f4f8f7;
-}
-
-.kolom-nomor {
-  color: var(--warna-redup);
-}
-
-.kolom-kode {
-  color: var(--warna-redup);
-  font-variant-numeric: tabular-nums;
-}
-
-.kolom-kabupaten {
-  font-weight: 500;
-  color: var(--warna-tinta);
-  text-transform: uppercase;
-}
-
-.kolom-provinsi {
-  color: var(--warna-tinta);
-}
-
-.kolom-kejadian {
-  text-align: right;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
 }
 
 .baris-paginasi-daftar {
@@ -1924,20 +1817,11 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .toolbar-penyaring-daftar {
-    height: auto;
-    flex-direction: column;
-    align-items: stretch;
-    padding: 14px;
-  }
 
   .pencarian-daftar-kotak {
     width: 100%;
   }
 
-  .grup-dropdown-daftar {
-    flex-direction: column;
-  }
 
   .halaman-daftar-wilayah,
   .halaman-riwayat,
@@ -4281,6 +4165,260 @@ body {
   text-align: center;
   font-size: 12px;
   color: var(--warna-redup);
+}
+
+/* ==========================================================================
+   DAFTAR WILAYAH: DAFTAR + DETAIL
+   Mengikuti varian 3 di sketches/006-daftar-wilayah.
+   ========================================================================== */
+
+.dw-belah {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  background: var(--warna-kartu);
+  border: 1px solid var(--warna-garis);
+  border-radius: 14px;
+  box-shadow: var(--bayangan-kartu);
+  overflow: hidden;
+}
+
+.dw-kiri {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-right: 1px solid var(--warna-garis-tipis);
+}
+
+.dw-kendali {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--warna-garis-tipis);
+}
+
+.dw-cari {
+  flex: 1 1 220px;
+  width: auto;
+  min-width: 0;
+}
+
+.dw-pemilih {
+  flex: 0 0 200px;
+  min-width: 0;
+}
+
+.dw-jumlah {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--warna-redup);
+  white-space: nowrap;
+}
+
+.dw-gulir {
+  max-height: clamp(360px, 56vh, 560px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.dw-baris {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 16px;
+  border: 0;
+  border-bottom: 1px solid var(--warna-garis-tipis);
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  color: var(--warna-tinta);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.dw-baris:last-child {
+  border-bottom: 0;
+}
+
+.dw-baris:hover {
+  background: #f1ece0;
+}
+
+.dw-baris.terpilih {
+  background: var(--warna-aksen-muda);
+  box-shadow: inset 3px 0 0 var(--warna-aksen);
+}
+
+.dw-baris-isi {
+  flex: 1;
+  min-width: 0;
+}
+
+.dw-baris-isi b {
+  display: block;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dw-baris-isi span {
+  display: block;
+  font-size: 10.5px;
+  color: var(--warna-redup);
+}
+
+.dw-baris-angka {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.dw-kosong {
+  margin: 0;
+  padding: 28px 16px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--warna-redup);
+}
+
+.dw-detail {
+  padding: 20px;
+  background: linear-gradient(180deg, #fff, var(--warna-kartu));
+  overflow-y: auto;
+  max-height: calc(clamp(360px, 56vh, 560px) + 65px);
+  /* Di ponsel panel ini digulirkan ke atas saat baris dipilih; sisakan ruang
+     untuk bilah atas yang mengapung sampai 68px. */
+  scroll-margin-top: 88px;
+}
+
+.dw-detail-eyebrow {
+  margin: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: var(--warna-redup);
+}
+
+.dw-detail-nama {
+  margin: 3px 0 2px;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.dw-detail-meta {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--warna-redup);
+}
+
+.dw-detail-angka {
+  margin: 16px 0 2px;
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.dw-detail-satuan {
+  margin: 0;
+  font-size: 11px;
+  color: var(--warna-redup);
+}
+
+.dw-detail-grafik {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 72px;
+  margin: 16px 0 6px;
+}
+
+.dw-batang {
+  flex: 1;
+  background: #cfded8;
+  border-radius: 2px 2px 0 0;
+}
+
+.dw-batang.aktif {
+  background: var(--warna-aksen);
+}
+
+.dw-tahun {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--warna-redup);
+}
+
+.dw-tombol-peta {
+  width: 100%;
+  margin-top: 16px;
+}
+
+.dw-tabel {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 18px;
+  font-size: 11.5px;
+}
+
+.dw-tabel th {
+  text-align: left;
+  font-size: 9.5px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--warna-redup);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--warna-garis);
+}
+
+.dw-tabel td {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--warna-garis-tipis);
+}
+
+.dw-tabel th:last-child,
+.dw-tabel td:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.dw-tabel tr.aktif td {
+  font-weight: 600;
+  color: var(--warna-aksen);
+}
+
+.dw-detail-kosong {
+  margin: 0;
+  padding: 60px 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--warna-redup);
+}
+
+@media (max-width: 980px) {
+  .dw-belah {
+    grid-template-columns: 1fr;
+  }
+
+  .dw-kiri {
+    border-right: 0;
+    border-bottom: 1px solid var(--warna-garis-tipis);
+  }
+
+  .dw-detail {
+    max-height: none;
+  }
+
+  .dw-pemilih {
+    flex: 1 1 160px;
+  }
 }
 
 /* Kartu penggeser tahun duduk di samping kanan legenda. Itu baru tidak muat
