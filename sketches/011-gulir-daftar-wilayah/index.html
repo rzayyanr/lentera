@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gulir Daftar Wilayah — tiga variasi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet" />
+<style>
+  /* Token mengikuti :root di src/App.css supaya warna dan radius sama. */
+  :root {
+    --warna-panggung: #f4f0e6;
+    --warna-kartu: #fbfaf7;
+    --warna-tinta: #16181c;
+    --warna-redup: #6c6a63;
+    --warna-garis: #e3ded2;
+    --warna-garis-tipis: #ece8dd;
+    --warna-aksen: #0e5c58;
+    --warna-aksen-muda: #e8f1ee;
+    --bayangan-kartu: 0px 8px 14px 0px rgba(60, 50, 30, 0.1);
+    --font-sans: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 40px 32px 80px;
+    background: var(--warna-panggung);
+    font-family: var(--font-sans);
+    color: var(--warna-tinta);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .kepala { max-width: 1120px; margin: 0 auto 36px; }
+  .kepala h1 { margin: 0 0 8px; font-size: 30px; letter-spacing: -0.02em; }
+  .kepala p { margin: 0; max-width: 70ch; font-size: 13px; line-height: 1.6; color: var(--warna-redup); }
+
+  section { max-width: 1120px; margin: 0 auto 56px; }
+  section > h2 {
+    margin: 0 0 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--warna-redup);
+  }
+  section > .masalah {
+    margin: 0 0 22px;
+    font-size: 13px;
+    line-height: 1.6;
+    max-width: 78ch;
+  }
+  section > .masalah code {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12px;
+    background: #ffffff;
+    border: 1px solid var(--warna-garis);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+
+  /* Satu variasi per baris: kartu di kiri, catatan di kanan. Dua kolom
+     variasi bersebelahan membuat kartu 380px berdesakan dan baris ketiga
+     menggantung sendirian. */
+  .baris-variasi { display: flex; flex-direction: column; gap: 34px; }
+
+  .variasi {
+    display: grid;
+    grid-template-columns: 520px minmax(0, 1fr);
+    gap: 10px 28px;
+    align-items: start;
+  }
+
+  .variasi.sempit { grid-template-columns: 400px minmax(0, 1fr); }
+
+  .label-variasi { grid-column: 1 / -1; }
+
+  .label-variasi {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+  .label-variasi .nomor {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--warna-aksen);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .catatan { margin: 8px 0 0; font-size: 11.5px; line-height: 1.6; color: var(--warna-redup); max-width: 46ch; }
+  .catatan b { color: var(--warna-tinta); font-weight: 600; }
+
+  /* Bingkai kartu, sama dengan .dw-belah. */
+  .kartu {
+    background: var(--warna-kartu);
+    border: 1px solid var(--warna-garis);
+    border-radius: 14px;
+    box-shadow: var(--bayangan-kartu);
+    overflow: hidden;
+  }
+
+  /* ---- Isi daftar (dipakai ketiga variasi) ---- */
+  .daftar { max-height: 360px; overflow-y: auto; overscroll-behavior: contain; }
+
+  .baris {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 16px;
+    border: 0;
+    border-bottom: 1px solid var(--warna-garis-tipis);
+    background: transparent;
+    font-family: inherit;
+    font-size: 12.5px;
+    color: var(--warna-tinta);
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .baris:last-child { border-bottom: 0; }
+  .baris:hover { background: #f1ece0; }
+  .baris.terpilih { background: var(--warna-aksen-muda); box-shadow: inset 3px 0 0 var(--warna-aksen); }
+
+  .baris-isi { flex: 1; min-width: 0; }
+  .baris-isi b { display: block; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .baris-isi span { display: block; font-size: 10.5px; color: var(--warna-redup); }
+  .baris-angka { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* ---- Variasi 1: scrollbar tipis + penanda posisi ---- */
+  .v1 .daftar {
+    scrollbar-width: thin;
+    scrollbar-color: #cfc9ba transparent;
+  }
+  .v1 .daftar::-webkit-scrollbar { width: 8px; }
+  .v1 .daftar::-webkit-scrollbar-track { background: transparent; }
+  .v1 .daftar::-webkit-scrollbar-thumb {
+    background: #d8d2c3;
+    border-radius: 999px;
+    border: 2px solid var(--warna-kartu);
+  }
+  .v1 .daftar:hover::-webkit-scrollbar-thumb { background: #bdb6a4; }
+
+  .penanda {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 7px 16px;
+    border-bottom: 1px solid var(--warna-garis-tipis);
+    font-size: 10.5px;
+    color: var(--warna-redup);
+  }
+  .penanda b { color: var(--warna-tinta); font-weight: 600; }
+
+  /* ---- Variasi 2: tepi pudar, batang gulir samar ---- */
+  .v2 .wadah-daftar { position: relative; }
+  .v2 .daftar { scrollbar-width: none; }
+  .v2 .daftar::-webkit-scrollbar { width: 0; height: 0; }
+
+  .v2 .wadah-daftar::before,
+  .v2 .wadah-daftar::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 24px;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .v2 .wadah-daftar::before {
+    top: 0;
+    background: linear-gradient(to bottom, var(--warna-kartu) 20%, transparent);
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .v2 .wadah-daftar::after {
+    bottom: 0;
+    background: linear-gradient(to top, var(--warna-kartu) 20%, transparent);
+  }
+  .v2 .wadah-daftar.di-atas::before { opacity: 1; }
+
+  /* Batang gulir buatan: muncul saat kursor berada di daftar. */
+  .v2 .bilah {
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    right: 3px;
+    width: 4px;
+    border-radius: 999px;
+    background: transparent;
+    z-index: 3;
+    pointer-events: none;
+  }
+  .v2 .bilah span {
+    position: absolute;
+    left: 0;
+    width: 4px;
+    border-radius: 999px;
+    background: #cec7b7;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .v2 .wadah-daftar:hover .bilah span { opacity: 1; }
+
+  /* ---- Variasi 3: kepala provinsi melekat ---- */
+  .v3 .daftar {
+    scrollbar-width: thin;
+    scrollbar-color: #cfc9ba transparent;
+  }
+  .v3 .daftar::-webkit-scrollbar { width: 8px; }
+  .v3 .daftar::-webkit-scrollbar-thumb {
+    background: #d8d2c3;
+    border-radius: 999px;
+    border: 2px solid var(--warna-kartu);
+  }
+  .v3 .kepala-provinsi {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    margin: 0;
+    padding: 6px 16px;
+    background: #f7f4ec;
+    border-bottom: 1px solid var(--warna-garis-tipis);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--warna-redup);
+  }
+
+  /* ---- Panel detail ---- */
+  .detail {
+    padding: 20px;
+    background: linear-gradient(180deg, #fff, var(--warna-kartu));
+    max-height: 420px;
+    overflow-y: auto;
+    position: relative;
+  }
+  .detail-eyebrow { margin: 0; font-size: 9.5px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase; color: var(--warna-redup); }
+  .detail-nama { margin: 3px 0 2px; font-size: 21px; font-weight: 600; letter-spacing: -0.02em; }
+  .detail-meta { margin: 0; font-size: 11.5px; color: var(--warna-redup); }
+  .detail-angka { margin: 16px 0 2px; font-size: 40px; font-weight: 600; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .detail-satuan { margin: 0; font-size: 11px; color: var(--warna-redup); }
+
+  .grafik { display: flex; align-items: flex-end; gap: 4px; height: 72px; margin: 16px 0 6px; }
+  .batang { flex: 1; background: #cfded8; border-radius: 2px 2px 0 0; }
+  .batang.aktif { background: var(--warna-aksen); }
+  .tahun-rel { display: flex; justify-content: space-between; font-size: 10px; color: var(--warna-redup); }
+
+  .tombol-utama {
+    width: 100%;
+    margin-top: 16px;
+    padding: 10px 14px;
+    background: var(--warna-aksen);
+    color: #fff;
+    border: 0;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .tabel { width: 100%; border-collapse: collapse; margin-top: 18px; font-size: 11.5px; }
+  .tabel th {
+    text-align: left;
+    font-size: 9.5px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--warna-redup);
+    padding: 6px 0;
+    border-bottom: 1px solid var(--warna-garis);
+    background: var(--warna-kartu);
+  }
+  .tabel td { padding: 6px 0; border-bottom: 1px solid var(--warna-garis-tipis); }
+  .tabel th:last-child, .tabel td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+  .tabel tr.aktif td { font-weight: 600; color: var(--warna-aksen); }
+
+  /* V1 detail: kepala melekat + scrollbar tipis */
+  .d1 {
+    max-height: 380px;
+    scrollbar-width: thin;
+    scrollbar-color: #cfc9ba transparent;
+  }
+  .d1::-webkit-scrollbar { width: 8px; }
+  .d1::-webkit-scrollbar-thumb { background: #d8d2c3; border-radius: 999px; border: 2px solid var(--warna-kartu); }
+  .d1 .kepala-lekat {
+    position: sticky;
+    top: -20px;
+    margin: -20px -20px 0;
+    padding: 20px 20px 12px;
+    background: linear-gradient(180deg, #fff 72%, rgba(255, 255, 255, 0));
+    border-bottom: 1px solid var(--warna-garis-tipis);
+    z-index: 2;
+  }
+  .d1 .kepala-lekat .detail-angka { margin: 10px 0 0; font-size: 30px; }
+
+  /* V2 detail: tanpa gulir, rincian dilipat */
+  .d2 { max-height: none; overflow: visible; }
+  .lipat {
+    margin-top: 16px;
+    border-top: 1px solid var(--warna-garis-tipis);
+  }
+  .tombol-lipat {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 12px 0;
+    background: none;
+    border: 0;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--warna-tinta);
+    cursor: pointer;
+  }
+  .tombol-lipat .tanda { color: var(--warna-redup); transition: transform 0.15s; }
+  .tombol-lipat[aria-expanded="true"] .tanda { transform: rotate(180deg); }
+  .isi-lipat { display: none; }
+  .isi-lipat.buka { display: block; }
+  .isi-lipat .tabel { margin-top: 4px; }
+
+  /* V3 detail: tabel jadi daftar bergulir dengan kepala melekat */
+  .d3 {
+    display: flex;
+    flex-direction: column;
+    height: 440px;
+    max-height: none;
+    overflow: hidden;
+    padding: 0;
+  }
+  .d3 .kepala-tetap { padding: 20px 20px 0; background: #fff; }
+  .d3 .grafik { height: 44px; margin: 12px 0 4px; }
+
+  .d3 .rel {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #cfc9ba transparent;
+    margin: 8px 0 0;
+    padding-top: 0;
+  }
+  .d3 .rel::-webkit-scrollbar { width: 8px; }
+  .d3 .rel::-webkit-scrollbar-thumb { background: #d8d2c3; border-radius: 999px; border: 2px solid var(--warna-kartu); }
+  .d3 .rel table { margin: 0; }
+  .d3 .rel thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    box-shadow: inset 0 -1px 0 var(--warna-garis);
+  }
+  .d3 .rel td:first-child, .d3 .rel th:first-child { padding-left: 20px; }
+  .d3 .rel td:last-child, .d3 .rel th:last-child { padding-right: 20px; }
+  .d3 .kaki-tetap {
+    padding: 12px 20px 16px;
+    border-top: 1px solid var(--warna-garis-tipis);
+    background: var(--warna-kartu);
+  }
+
+  .d3 .kaki-tetap .tombol-utama { margin-top: 0; }
+</style>
+</head>
+<body>
+
+<header class="kepala">
+  <h1>Gulir daftar &amp; panel detail</h1>
+  <p>Tiga variasi untuk dua area bergulir di halaman Daftar wilayah: daftar 510 kabupaten/kota di kiri dan riwayat 15 tahun di panel kanan. Semua memakai token yang sama dengan aplikasi. Pilih tiap variasi dengan mengklik barisnya; isi datanya contoh, bukan data asli.</p>
+</header>
+
+<section>
+  <h2>Bagian 1 — daftar wilayah</h2>
+  <p class="masalah">
+    Saat ini <code>.dw-gulir</code> hanya <code>overflow-y: auto</code>. Batang gulir bawaan Windows tebal dan gelap, tidak ada petunjuk posisi, dan baris terpilih bisa berada jauh di luar pandangan tanpa ada tanda arah. Tiga pendekatan di bawah.
+  </p>
+
+  <div class="baris-variasi">
+
+    <!-- Variasi 1 -->
+    <div class="variasi v1">
+      <div class="label-variasi"><span class="nomor">1</span> Batang gulir tipis + penanda posisi</div>
+      <div class="kartu">
+        <div class="penanda">
+          <span id="jumlah-v1">26 wilayah</span>
+          <span class="posisi">1–<b>12</b> dari 510</span>
+        </div>
+        <div class="daftar" id="daftar1"></div>
+      </div>
+      <p class="catatan"><b>Kenapa:</b> batang gulir 8px dengan thumb membulat dan jarak 2px dari tepi, netral sampai disentuh. Baris atas panel menyebut posisi baris yang terlihat, jadi pengguna tahu seberapa jauh dari 510.<br /><b>Risiko:</b> angka posisi harus ikut bergerak saat digulir; perlu pembacaan <code>scrollTop</code>.</p>
+    </div>
+
+    <!-- Variasi 2 -->
+    <div class="variasi v2">
+      <div class="label-variasi"><span class="nomor">2</span> Tepi pudar, batang gulir samar</div>
+      <div class="kartu">
+        <div class="wadah-daftar">
+          <div class="daftar" id="daftar2"></div>
+          <div class="bilah"><span></span></div>
+        </div>
+      </div>
+      <p class="catatan"><b>Kenapa:</b> tidak ada batang gulir yang terlihat; ujung atas dan bawah dilunakkan gradien supaya jelas daftar berlanjut, dan batang 4px hanya muncul saat kursor berada di atas daftar. Rapi untuk tampilan yang ingin bersih.<br /><b>Risiko:</b> pengguna yang mengandalkan batang gulir untuk menyeret ke bawah harus lebih dulu mengarahkan kursor ke daftar.</p>
+    </div>
+
+    <!-- Variasi 3 -->
+    <div class="variasi v3">
+      <div class="label-variasi"><span class="nomor">3</span> Kepala provinsi melekat</div>
+      <div class="kartu">
+        <div class="daftar" id="daftar3"></div>
+      </div>
+      <p class="catatan"><b>Kenapa:</b> saat digulir, nama provinsi menempel di atas sehingga pengguna tidak kehilangan konteks geografis; batang gulir tipis yang sama dengan variasi 1.<br /><b>Risiko:</b> daftar harus dikelompokkan per provinsi. Urutan “kejadian tertinggi” jadi bertentangan dengan pengelompokan, jadi kepala hanya bisa dipakai pada urutan nama/provinsi.</p>
+    </div>
+
+  </div>
+</section>
+
+<section>
+  <h2>Bagian 2 — panel detail</h2>
+  <p class="masalah">
+    Saat ini <code>.dw-detail</code> bergulir dengan batas tinggi yang sama dengan daftar, dan riwayat 15 tahun di bawah grafik memaksa gulir. Nama wilayah hilang begitu digulir, tabel tahun mencuri perhatian dari angka utama. Tiga alternatif.
+  </p>
+
+  <div class="baris-variasi">
+
+    <!-- Detail 1 -->
+    <div class="variasi sempit">
+      <div class="label-variasi"><span class="nomor">1</span> Kepala melekat saat digulir</div>
+      <div class="kartu">
+        <aside class="detail d1" id="detail1"></aside>
+      </div>
+      <p class="catatan"><b>Kenapa:</b> nama wilayah, kode BPS, dan angka tahun terpilih menempel di atas; tabel tahun bergulir di bawahnya. Struktur tetap, hanya ditambah <code>position: sticky</code> pada kepala.</p>
+    </div>
+
+    <!-- Detail 2 -->
+    <div class="variasi sempit">
+      <div class="label-variasi"><span class="nomor">2</span> Tanpa gulir, rincian dilipat</div>
+      <div class="kartu">
+        <aside class="detail d2" id="detail2"></aside>
+      </div>
+      <p class="catatan"><b>Kenapa:</b> panel jadi pendek dan seluruhnya terbaca tanpa digulir; tabel 15 tahun dibuka lewat satu tombol “Lihat rincian 15 tahun”.<br /><b>Risiko:</b> butuh satu klik tambahan untuk data yang sekarang langsung terlihat.</p>
+    </div>
+
+    <!-- Detail 3 -->
+    <div class="variasi sempit">
+      <div class="label-variasi"><span class="nomor">3</span> Tabel jadi rel bergulir, kepala kolom melekat</div>
+      <div class="kartu">
+        <aside class="detail d3" id="detail3"></aside>
+      </div>
+      <p class="catatan"><b>Kenapa:</b> grafik dan tabel disusun berdampingan dalam satu rel 190px; kepala kolom Tahun/Kejadian menempel saat digulir dan tahun yang sedang dilihat otomatis di tengah. Bagian atas panel tidak bergulir.<br /><b>Risiko:</b> dua area tetaps (kepala, kaki) mengurangi ruang daftar pada layar pendek.</p>
+    </div>
+
+  </div>
+</section>
+
+<script>
+  // Data contoh: nama dan angka mengikuti tangkapan layar halaman Daftar wilayah.
+  const DATA = [
+    ["Bogor", "Jawa Barat", "3201", 128],
+    ["Ogan Ilir", "Sumatera Selatan", "1610", 70],
+    ["Muara Enim", "Sumatera Selatan", "1603", 45],
+    ["Banyuasin", "Sumatera Selatan", "1607", 38],
+    ["Bintan", "Kepulauan Riau", "2101", 37],
+    ["Sukabumi", "Jawa Barat", "3202", 33],
+    ["Kampar", "Riau", "1406", 31],
+    ["Bandung", "Jawa Barat", "3204", 29],
+    ["Cilacap", "Jawa Tengah", "3301", 27],
+    ["Kuantan Singingi", "Riau", "1409", 26],
+    ["Musi Banyuasin", "Sumatera Selatan", "1606", 24],
+    ["Lampung Tengah", "Lampung", "1804", 23],
+    ["Kotawaringin Barat", "Kalimantan Tengah", "6201", 22],
+    ["Pasuruan", "Jawa Timur", "3514", 21],
+    ["Bandung Barat", "Jawa Barat", "3217", 20],
+    ["Tasikmalaya", "Jawa Barat", "3206", 19],
+    ["Indragiri Hulu", "Riau", "1402", 18],
+    ["Bogor Selatan", "Jawa Barat", "3271", 17],
+    ["Purwakarta", "Jawa Barat", "3214", 16],
+    ["Solok", "Sumatera Barat", "1303", 15],
+    ["Malang", "Jawa Timur", "3507", 14],
+    ["Agam", "Sumatera Barat", "1307", 13],
+    ["Semarang", "Jawa Tengah", "3322", 12],
+    ["Siak", "Riau", "1405", 11],
+    ["Buleleng", "Bali", "5108", 10],
+    ["Jember", "Jawa Timur", "3509", 9],
+  ];
+
+  const TAHUN = [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024];
+  const RIWAYAT = [23, 12, 111, 16, 60, 29, 35, 79, 80, 137, 92, 74, 118, 141, 128];
+  const TAHUN_AKTIF = 2024;
+
+  function baris(nama, prov, kode, angka, aktif) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "baris" + (aktif ? " terpilih" : "");
+    b.innerHTML = '<span class="baris-isi"><b></b><span></span></span><span class="baris-angka"></span>';
+    b.querySelector("b").textContent = nama;
+    b.querySelector(".baris-isi span").textContent = prov + " · " + kode;
+    b.querySelector(".baris-angka").textContent = angka;
+    return b;
+  }
+
+  function pasangKlik(wadah) {
+    wadah.addEventListener("click", (e) => {
+      const tombol = e.target.closest(".baris");
+      if (!tombol) return;
+      wadah.querySelectorAll(".baris").forEach((b) => b.classList.remove("terpilih"));
+      tombol.classList.add("terpilih");
+    });
+  }
+
+  // --- Variasi 1 dan 2: daftar datar ---
+  ["daftar1", "daftar2"].forEach((id) => {
+    const wadah = document.getElementById(id);
+    DATA.forEach(([nama, prov, kode, angka], i) => {
+      wadah.appendChild(baris(nama, prov, kode, angka, i === 0));
+    });
+    pasangKlik(wadah);
+  });
+
+  // --- Variasi 1: posisi baris yang terlihat ---
+  (function () {
+    const d1 = document.getElementById("daftar1");
+    const posisi = document.querySelector(".v1 .posisi");
+    function perbaruiPosisi() {
+      const kotak = d1.getBoundingClientRect();
+      const semua = [...d1.querySelectorAll(".baris")];
+      let atas = 0;
+      let bawah = semua.length - 1;
+      for (let i = 0; i < semua.length; i++) {
+        if (semua[i].getBoundingClientRect().bottom > kotak.top + 4) { atas = i; break; }
+      }
+      for (let i = semua.length - 1; i >= 0; i--) {
+        if (semua[i].getBoundingClientRect().top < kotak.bottom - 4) { bawah = i; break; }
+      }
+      posisi.innerHTML = (atas + 1) + "–<b>" + (bawah + 1) + "</b> dari " + semua.length;
+    }
+    document.getElementById("jumlah-v1").textContent = d1.querySelectorAll(".baris").length + " wilayah";
+    d1.addEventListener("scroll", perbaruiPosisi);
+    perbaruiPosisi();
+  })();
+
+  // --- Variasi 2: gradien atas hanya muncul setelah digulir ---
+  const d2 = document.getElementById("daftar2");
+  const wadah2 = d2.parentElement;
+  function perbaruiPudar() {
+    wadah2.classList.toggle("di-atas", d2.scrollTop > 4);
+    const bilah = wadah2.querySelector(".bilah span");
+    const jalur = d2.clientHeight - 12;
+    const rasio = d2.clientHeight / d2.scrollHeight;
+    const tinggiBilah = Math.max(24, rasio * jalur);
+    const maksGulir = Math.max(1, d2.scrollHeight - d2.clientHeight);
+    bilah.style.height = tinggiBilah + "px";
+    bilah.style.top = 6 + (d2.scrollTop / maksGulir) * (jalur - tinggiBilah) + "px";
+  }
+  d2.addEventListener("scroll", perbaruiPudar);
+  perbaruiPudar();
+
+  // --- Variasi 3: dikelompokkan per provinsi ---
+  (function () {
+    const wadah = document.getElementById("daftar3");
+    const kelompok = new Map();
+    DATA.forEach((d) => {
+      if (!kelompok.has(d[1])) kelompok.set(d[1], []);
+      kelompok.get(d[1]).push(d);
+    });
+    let pertama = true;
+    for (const [prov, isi] of kelompok) {
+      const kepala = document.createElement("p");
+      kepala.className = "kepala-provinsi";
+      kepala.textContent = prov;
+      wadah.appendChild(kepala);
+      isi.forEach(([nama, p, kode, angka]) => {
+        wadah.appendChild(baris(nama, p, kode, angka, pertama));
+        pertama = false;
+      });
+    }
+    pasangKlik(wadah);
+  })();
+
+  // --- Isi panel detail ---
+  function grafik() {
+    const maks = Math.max(...RIWAYAT);
+    return RIWAYAT.map((n, i) =>
+      '<span class="batang' + (TAHUN[i] === TAHUN_AKTIF ? " aktif" : "") +
+      '" style="height:' + Math.max(2, Math.round((n / maks) * 64)) + 'px" title="' + TAHUN[i] + ': ' + n + '"></span>'
+    ).join("");
+  }
+
+  function relTahun() {
+    return TAHUN.map((t, i) =>
+      '<tr class="' + (t === TAHUN_AKTIF ? "aktif" : "") + '"><td>' + t + "</td><td>" + RIWAYAT[i] + "</td></tr>"
+    ).join("");
+  }
+
+  const ringkas =
+    '<p class="detail-eyebrow">Wilayah terpilih</p>' +
+    '<h2 class="detail-nama">Bogor</h2>' +
+    '<p class="detail-meta">Jawa Barat · kode BPS 3201</p>';
+
+  const grafikDanRel =
+    '<div class="grafik">' + grafik() + "</div>" +
+    '<div class="tahun-rel"><span>2010</span><span>2024</span></div>';
+
+  // Detail 1: kepala melekat, tabel panjang di bawah.
+  document.getElementById("detail1").innerHTML =
+    '<div class="kepala-lekat">' + ringkas +
+      '<p class="detail-angka">128</p>' +
+      '<p class="detail-satuan">kejadian pada 2024</p>' +
+    "</div>" +
+    grafikDanRel +
+    '<button class="tombol-utama" type="button">Buka wilayah di peta</button>' +
+    '<table class="tabel"><thead><tr><th>Tahun</th><th>Kejadian</th></tr></thead><tbody>' + relTahun() + "</tbody></table>";
+
+  // Detail 2: tanpa gulir, tabel dilipat.
+  document.getElementById("detail2").innerHTML =
+    ringkas +
+    '<p class="detail-angka">128</p>' +
+    '<p class="detail-satuan">kejadian pada 2024</p>' +
+    grafikDanRel +
+    '<button class="tombol-utama" type="button">Buka wilayah di peta</button>' +
+    '<div class="lipat">' +
+      '<button class="tombol-lipat" type="button" aria-expanded="false">Rincian 15 tahun <span class="tanda">⌄</span></button>' +
+      '<div class="isi-lipat"><table class="tabel"><thead><tr><th>Tahun</th><th>Kejadian</th></tr></thead><tbody>' + relTahun() + "</tbody></table></div>" +
+    "</div>";
+
+  const lipat = document.querySelector("#detail2 .tombol-lipat");
+  lipat.addEventListener("click", () => {
+    const buka = lipat.getAttribute("aria-expanded") !== "true";
+    lipat.setAttribute("aria-expanded", String(buka));
+    document.querySelector("#detail2 .isi-lipat").classList.toggle("buka", buka);
+  });
+
+  // Detail 3: kepala tetap, tabel bergulir dengan kepala kolom melekat.
+  document.getElementById("detail3").innerHTML =
+    '<div class="kepala-tetap">' + ringkas +
+      '<p class="detail-angka">128</p>' +
+      '<p class="detail-satuan">kejadian pada 2024</p>' +
+      grafikDanRel +
+    "</div>" +
+    '<div class="rel"><table class="tabel"><thead><tr><th>Tahun</th><th>Kejadian</th></tr></thead><tbody>' + relTahun() + "</tbody></table></div>" +
+    '<div class="kaki-tetap">' +
+      '<button class="tombol-utama" type="button">Buka wilayah di peta</button>' +
+    "</div>";
+
+  // Tahun aktif langsung berada di tengah rel.
+  const rel = document.querySelector("#detail3 .rel");
+  const aktif = rel.querySelector("tbody tr.aktif");
+  if (aktif) rel.scrollTop = aktif.offsetTop - rel.clientHeight / 2 + aktif.offsetHeight / 2;
+</script>
+
+</body>
+</html>

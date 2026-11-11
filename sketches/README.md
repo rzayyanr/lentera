@@ -8,6 +8,7 @@ Empat arah visual, semuanya dirender dengan peta Indonesia asli dan data BNPB 20
 | 002-gelap-operasional | Tema gelap, padat, seperti alat kerja | Dieksplorasi |
 | 003-peta-dulu | Peta penuh layar, tema terang sejuk | Dieksplorasi |
 | 004-gabungan-peta-editorial | Peta penuh layar dengan gaya editorial | Dipilih untuk tampilan pertama |
+| 011-gulir-daftar-wilayah | Tiga variasi gulir untuk daftar wilayah dan panel detail | Dieksplorasi |
 
 ## Keputusan
 
