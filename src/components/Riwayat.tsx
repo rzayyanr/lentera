@@ -12,6 +12,7 @@
 
 import { useMemo, useState } from "react";
 import DaftarKejadianJatim from "./DaftarKejadianJatim";
+import PemilihWilayah from "./PemilihWilayah";
 import {
   LABEL_UKURAN,
   cakupanProvinsi,
@@ -52,9 +53,15 @@ export default function Riwayat({ siap, provAwal = "35", onPilihKejadian }: Prop
   // aktif diturunkan saat render, bukan disinkronkan lewat efek.
   const tabAktif = adaRincian ? tab : "tahunan";
 
-  const daftarProvinsi = useMemo(() => {
+  const butirProvinsi = useMemo(() => {
     if (!siap) return [];
-    return [...siap.provinsi].sort((a, b) => a.nama.localeCompare(b.nama, "id"));
+    return [...siap.provinsi]
+      .sort((a, b) => a.nama.localeCompare(b.nama, "id"))
+      .map((p) => ({
+        kode: p.kode,
+        nama: namaProvinsiRapi(p.nama),
+        sub: `${siap.perProvinsi.get(p.kode)?.length ?? 0} kabupaten/kota`,
+      }));
   }, [siap]);
 
   const namaProvinsi = siap
@@ -100,24 +107,17 @@ export default function Riwayat({ siap, provAwal = "35", onPilihKejadian }: Prop
         </p>
 
         <div className="riwayat-kepala-aksi">
-          <label className="riwayat-pemilih-wadah">
+          <div className="riwayat-pemilih-wadah">
             <span className="penyaring-label">PROVINSI</span>
-            <div className="select-wadah-riwayat">
-              <select
-                className="select-riwayat"
-                value={prov}
-                onChange={(e) => setProv(e.target.value)}
-                aria-label="Pilih provinsi"
-              >
-                {daftarProvinsi.map((p) => (
-                  <option key={p.kode} value={p.kode}>
-                    {namaProvinsiRapi(p.nama)}
-                  </option>
-                ))}
-              </select>
-              <span className="panah-select" aria-hidden="true">▾</span>
-            </div>
-          </label>
+            <PemilihWilayah
+              idAwalan="riwayat-provinsi"
+              butir={butirProvinsi}
+              nilai={prov}
+              onPilih={setProv}
+              placeholder="Pilih provinsi"
+              label="Provinsi"
+            />
+          </div>
 
           <div className="riwayat-tab-bar" role="tablist" aria-label="Jenis riwayat">
             <button

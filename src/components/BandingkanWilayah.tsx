@@ -1,5 +1,13 @@
 import { useMemo, useState } from "react";
-import { fmt, ambilNilai, type DataLentera, type Wilayah } from "../lib/data";
+import PemilihWilayah from "./PemilihWilayah";
+import {
+  fmt,
+  ambilNilai,
+  namaProvinsiRapi,
+  namaWilayahRapi,
+  type DataLentera,
+  type Wilayah,
+} from "../lib/data";
 
 interface Props {
   siap: DataLentera | null;
@@ -14,6 +22,18 @@ export default function BandingkanWilayah({ siap }: Props) {
     return siap?.meta.tahun ?? [
       2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024
     ];
+  }, [siap]);
+
+  // Daftar 510 wilayah untuk pemilih. Nama dirapikan supaya tidak tampil
+  // huruf besar semua di panel pencarian.
+  const butirWilayah = useMemo(() => {
+    if (!siap) return [];
+    const namaProv = new Map(siap.provinsi.map((p) => [p.kode, namaProvinsiRapi(p.nama)]));
+    return siap.wilayah.map((w) => ({
+      kode: w.kode,
+      nama: namaWilayahRapi(w.nama),
+      sub: namaProv.get(w.prov) ?? "",
+    }));
   }, [siap]);
 
   const wilayahA = useMemo<Wilayah | null>(() => {
@@ -137,49 +157,27 @@ export default function BandingkanWilayah({ siap }: Props) {
         {/* 3 Baris Pemilih Dropdown */}
         <div className="baris-pemilih-komparasi">
           <div className="item-pemilih-komparasi">
-            <label htmlFor="pilih-wilayah-a" className="label-input-kapital">
-              WILAYAH A
-            </label>
-            <div className="wadah-select-kustom">
-              <select
-                id="pilih-wilayah-a"
-                className="select-komparasi"
-                value={kodeA}
-                onChange={(e) => setKodeA(e.target.value)}
-              >
-                {siap?.wilayah.map((w) => (
-                  <option key={`a-${w.kode}`} value={w.kode}>
-                    {w.nama} · {siap.provinsi.find((p) => p.kode === w.prov)?.nama ?? ""}
-                  </option>
-                )) ?? (
-                  <option value="3201">Bogor · Jawa Barat</option>
-                )}
-              </select>
-              <span className="panah-dropdown" aria-hidden="true">▾</span>
-            </div>
+            <span className="label-input-kapital">WILAYAH A</span>
+            <PemilihWilayah
+              idAwalan="bandingkan-a"
+              butir={butirWilayah}
+              nilai={kodeA}
+              onPilih={setKodeA}
+              placeholder="Pilih kabupaten atau kota"
+              label="Wilayah A"
+            />
           </div>
 
           <div className="item-pemilih-komparasi">
-            <label htmlFor="pilih-wilayah-b" className="label-input-kapital">
-              WILAYAH B
-            </label>
-            <div className="wadah-select-kustom">
-              <select
-                id="pilih-wilayah-b"
-                className="select-komparasi"
-                value={kodeB}
-                onChange={(e) => setKodeB(e.target.value)}
-              >
-                {siap?.wilayah.map((w) => (
-                  <option key={`b-${w.kode}`} value={w.kode}>
-                    {w.nama} · {siap.provinsi.find((p) => p.kode === w.prov)?.nama ?? ""}
-                  </option>
-                )) ?? (
-                  <option value="1610">Ogan Ilir · Sumatera Selatan</option>
-                )}
-              </select>
-              <span className="panah-dropdown" aria-hidden="true">▾</span>
-            </div>
+            <span className="label-input-kapital">WILAYAH B</span>
+            <PemilihWilayah
+              idAwalan="bandingkan-b"
+              butir={butirWilayah}
+              nilai={kodeB}
+              onPilih={setKodeB}
+              placeholder="Pilih kabupaten atau kota"
+              label="Wilayah B"
+            />
           </div>
 
           <div className="item-pemilih-komparasi">

@@ -226,6 +226,18 @@ export function namaProvinsiRapi(nama: string): string {
     .join(" ");
 }
 
+/**
+ * Nama kabupaten/kota juga tersimpan huruf besar. Di sini tidak ada aturan
+ * singkatan, jadi cukup huruf awal tiap kata yang dibesarkan.
+ */
+export function namaWilayahRapi(nama: string): string {
+  return nama
+    .toLowerCase()
+    .split(" ")
+    .map((kata) => (kata ? kata.charAt(0).toUpperCase() + kata.slice(1) : kata))
+    .join(" ");
+}
+
 /** Label pendek untuk status cakupan, dipakai di tabel dan panel. */
 export function labelStatusCakupan(status: StatusCakupan): string {
   if (status === "rinci") return "Rinci per kejadian";
