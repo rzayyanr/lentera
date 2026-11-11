@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Redesign Halaman Transparansi Bantuan — Lentera</title>
+<style>
+  :root {
+    --panggung: #f4f0e6; --kartu: #fbfaf7; --tinta: #16181c; --redup: #6c6a63;
+    --garis: #e3ded2; --garis-tipis: #ece8dd; --aksen: #0e5c58; --aksen-muda: #e8f1ee;
+    --resmi: #1f5f8b; --resmi-bg: rgba(31,95,139,.08);
+    --warga: #9e5900; --warga-bg: rgba(158,89,0,.09);
+    --komunitas: #6b4e9e; --komunitas-bg: rgba(107,78,158,.09);
+    --sorot: #f1ece0; --bayangan-kartu: 0 4px 14px rgba(60,50,30,.08);
+    --font: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  [hidden] { display: none !important; }
+  body { font-family: var(--font); background: var(--panggung); color: var(--tinta); line-height: 1.55; -webkit-font-smoothing: antialiased; padding: 24px 20px 80px; }
+  .wadah { max-width: 1180px; margin: 0 auto; }
+  .eyebrow { font-size: 10px; font-weight: 700; letter-spacing: .9px; text-transform: uppercase; color: var(--redup); }
+  h1.page { font-size: 25px; font-weight: 600; letter-spacing: -.02em; margin: 4px 0 6px; }
+  .deskripsi { font-size: 13px; color: var(--redup); max-width: 780px; }
+  .pengalih { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0; }
+  .segmen { display: inline-flex; background: var(--kartu); border: 1px solid var(--garis); border-radius: 10px; padding: 3px; gap: 2px; }
+  .segmen button { border: 0; background: transparent; font-family: var(--font); font-size: 12.5px; padding: 7px 13px; border-radius: 7px; cursor: pointer; color: var(--redup); }
+  .segmen button[aria-pressed="true"] { background: var(--tinta); color: #fff; font-weight: 600; }
+
+  .bingkai { background: var(--kartu); border: 1px solid var(--garis); border-radius: 16px; box-shadow: var(--bayangan-kartu); overflow: clip; }
+
+  .kepala { padding: 26px 32px 22px; border-bottom: 1px solid var(--garis-tipis); }
+  .kepala h2 { font-size: 27px; font-weight: 600; letter-spacing: -.025em; margin: 6px 0 8px; }
+  .kepala p { font-size: 13px; color: var(--redup); max-width: 660px; }
+
+  .badge { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 600; letter-spacing: .3px; padding: 3px 8px; border-radius: 4px; border: 1px solid transparent; white-space: nowrap; }
+  .b-resmi { color: var(--resmi); background: var(--resmi-bg); border-color: rgba(31,95,139,.35); }
+  .b-warga { color: var(--warga); background: var(--warga-bg); border-color: rgba(158,89,0,.35); }
+  .b-komunitas { color: var(--komunitas); background: var(--komunitas-bg); border-color: rgba(107,78,158,.35); }
+  .b-netral { color: var(--redup); background: #f2eee4; border-color: var(--garis); }
+
+  .catatan-contoh { display: inline-flex; align-items: center; gap: 6px; font-size: 10.5px; color: var(--redup); background: #f7f1e2; border: 1px solid #e4d6b8; border-radius: 6px; padding: 4px 9px; }
+
+  /* ---------- Varian 1: dua kolom sejajar ---------- */
+  .dua { display: grid; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 900px) { .dua { grid-template-columns: 1fr; } }
+  .dua > section { padding: 20px 24px 26px; }
+  .dua > section + section { border-left: 1px solid var(--garis-tipis); }
+  @media (max-width: 900px) { .dua > section + section { border-left: 0; border-top: 3px double var(--garis); } }
+  .dua-kepala { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .dua-judul { font-size: 15px; font-weight: 600; margin: 8px 0 4px; }
+  .dua-sub { font-size: 11.5px; color: var(--redup); margin-bottom: 14px; }
+  .baris-entri { padding: 12px 0; border-bottom: 1px solid var(--garis-tipis); }
+  .baris-entri:last-child { border-bottom: 0; }
+  .baris-atas { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .baris-nama { font-size: 12.5px; font-weight: 500; }
+  .baris-angka { font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .baris-meta { font-size: 10.5px; color: var(--redup); margin-top: 2px; }
+  .baris-tautan { font-size: 10.5px; color: var(--aksen); font-weight: 600; text-decoration: none; }
+  .dua-kaki { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--garis); font-size: 11px; color: var(--redup); }
+  .pemisah-tengah { display: flex; align-items: center; justify-content: center; }
+  .tidak-dijumlah { padding: 12px 32px; background: #f7f1e2; border-top: 1px solid #e4d6b8; font-size: 11.5px; color: #6b5a30; }
+
+  /* ---------- Varian 2: ledger ---------- */
+  .ledger-kendali { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 14px 24px; border-bottom: 1px solid var(--garis-tipis); }
+  .chip { border: 1px solid var(--garis); background: #fff; color: var(--redup); border-radius: 999px; padding: 5px 12px; font-family: var(--font); font-size: 11.5px; cursor: pointer; }
+  .chip[aria-pressed="true"] { background: var(--tinta); border-color: var(--tinta); color: #fff; font-weight: 600; }
+  .ledger-kendali .kanan { margin-left: auto; font-size: 11px; color: var(--redup); }
+  .total-baris { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--garis-tipis); }
+  .total-baris > div { background: var(--kartu); padding: 14px 24px; }
+  .total-baris b { display: block; font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .total-baris span { font-size: 10.5px; color: var(--redup); }
+  .tabel { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .tabel th { text-align: left; font-size: 9.5px; letter-spacing: .5px; text-transform: uppercase; color: var(--redup); padding: 10px 12px; border-bottom: 1px solid var(--garis); background: var(--kartu); position: sticky; top: 0; }
+  .tabel td { padding: 10px 12px; border-bottom: 1px solid var(--garis-tipis); vertical-align: top; }
+  .tabel td:last-child, .tabel th:last-child { text-align: right; }
+  .tabel .tebal { font-weight: 500; }
+  .tabel .sub { display: block; font-size: 10.5px; color: var(--redup); }
+  .tabel-wrap { max-height: 420px; overflow: auto; }
+
+  /* ---------- Varian 3: alur verifikasi ---------- */
+  .alur { display: grid; grid-template-columns: minmax(0,1fr) 320px; }
+  @media (max-width: 900px) { .alur { grid-template-columns: 1fr; } }
+  .alur-kiri { padding: 20px 24px 26px; }
+  .alur-kanan { padding: 20px 24px 26px; border-left: 1px solid var(--garis-tipis); background: linear-gradient(180deg,#fff,var(--kartu)); }
+  @media (max-width: 900px) { .alur-kanan { border-left: 0; border-top: 1px solid var(--garis-tipis); } }
+  .feed { display: flex; flex-direction: column; gap: 10px; }
+  .kartu-feed { border: 1px solid var(--garis); border-radius: 11px; padding: 13px 14px; background: #fff; }
+  .kartu-feed.terverifikasi { border-left: 3px solid var(--aksen); }
+  .feed-kepala { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .feed-judul { font-size: 13px; font-weight: 600; margin: 0 0 3px; }
+  .feed-meta { font-size: 10.5px; color: var(--redup); margin-bottom: 6px; }
+  .feed-isi { font-size: 12px; color: #3f423f; }
+  .feed-kaki { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 9px; font-size: 10.5px; color: var(--redup); }
+  .langkah { display: flex; align-items: center; gap: 6px; margin-top: 10px; }
+  .langkah span { flex: 1; height: 3px; border-radius: 2px; background: var(--garis); }
+  .langkah span.lewat { background: var(--aksen); }
+  .aturan h3 { font-size: 12px; font-weight: 700; letter-spacing: .3px; margin-bottom: 8px; }
+  .aturan ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .aturan li { display: flex; gap: 8px; font-size: 11.5px; color: #3f423f; }
+  .aturan li::before { content: "•"; color: var(--aksen); }
+  .aturan-kaki { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--garis-tipis); }
+  .tombol { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--aksen); background: var(--aksen); color: #fff; font-family: var(--font); font-size: 12px; font-weight: 600; padding: 8px 14px; border-radius: 8px; cursor: pointer; }
+
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--tinta); color: #fff; font-size: 12.5px; padding: 10px 16px; border-radius: 8px; opacity: 0; pointer-events: none; transition: opacity .18s; }
+  .toast.tampil { opacity: 1; }
+  .catatan-akhir { margin-top: 26px; font-size: 11.5px; color: var(--redup); line-height: 1.6; max-width: 900px; }
+  .catatan-akhir b { color: var(--tinta); }
+</style>
+</head>
+<body>
+<div class="wadah">
+  <div>
+    <p class="eyebrow">Eksplorasi Halaman</p>
+    <h1 class="page">Transparansi Bantuan — tiga arah desain</h1>
+    <p class="deskripsi">
+      Halaman yang sama: dua lapisan bantuan yang tidak pernah dicampur. Yang berbeda: cara membuktikannya ke pembaca.
+      Semua angka dan entri di bawah adalah contoh isi, sama seperti versi aplikasi sekarang.
+    </p>
+  </div>
+
+  <div class="pengalih">
+    <div class="segmen" id="segmen">
+      <button type="button" data-varian="1" aria-pressed="true">1 · Dua kolom sejajar</button>
+      <button type="button" data-varian="2" aria-pressed="false">2 · Ledger berfilter</button>
+      <button type="button" data-varian="3" aria-pressed="false">3 · Alur verifikasi</button>
+    </div>
+  </div>
+
+  <!-- ==================== VARIAN 1 ==================== -->
+  <section class="bingkai" data-panel="1">
+    <div class="kepala">
+      <p class="eyebrow">Transparansi bantuan</p>
+      <h2>Dua lapisan bantuan, tidak pernah dicampur</h2>
+      <p>
+        Bantuan pemerintah daerah dan catatan warga berdiri sendiri-sendiri. Keduanya memakai satuan
+        berbeda, jadi tidak bisa dijumlahkan — dan memang tidak pernah dijumlahkan.
+      </p>
+    </div>
+
+    <div class="dua">
+      <section>
+        <div class="dua-kepala">
+          <span class="badge b-resmi">Data resmi</span>
+          <span class="catatan-contoh">contoh isi</span>
+        </div>
+        <h3 class="dua-judul">Bantuan pemerintah daerah</h3>
+        <p class="dua-sub">Diterbitkan instansi, setiap baris wajib punya dokumen sumber.</p>
+
+        <div class="baris-entri">
+          <div class="baris-atas"><span class="baris-nama">Bantuan sosial tunai</span><span class="baris-angka">1.240 KK</span></div>
+          <div class="baris-meta">Kota Surabaya · Jan–Jun 2025 · Pemkot Surabaya</div>
+          <a class="baris-tautan" href="#" onclick="event.preventDefault();pesan('Membuka dokumen sumber')">Dokumen sumber ↗</a>
+        </div>
+
+        <div class="baris-entri">
+          <div class="baris-atas"><span class="baris-nama">Bantuan pangan non-tunai</span><span class="baris-angka">860 KK</span></div>
+          <div class="baris-meta">Kota Surabaya · Triwulan III 2025 · Pemkot Surabaya</div>
+          <a class="baris-tautan" href="#" onclick="event.preventDefault();pesan('Membuka dokumen sumber')">Dokumen sumber ↗</a>
+        </div>
+
+        <div class="baris-entri">
+          <div class="baris-atas"><span class="baris-nama">Renovasi rumah tidak layak</span><span class="baris-angka">74 unit</span></div>
+          <div class="baris-meta">Kota Surabaya · 2024 · Pemkot Surabaya</div>
+          <a class="baris-tautan" href="#" onclick="event.preventDefault();pesan('Membuka dokumen sumber')">Dokumen sumber ↗</a>
+        </div>
+
+        <div class="baris-entri">
+          <div class="baris-atas"><span class="baris-nama">Logistik posko bencana</span><span class="baris-angka">12 posko</span></div>
+          <div class="baris-meta">Kota Surabaya · Desember 2025 · BPBD Kota Surabaya</div>
+          <a class="baris-tautan" href="#" onclick="event.preventDefault();pesan('Membuka dokumen sumber')">Dokumen sumber ↗</a>
+        </div>
+
+        <p class="dua-kaki">Entri tanpa tautan dokumen tidak diterbitkan di lapisan ini.</p>
+      </section>
+
+      <section>
+        <div class="dua-kepala">
+          <span class="badge b-komunitas">Catatan komunitas</span>
+          <span class="catatan-contoh">contoh isi</span>
+        </div>
+        <h3 class="dua-judul">Catatan dari warga dan relawan</h3>
+        <p class="dua-sub">Tidak diterbitkan instansi. Status verifikasi selalu terlihat.</p>
+
+        <div class="baris-entri">
+          <div class="baris-atas"><span class="baris-nama">Posko pengungsi di Balai Desa Sukapura</span><span class="badge b-netral">Belum diverifikasi</span></div>
+          <div class="baris-meta">Probolinggo Kabupaten · 31 Desember 2025</div>
+          <div class="baris-meta">Tenda sudah berdiri, kebutuhan air bersih masih kurang. · Dikirim warga</div>
+        </div>
+
+        <div class="baris-entri">
+          <div class="baris-atas"><span class="baris-nama">Jalur evakuasi tertutup material</span><span class="badge b-resmi">Sudah diverifikasi</span></div>
+          <div class="baris-meta">Lumajang Kabupaten · 23 Desember 2025</div>
+          <div class="baris-meta">Akses dari arah utara tidak bisa dilewati roda empat. · Dikirim relawan</div>
+        </div>
+
+        <div class="baris-entri">
+          <div class="baris-atas"><span class="baris-nama">Dapur umum di Kecamatan Grati</span><span class="badge b-netral">Belum diverifikasi</span></div>
+          <div class="baris-meta">Pasuruan Kabupaten · 31 Desember 2025</div>
+          <div class="baris-meta">Mulai beroperasi pukul 15.00, menerima sumbangan beras. · Dikirim warga</div>
+        </div>
+
+        <p class="dua-kaki">Tidak memakai nama lengkap penulis, hanya sampai tingkat desa.</p>
+      </section>
+    </div>
+
+    <p class="tidak-dijumlah">
+      Dua lapisan ini tidak pernah dijumlahkan: satu memakai satuan penerima dan unit, satu lagi
+      berupa keterangan lapangan. Tidak ada total gabungan, karena total gabungan itu tidak punya arti.
+    </p>
+  </section>
+
+  <!-- ==================== VARIAN 2 ==================== -->
+  <section class="bingkai" data-panel="2" hidden>
+    <div class="kepala">
+      <p class="eyebrow">Transparansi bantuan</p>
+      <h2>Satu daftar, dua lapisan, dua total</h2>
+      <p>
+        Semua entri bantuan dalam satu tabel, dengan kolom lapisan yang selalu terlihat. Totalnya
+        dihitung per lapisan, tidak pernah digabung.
+      </p>
+    </div>
+
+    <div class="total-baris">
+      <div><b>4 entri</b><span>Data resmi · 2.174 penerima dan unit, tidak dijumlah ke lapisan lain</span></div>
+      <div><b>3 catatan</b><span>Catatan komunitas · 1 sudah diverifikasi, 2 belum</span></div>
+    </div>
+
+    <div class="ledger-kendali">
+      <button class="chip" data-saring="semua" aria-pressed="true">Semua (7)</button>
+      <button class="chip" data-saring="resmi" aria-pressed="false">Data resmi (4)</button>
+      <button class="chip" data-saring="komunitas" aria-pressed="false">Catatan komunitas (3)</button>
+      <span class="kanan">contoh isi, bukan data terbit</span>
+    </div>
+
+    <div class="tabel-wrap">
+      <table class="tabel">
+        <thead>
+          <tr>
+            <th style="width:14%">Lapisan</th>
+            <th style="width:30%">ENTRI</th>
+            <th style="width:22%">WILAYAH</th>
+            <th style="width:20%">PERIODE</th>
+            <th style="width:14%">JUMLAH</th>
+          </tr>
+        </thead>
+        <tbody id="isi-ledger"></tbody>
+      </table>
+    </div>
+
+    <p class="tidak-dijumlah">
+      Baris "2.174 penerima dan unit" adalah penjumlahan di dalam lapisan resmi saja. Lapisan
+      komunitas tidak punya satuan yang sama, jadi tidak ikut dijumlahkan.
+    </p>
+  </section>
+
+  <!-- ==================== VARIAN 3 ==================== -->
+  <section class="bingkai" data-panel="3" hidden>
+    <div class="kepala">
+      <p class="eyebrow">Transparansi bantuan</p>
+      <h2>Setiap catatan punya jejak pemeriksaan</h2>
+      <p>
+        Catatan warga tidak langsung tampil. Setiap kartu memperlihatkan sampai tahap mana sebuah
+        catatan diperiksa, dan aturan lapisan ditulis di sisi kanan.
+      </p>
+    </div>
+
+    <div class="alur">
+      <div class="alur-kiri">
+        <div class="feed" id="feed"></div>
+      </div>
+
+      <aside class="alur-kanan">
+        <div class="aturan">
+          <h3>ATURAN CATATAN KOMUNITAS</h3>
+          <ul>
+            <li>Tidak memakai nama lengkap penulis.</li>
+            <li>Ditampilkan sampai tingkat desa saja.</li>
+            <li>Status verifikasi selalu terlihat.</li>
+            <li>Tidak pernah mengubah angka resmi di peta.</li>
+            <li>Tidak dijumlahkan dengan penerima bantuan pemerintah.</li>
+          </ul>
+        </div>
+
+        <div class="aturan-kaki">
+          <h3>PUNYA INFORMASI LAPANGAN?</h3>
+          <p style="font-size:11.5px;color:var(--redup);margin-bottom:10px">
+            Kirim lewat formulir laporan. Catatan tampil setelah ditinjau moderator.
+          </p>
+          <button class="tombol" type="button" onclick="pesan('Membuka formulir laporan')">
+            Kirim catatan →
+          </button>
+        </div>
+
+        <div class="aturan-kaki">
+          <h3>DATA RESMI</h3>
+          <p style="font-size:11.5px;color:var(--redup)">
+            4 entri pemerintah daerah dengan dokumen sumber, ditampilkan terpisah dari catatan warga.
+          </p>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <p class="catatan-akhir">
+    <b>Cara menilai:</b> coba pindahkan fokus ke dua hal — apakah pembaca langsung paham bahwa dua
+    lapisan ini tidak boleh dijumlahkan, dan apakah status verifikasi terbaca tanpa harus membuka
+    entri satu per satu.
+  </p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const ENTRI = [
+  { lapisan: "resmi", judul: "Bantuan sosial tunai", wilayah: "Kota Surabaya", periode: "Jan–Jun 2025", jumlah: "1.240 KK", sumber: "Pemkot Surabaya" },
+  { lapisan: "resmi", judul: "Bantuan pangan non-tunai", wilayah: "Kota Surabaya", periode: "Triwulan III 2025", jumlah: "860 KK", sumber: "Pemkot Surabaya" },
+  { lapisan: "resmi", judul: "Renovasi rumah tidak layak", wilayah: "Kota Surabaya", periode: "2024", jumlah: "74 unit", sumber: "Pemkot Surabaya" },
+  { lapisan: "resmi", judul: "Logistik posko bencana", wilayah: "Kota Surabaya", periode: "Desember 2025", jumlah: "12 posko", sumber: "BPBD Kota Surabaya" },
+  { lapisan: "komunitas", judul: "Posko pengungsi di Balai Desa Sukapura", wilayah: "Probolinggo Kabupaten", periode: "31 Desember 2025", jumlah: "Catatan", status: "Belum diverifikasi" },
+  { lapisan: "komunitas", judul: "Jalur evakuasi tertutup material", wilayah: "Lumajang Kabupaten", periode: "23 Desember 2025", jumlah: "Catatan", status: "Sudah diverifikasi" },
+  { lapisan: "komunitas", judul: "Dapur umum di Kecamatan Grati", wilayah: "Pasuruan Kabupaten", periode: "31 Desember 2025", jumlah: "Catatan", status: "Belum diverifikasi" },
+];
+
+const FEED = [
+  { judul: "Posko pengungsi di Balai Desa Sukapura", wilayah: "Probolinggo Kabupaten · 31 Desember 2025", isi: "Tenda sudah berdiri, kebutuhan air bersih masih kurang.", status: "Belum diverifikasi", oleh: "Dikirim warga", tahap: 1 },
+  { judul: "Jalur evakuasi tertutup material", wilayah: "Lumajang Kabupaten · 23 Desember 2025", isi: "Akses dari arah utara tidak bisa dilewati kendaraan roda empat.", status: "Sudah diverifikasi", oleh: "Dikirim relawan", tahap: 3 },
+  { judul: "Dapur umum di Kecamatan Grati", wilayah: "Pasuruan Kabupaten · 31 Desember 2025", isi: "Mulai beroperasi pukul 15.00, menerima sumbangan beras.", status: "Belum diverifikasi", oleh: "Dikirim warga", tahap: 1 },
+];
+
+const toast = document.getElementById("toast");
+let timer = null;
+function pesan(teks) {
+  toast.textContent = teks;
+  toast.classList.add("tampil");
+  clearTimeout(timer);
+  timer = setTimeout(() => toast.classList.remove("tampil"), 1500);
+}
+
+/* Varian 2 */
+function labelLapisan(l) {
+  return l === "resmi"
+    ? '<span class="badge b-resmi">Data resmi</span>'
+    : '<span class="badge b-komunitas">Komunitas</span>';
+}
+
+function gambarLedger(saring) {
+  const isi = document.getElementById("isi-ledger");
+  const baris = ENTRI.filter((e) => saring === "semua" || e.lapisan === saring);
+  isi.innerHTML = baris
+    .map(
+      (e) => `<tr>
+        <td>${labelLapisan(e.lapisan)}</td>
+        <td class="tebal">${e.judul}${e.sumber ? `<span class="sub">${e.sumber}</span>` : `<span class="sub">${e.status}</span>`}</td>
+        <td>${e.wilayah}</td>
+        <td>${e.periode}</td>
+        <td>${e.jumlah}</td>
+      </tr>`,
+    )
+    .join("");
+}
+
+document.querySelectorAll(".chip").forEach((c) => {
+  c.addEventListener("click", () => {
+    document.querySelectorAll(".chip").forEach((x) => x.setAttribute("aria-pressed", String(x === c)));
+    gambarLedger(c.dataset.saring);
+  });
+});
+gambarLedger("semua");
+
+/* Varian 3 */
+document.getElementById("feed").innerHTML = FEED.map(
+  (f) => `<article class="kartu-feed ${f.status === "Sudah diverifikasi" ? "terverifikasi" : ""}">
+    <div class="feed-kepala">
+      <span class="badge ${f.status === "Sudah diverifikasi" ? "b-resmi" : "b-netral"}">${f.status}</span>
+      <span class="badge b-komunitas">Catatan komunitas</span>
+    </div>
+    <h3 class="feed-judul">${f.judul}</h3>
+    <p class="feed-meta">${f.wilayah}</p>
+    <p class="feed-isi">${f.isi}</p>
+    <div class="langkah">
+      <span class="${f.tahap >= 1 ? "lewat" : ""}"></span>
+      <span class="${f.tahap >= 2 ? "lewat" : ""}"></span>
+      <span class="${f.tahap >= 3 ? "lewat" : ""}"></span>
+    </div>
+    <div class="feed-kaki">
+      <span>${f.oleh}</span>
+      <span>Diterima → ditinjau → ${f.status === "Sudah diverifikasi" ? "terbit" : "menunggu"}</span>
+    </div>
+  </article>`,
+).join("");
+
+document.getElementById("segmen").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-varian]");
+  if (!b) return;
+  const v = b.dataset.varian;
+  [...e.currentTarget.querySelectorAll("button")].forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  document.querySelectorAll("[data-panel]").forEach((p) => { p.hidden = p.dataset.panel !== v; });
+});
+</script>
+</body>
+</html>
