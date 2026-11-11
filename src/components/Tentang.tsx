@@ -9,8 +9,10 @@ import {
   type DataLentera,
 } from "../lib/data";
 
+type SubHalamanTentang = "utama" | "sumber" | "integritas" | "keterbatasan" | "tim";
+
 interface Props {
-  subHalamanAwal?: "utama" | "sumber" | "integritas" | "keterbatasan";
+  subHalamanAwal?: SubHalamanTentang;
   siap?: DataLentera | null;
 }
 
@@ -21,9 +23,7 @@ const URUTAN_STATUS: Record<string, number> = {
 };
 
 export default function Tentang({ subHalamanAwal = "utama", siap }: Props) {
-  const [subHalaman, setSubHalaman] = useState<
-    "utama" | "sumber" | "integritas" | "keterbatasan"
-  >(subHalamanAwal);
+  const [subHalaman, setSubHalaman] = useState<SubHalamanTentang>(subHalamanAwal);
 
   // Tabel cakupan diurutkan menurut status, lalu kode provinsi, supaya
   // pembaca melihat lebih dulu mana yang sudah tersedia.
@@ -55,83 +55,150 @@ export default function Tentang({ subHalamanAwal = "utama", siap }: Props) {
             ============================================================== */}
         {subHalaman === "utama" && (
           <div data-node-id="12:412" data-name="12 · Tentang dan sumber data">
-            <p className="remah-kategori">TENTANG DAN SUMBER DATA</p>
-            <h1 className="judul-halaman-utama">Setiap angka di Lentera bisa ditelusuri</h1>
+            <p className="remah-kategori">TENTANG</p>
+            <h1 className="judul-halaman-utama">
+              Peta dampak bencana yang selalu menyebut asal angkanya
+            </h1>
             <p className="deskripsi-halaman-utama">
-              Halaman ini menjelaskan dari mana angkanya datang, bagaimana ia diolah, dan bagian mana yang belum sempurna.
+              Lentera menggabungkan data resmi BNPB, laporan warga, dan catatan bantuan dalam satu
+              tampilan, dengan sumber dan status yang selalu terlihat. Dibuat untuk MIA 2026, tim
+              miamiudua.
             </p>
 
-            {/* 3 Kartu Tautan Bagian */}
-            <div className="grid-tiga-tautan-bagian">
-              <div
-                className="kartu-tautan-seksi"
-                onClick={() => setSubHalaman("sumber")}
-                role="button"
-                tabIndex={0}
-                data-name="Tautan bagian"
-              >
-                <h2 className="judul-kartu-tautan">Daftar sumber</h2>
-                <p className="deskripsi-kartu-tautan">
-                  Enam sumber data, lisensi, dan cakupannya.
-                </p>
-                <span className="tautan-aksi-panah">13 · Daftar sumber →</span>
+            <div className="tt-kpi" data-name="Angka kunci">
+              <div>
+                <b>510</b>
+                <span>kabupaten/kota dipetakan</span>
               </div>
-
-              <div
-                className="kartu-tautan-seksi"
-                onClick={() => setSubHalaman("integritas")}
-                role="button"
-                tabIndex={0}
-                data-name="Tautan bagian"
-              >
-                <h2 className="judul-kartu-tautan">Arti label dan integritas</h2>
-                <p className="deskripsi-kartu-tautan">
-                  Apa yang dimaksud data resmi, laporan warga, dan catatan komunitas.
-                </p>
-                <span className="tautan-aksi-panah">14 · Arti label →</span>
+              <div>
+                <b>38</b>
+                <span>provinsi tercatat</span>
               </div>
-
-              <div
-                className="kartu-tautan-seksi"
-                onClick={() => setSubHalaman("keterbatasan")}
-                role="button"
-                tabIndex={0}
-                data-name="Tautan bagian"
-              >
-                <h2 className="judul-kartu-tautan">Keterbatasan data</h2>
-                <p className="deskripsi-kartu-tautan">
-                  Delapan hal yang perlu diketahui sebelum memakai angka ini.
-                </p>
-                <span className="tautan-aksi-panah">15 · Keterbatasan →</span>
+              <div>
+                <b>22</b>
+                <span>tahun data dampak, 2002–2023</span>
+              </div>
+              <div>
+                <b>9</b>
+                <span>jenis bencana, nasional</span>
               </div>
             </div>
 
-            {/* Seksi Prinsip: Tiga aturan yang tidak dilanggar */}
-            <section className="kartu-prinsip-integritas" data-name="Prinsip">
-              <h2 className="judul-seksi-kartu">Tiga aturan yang tidak dilanggar</h2>
-              <div className="grid-dua-kolom-prinsip">
-                <div className="kolom-prinsip">
-                  <p className="item-prinsip">
-                    Data resmi tidak pernah dicampur dengan laporan warga.
-                  </p>
-                  <p className="item-prinsip">
-                    Angka agregat tidak digambarkan sebagai titik kejadian.
-                  </p>
-                </div>
-                <div className="kolom-prinsip">
-                  <p className="item-prinsip">
-                    Setiap angka menyebut sumber dan tahunnya.
-                  </p>
-                  <p className="item-prinsip">
-                    Wilayah tanpa catatan dibiarkan kosong, bukan diisi nol.
-                  </p>
-                </div>
-              </div>
+            <section className="tt-blok" data-name="Masalah">
+              <p className="tt-tanda">MASALAH YANG DIJAWAB</p>
+              <h2 className="tt-judul">Informasi bencana tidak kurang, tetapi sulit dipercaya</h2>
+              <p className="tt-teks">
+                Data resmi tersedia, tetapi berbentuk 38 berkas Excel per tahun dan dasbor teknis
+                yang tidak dirancang untuk warga. Laporan warga beredar di media sosial tanpa
+                status. Catatan bantuan sulit diperiksa. Warga pun tidak bisa membedakan mana yang
+                resmi, mana yang belum diperiksa, dan mana yang sudah usang.
+              </p>
+              <p className="tt-teks">
+                Lentera menjawab satu hal: <b>kejelasan asal</b>, bukan sekadar peta yang bagus.
+              </p>
+            </section>
 
-              <div className="badge-wrapper-prinsip">
-                <span className="badge-lapisan resmi">Lisensi data BNPB: ODC-BY</span>
+            <section className="tt-blok" data-name="Cara kerja">
+              <p className="tt-tanda">CARA KERJA</p>
+              <h2 className="tt-judul">Tiga lapisan, tidak pernah dicampur</h2>
+              <div className="tt-lapisan">
+                <div>
+                  <span className="badge-lapisan resmi">Data resmi</span>
+                  <b>Tabel dan berkas BNPB</b>
+                  <span>
+                    510 kabupaten 2010–2024 untuk jumlah kejadian, dan berkas statistik wilayah 22
+                    tahun dengan 14 ukuran dampak.
+                  </span>
+                </div>
+                <div>
+                  <span className="badge-lapisan warga">Laporan warga</span>
+                  <b>Akun pelapor terverifikasi</b>
+                  <span>
+                    Masuk antrean moderasi, dan tidak pernah tampil di peta sebelum diperiksa.
+                  </span>
+                </div>
+                <div>
+                  <span className="badge-lapisan komunitas">Catatan komunitas</span>
+                  <b>Posko dan relawan</b>
+                  <span>
+                    Dua lapisan bantuan ditampilkan terpisah: alokasi pemerintah daerah dan catatan
+                    lapangan.
+                  </span>
+                </div>
               </div>
             </section>
+
+            <section className="tt-blok" data-name="Cara membaca">
+              <p className="tt-tanda">CARA MEMBACA APLIKASI</p>
+              <div className="tt-langkah">
+                <div>
+                  <b>1 · Pilih tahun</b>
+                  <span>Angka di peta dan panel mengikuti tahun yang dipilih.</span>
+                </div>
+                <div>
+                  <b>2 · Pilih wilayah</b>
+                  <span>Panel kanan menampilkan angka, riwayat 15 tahun, dan asal datanya.</span>
+                </div>
+                <div>
+                  <b>3 · Periksa sumber</b>
+                  <span>Setiap bagian menyebut tabel BNPB mana yang dipakai.</span>
+                </div>
+              </div>
+            </section>
+
+            <div className="tt-kartu-grid" data-name="Bagian lain">
+              <button
+                type="button"
+                className="tt-kartu"
+                onClick={() => setSubHalaman("sumber")}
+              >
+                <span className="tt-kartu-nomor">01</span>
+                <span className="tt-kartu-judul">Daftar sumber</span>
+                <span className="tt-kartu-isi">
+                  Enam sumber data, lisensi, dan cakupan tiap provinsi.
+                </span>
+                <span className="tt-kartu-panah">Buka bagian →</span>
+              </button>
+
+              <button
+                type="button"
+                className="tt-kartu"
+                onClick={() => setSubHalaman("integritas")}
+              >
+                <span className="tt-kartu-nomor">02</span>
+                <span className="tt-kartu-judul">Arti label dan integritas</span>
+                <span className="tt-kartu-isi">
+                  Apa yang dimaksud data resmi, laporan warga, dan catatan komunitas.
+                </span>
+                <span className="tt-kartu-panah">Buka bagian →</span>
+              </button>
+
+              <button
+                type="button"
+                className="tt-kartu"
+                onClick={() => setSubHalaman("keterbatasan")}
+              >
+                <span className="tt-kartu-nomor">03</span>
+                <span className="tt-kartu-judul">Keterbatasan data</span>
+                <span className="tt-kartu-isi">
+                  Delapan hal yang perlu diketahui sebelum memakai angka ini.
+                </span>
+                <span className="tt-kartu-panah">Buka bagian →</span>
+              </button>
+
+              <button
+                type="button"
+                className="tt-kartu"
+                onClick={() => setSubHalaman("tim")}
+              >
+                <span className="tt-kartu-nomor">04</span>
+                <span className="tt-kartu-judul">Tim dan teknologi</span>
+                <span className="tt-kartu-isi">
+                  Tiga anggota tim miamiudua, tumpukan teknologi, dan lisensi.
+                </span>
+                <span className="tt-kartu-panah">Buka bagian →</span>
+              </button>
+            </div>
           </div>
         )}
 
@@ -497,6 +564,102 @@ export default function Tentang({ subHalamanAwal = "utama", siap }: Props) {
                 <p className="deskripsi-temuan">
                   Nol berarti tidak ada kejadian. Kosong berarti tidak dilaporkan.
                 </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ==============================================================
+            16 · Tim dan teknologi
+            ============================================================== */}
+        {subHalaman === "tim" && (
+          <div data-name="16 · Tim dan teknologi">
+            <button
+              type="button"
+              className="tombol-kembali-teks"
+              onClick={() => setSubHalaman("utama")}
+            >
+              <img src={arrowLeftSvg} alt="" width="14" height="14" />
+              <span>Tentang</span>
+            </button>
+
+            <p className="remah-kategori">TIM DAN TEKNOLOGI</p>
+            <h1 className="judul-halaman-utama">Tiga orang, satu peta yang bisa ditelusuri</h1>
+            <p className="deskripsi-halaman-utama">
+              Lentera dikerjakan tim miamiudua untuk MIA 2026, tema Designing Digital Futures:
+              Powering Public Transparency.
+            </p>
+
+            <div className="kartu-tabel-lapisan" data-name="Tabel tim">
+              <div className="wadah-gulir-tabel">
+                <table className="tabel-bantuan-resmi">
+                  <thead>
+                    <tr>
+                      <th scope="col" style={{ width: "34%" }}>NAMA</th>
+                      <th scope="col" style={{ width: "30%" }}>PERAN</th>
+                      <th scope="col" style={{ width: "36%" }}>BAGIAN YANG DIKERJAKAN</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="tebal-teks">Muhammad Zayyan Rizka</td>
+                      <td>Data dan peta</td>
+                      <td>Pipeline data, peta wilayah, panel detail, berkas submission</td>
+                    </tr>
+                    <tr>
+                      <td className="tebal-teks">Muhammad Bagas Farshaldy</td>
+                      <td>Ketua tim</td>
+                      <td>Formulir laporan warga, penyimpanan laporan, halaman moderator</td>
+                    </tr>
+                    <tr>
+                      <td className="tebal-teks">Muhammad Mumtaaz Raihaan Thaariq</td>
+                      <td>Antarmuka dan pengujian</td>
+                      <td>Halaman bantuan, halaman Tentang, uji perangkat ponsel</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="kartu-tabel-lapisan" data-name="Tabel teknologi">
+              <div className="wadah-gulir-tabel">
+                <table className="tabel-bantuan-resmi">
+                  <thead>
+                    <tr>
+                      <th scope="col" style={{ width: "26%" }}>BAGIAN</th>
+                      <th scope="col" style={{ width: "74%" }}>DIPAKAI</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="tebal-teks">Antarmuka</td>
+                      <td>React 19, Vite 8, TypeScript, DM Sans</td>
+                    </tr>
+                    <tr>
+                      <td className="tebal-teks">Peta</td>
+                      <td>Leaflet, tanpa ubin basemap, tetap berjalan tanpa jaringan</td>
+                    </tr>
+                    <tr>
+                      <td className="tebal-teks">Data</td>
+                      <td>Pipeline statis menjadi berkas JSON, bukan API saat halaman dibuka</td>
+                    </tr>
+                    <tr>
+                      <td className="tebal-teks">Laporan warga</td>
+                      <td>
+                        Supabase untuk akun, tabel laporan, dan berkas bukti. Ada mode lokal supaya
+                        demo tetap jalan tanpa jaringan.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="tebal-teks">Lisensi</td>
+                      <td>Data BNPB ODC-BY, batas wilayah geoBoundaries CC-BY 4.0</td>
+                    </tr>
+                    <tr>
+                      <td className="tebal-teks">Kode sumber</td>
+                      <td>github.com/rzayyanr/lentera</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>

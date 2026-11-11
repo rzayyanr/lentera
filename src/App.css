@@ -2821,6 +2821,10 @@ body {
   margin-bottom: 16px;
 }
 
+.kartu-tabel-lapisan + .kartu-tabel-lapisan {
+  margin-top: 16px;
+}
+
 .kartu-tabel-lapisan {
   background: var(--warna-kartu);
   border: 1px solid var(--warna-garis);
@@ -2834,6 +2838,15 @@ body {
   border-collapse: collapse;
   text-align: left;
 }
+
+/* Di ponsel, tabel berkolom banyak lebih baik digulir menyamping daripada
+   diperas sampai satu kolom hanya selebar 110px. */
+@media (max-width: 640px) {
+  .tabel-bantuan-resmi {
+    min-width: 560px;
+  }
+}
+
 
 .tabel-bantuan-resmi th {
   padding: 16px 20px;
@@ -2935,85 +2948,6 @@ body {
 /* ==========================================================================
    16. SCREENS 12, 13, 14, 15: TENTANG & SUMBER DATA (12:412..12:590)
    ========================================================================== */
-
-.grid-tiga-tautan-bagian {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  margin-bottom: 28px;
-}
-
-.kartu-tautan-seksi {
-  background: var(--warna-kartu);
-  border: 1px solid var(--warna-garis);
-  border-radius: 12px;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease;
-}
-
-.kartu-tautan-seksi:hover {
-  border-color: var(--warna-aksen);
-  transform: translateY(-2px);
-}
-
-.judul-kartu-tautan {
-  font-family: var(--font-sans);
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--warna-tinta);
-  margin: 0 0 8px;
-}
-
-.deskripsi-kartu-tautan {
-  font-family: var(--font-sans);
-  font-size: 12.5px;
-  color: var(--warna-redup);
-  line-height: 1.5;
-  margin: 0 0 20px;
-  flex: 1;
-}
-
-.tautan-aksi-panah {
-  font-family: var(--font-sans);
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--warna-aksen);
-}
-
-.kartu-prinsip-integritas {
-  background: var(--warna-kartu);
-  border: 1px solid var(--warna-garis);
-  border-radius: 12px;
-  padding: 28px;
-}
-
-.grid-dua-kolom-prinsip {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
-  margin-bottom: 20px;
-}
-
-.kolom-prinsip {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.item-prinsip {
-  font-family: var(--font-sans);
-  font-size: 13.5px;
-  color: var(--warna-tinta);
-  line-height: 1.5;
-  margin: 0;
-}
-
-.badge-wrapper-prinsip {
-  display: flex;
-}
 
 .kolom-tiga-lapisan-arti {
   display: flex;
@@ -4479,6 +4413,200 @@ body {
   }
 }
 
+/* ==========================================================================
+   TENTANG: HUB KARTU (varian 2 sketches/007-tentang)
+   ========================================================================== */
+
+.tt-kpi {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 20px 0 28px;
+}
+
+.tt-kpi div {
+  background: var(--warna-kartu);
+  border: 1px solid var(--warna-garis);
+  border-radius: 10px;
+  padding: 12px 14px;
+  box-shadow: var(--bayangan-kartu);
+}
+
+.tt-kpi b {
+  display: block;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+
+.tt-kpi span {
+  font-size: 10.5px;
+  color: var(--warna-redup);
+}
+
+.tt-blok {
+  margin-bottom: 26px;
+  max-width: 760px;
+}
+
+.tt-tanda {
+  margin: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: var(--warna-redup);
+}
+
+.tt-judul {
+  margin: 5px 0 9px;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--warna-tinta);
+}
+
+.tt-teks {
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--warna-redup);
+}
+
+.tt-teks b {
+  color: var(--warna-tinta);
+  font-weight: 600;
+}
+
+.tt-lapisan {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.tt-lapisan > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 14px;
+  background: var(--warna-kartu);
+  border: 1px solid var(--warna-garis);
+  border-radius: 10px;
+}
+
+.tt-lapisan b {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.tt-lapisan span:last-child {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--warna-redup);
+}
+
+.tt-langkah {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.tt-langkah > div {
+  border-left: 2px solid var(--warna-aksen-muda);
+  padding-left: 12px;
+}
+
+.tt-langkah b {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.tt-langkah span {
+  font-size: 11.5px;
+  color: var(--warna-redup);
+}
+
+.tt-kartu-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 30px 0 8px;
+}
+
+.tt-kartu {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
+  padding: 16px;
+  background: var(--warna-kartu);
+  border: 1px solid var(--warna-garis);
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  color: var(--warna-tinta);
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+
+.tt-kartu:hover {
+  border-color: #cfc7b4;
+  transform: translateY(-1px);
+  box-shadow: var(--bayangan-kartu);
+}
+
+.tt-kartu-nomor {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: var(--warna-aksen);
+}
+
+.tt-kartu-judul {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.tt-kartu-isi {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--warna-redup);
+}
+
+.tt-kartu-panah {
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--warna-aksen);
+}
+
+@media (max-width: 1000px) {
+  .tt-kpi {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tt-lapisan,
+  .tt-langkah {
+    grid-template-columns: 1fr;
+  }
+
+  .tt-kartu-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .tt-kartu-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Kartu penggeser tahun duduk di samping kanan legenda. Itu baru tidak muat
    kalau panel kanan terbuka pada lebar sempit: panel bergeser ke kiri sampai
    menabrak penggeser. Kanan penggeser di 628; kiri panel di lebar - 424 pada
@@ -4497,7 +4625,6 @@ body {
   .grid-dua-kartu-laporan,
   .grid-dua-kartu-bantuan,
   .grid-dua-kolom-penjelasan,
-  .grid-tiga-tautan-bagian,
   .grid-delapan-temuan,
   .grid-dua-kartu-bandingkan,
   .grid-empat-kolom-selisih,

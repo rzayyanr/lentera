@@ -99,7 +99,7 @@ export default function App() {
   const [panelRingkasanTutup, setPanelRingkasanTutup] = useState(false);
   // Sub-halaman Tentang yang dibuka dari halaman lain, mis. tabel cakupan.
   const [subTentang, setSubTentang] = useState<
-    "utama" | "sumber" | "integritas" | "keterbatasan"
+    "utama" | "sumber" | "integritas" | "keterbatasan" | "tim"
   >("utama");
 
   const [halaman, setHalaman] = useState<HalamanTipe>(() => {
