@@ -4555,12 +4555,14 @@ body {
 }
 
 .tt-kartu {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
   text-align: left;
-  padding: 16px;
+  /* Ruang kanan untuk tanda panah. */
+  padding: 16px 42px 16px 16px;
   background: var(--warna-kartu);
   border: 1px solid var(--warna-garis);
   border-radius: 12px;
@@ -4595,10 +4597,31 @@ body {
 }
 
 .tt-kartu-panah {
-  margin-top: 8px;
-  font-size: 11px;
-  font-weight: 600;
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  transform: translateY(-50%);
+  color: #a8a49a;
+  transition: transform 0.15s, color 0.15s;
+}
+
+.tt-kartu:hover .tt-kartu-panah,
+.tt-kartu:focus-visible .tt-kartu-panah {
   color: var(--warna-aksen);
+  transform: translate(2px, -50%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tt-kartu-panah {
+    transition: none;
+  }
+
+  .tt-kartu:hover .tt-kartu-panah,
+  .tt-kartu:focus-visible .tt-kartu-panah {
+    transform: translateY(-50%);
+  }
 }
 
 @media (max-width: 1000px) {

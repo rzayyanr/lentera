@@ -118,7 +118,18 @@ export default function Tentang({ subHalamanAwal = "utama", siap }: Props) {
                 <span className="tt-kartu-nomor">01</span>
                 <span className="tt-kartu-judul">Apa itu Lentera</span>
                 <span className="tt-kartu-isi">Situs publik yang memetakan jumlah dan dampak bencana per kabupaten/kota, dengan sumber setiap angka selalu terlihat.</span>
-                <span className="tt-kartu-panah">Buka bagian →</span>
+                <svg
+                  className="tt-kartu-panah"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
               </button>
 
               <button
@@ -129,7 +140,18 @@ export default function Tentang({ subHalamanAwal = "utama", siap }: Props) {
                 <span className="tt-kartu-nomor">02</span>
                 <span className="tt-kartu-judul">Masalah yang dijawab</span>
                 <span className="tt-kartu-isi">Informasi bencana tidak kurang, tetapi sulit dibedakan mana yang resmi, mana yang belum diperiksa, dan mana yang usang.</span>
-                <span className="tt-kartu-panah">Buka bagian →</span>
+                <svg
+                  className="tt-kartu-panah"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
               </button>
 
               <button
@@ -140,7 +162,18 @@ export default function Tentang({ subHalamanAwal = "utama", siap }: Props) {
                 <span className="tt-kartu-nomor">03</span>
                 <span className="tt-kartu-judul">Tiga lapisan data</span>
                 <span className="tt-kartu-isi">Data resmi BNPB, laporan warga yang dimoderasi, dan catatan bantuan. Tidak pernah dijumlahkan.</span>
-                <span className="tt-kartu-panah">Buka bagian →</span>
+                <svg
+                  className="tt-kartu-panah"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
               </button>
 
               <button
@@ -151,7 +184,18 @@ export default function Tentang({ subHalamanAwal = "utama", siap }: Props) {
                 <span className="tt-kartu-nomor">04</span>
                 <span className="tt-kartu-judul">Sumber dan cakupan</span>
                 <span className="tt-kartu-isi">Enam sumber resmi, 38 provinsi diperiksa satu per satu. Satu provinsi punya rincian per kejadian.</span>
-                <span className="tt-kartu-panah">Buka bagian →</span>
+                <svg
+                  className="tt-kartu-panah"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
               </button>
 
               <button
@@ -162,7 +206,18 @@ export default function Tentang({ subHalamanAwal = "utama", siap }: Props) {
                 <span className="tt-kartu-nomor">05</span>
                 <span className="tt-kartu-judul">Aturan integritas</span>
                 <span className="tt-kartu-isi">Empat aturan yang tidak dilanggar: tidak mencampur lapisan, menyebut sumber, tidak menggambar agregat sebagai titik.</span>
-                <span className="tt-kartu-panah">Buka bagian →</span>
+                <svg
+                  className="tt-kartu-panah"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
               </button>
 
               <button
@@ -173,7 +228,18 @@ export default function Tentang({ subHalamanAwal = "utama", siap }: Props) {
                 <span className="tt-kartu-nomor">06</span>
                 <span className="tt-kartu-judul">Keterbatasan</span>
                 <span className="tt-kartu-isi">Selisih 46 kejadian di tabel BNPB 2024, empat wilayah tanpa data, cakupan yang tumbuh tiap tahun.</span>
-                <span className="tt-kartu-panah">Buka bagian →</span>
+                <svg
+                  className="tt-kartu-panah"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
               </button>
 
               <button
@@ -184,7 +250,18 @@ export default function Tentang({ subHalamanAwal = "utama", siap }: Props) {
                 <span className="tt-kartu-nomor">07</span>
                 <span className="tt-kartu-judul">Teknologi</span>
                 <span className="tt-kartu-isi">React 19, Vite 8, Leaflet tanpa basemap, Supabase untuk laporan warga, DM Sans.</span>
-                <span className="tt-kartu-panah">Buka bagian →</span>
+                <svg
+                  className="tt-kartu-panah"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
               </button>
 
               <button
@@ -195,7 +272,18 @@ export default function Tentang({ subHalamanAwal = "utama", siap }: Props) {
                 <span className="tt-kartu-nomor">08</span>
                 <span className="tt-kartu-judul">Tim</span>
                 <span className="tt-kartu-isi">Tiga orang: pipeline data, laporan warga dan moderasi, bantuan dan uji perangkat. MIA 2026.</span>
-                <span className="tt-kartu-panah">Buka bagian →</span>
+                <svg
+                  className="tt-kartu-panah"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
               </button>
 
               <button
@@ -206,7 +294,18 @@ export default function Tentang({ subHalamanAwal = "utama", siap }: Props) {
                 <span className="tt-kartu-nomor">09</span>
                 <span className="tt-kartu-judul">Lisensi dan kredit</span>
                 <span className="tt-kartu-isi">Data BNPB ODC-BY, batas wilayah geoBoundaries CC-BY 4.0, kode terbuka di GitHub.</span>
-                <span className="tt-kartu-panah">Buka bagian →</span>
+                <svg
+                  className="tt-kartu-panah"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
               </button>
             </div>
 
