@@ -2591,6 +2591,15 @@ body {
   gap: 18px;
 }
 
+/* Di ponsel dua kolom membuat pemilih hanya selebar ±88px sehingga nama
+   kabupaten dan kecamatan terpotong. Ditumpuk satu kolom. */
+@media (max-width: 768px) {
+  .grid-dua-kolom-input {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
+
 .area-unggah-berkas {
   border: 1.5px dashed var(--warna-garis);
   border-radius: 8px;
@@ -4231,6 +4240,152 @@ body {
   text-align: center;
   font-size: 12px;
   color: var(--warna-redup);
+}
+
+/* ---- Pemilih tanggal (kalender) ---- */
+
+.pemilih-ikon-tanggal {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  color: var(--warna-redup);
+}
+
+.pemilih-ikon-tanggal svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Panel kalender punya lebar sendiri; pemicunya bisa lebih lebar atau lebih
+   sempit dari isi kalender. */
+.panel-kalender {
+  right: auto;
+  width: 264px;
+  padding: 12px 12px 10px;
+}
+
+.kalender-kepala {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.kalender-judul {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--warna-tinta);
+}
+
+.kalender-navigasi {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--warna-redup);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.kalender-navigasi:hover {
+  background: #f1ece0;
+  color: var(--warna-tinta);
+}
+
+.kalender-navigasi svg {
+  width: 16px;
+  height: 16px;
+}
+
+.kalender-hari {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.kalender-hari span {
+  padding: 2px 0;
+  text-align: center;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--warna-redup);
+}
+
+.kalender-kisi {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.kalender-sel {
+  height: 32px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  color: var(--warna-tinta);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.kalender-sel:hover:not(:disabled) {
+  background: #f1ece0;
+}
+
+.kalender-sel.luar {
+  color: #bcb6a7;
+}
+
+.kalender-sel.hari-ini:not(.terpilih) {
+  border-color: #bfd8d2;
+}
+
+.kalender-sel.terpilih {
+  background: var(--warna-aksen);
+  border-color: var(--warna-aksen);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.kalender-sel:disabled {
+  color: #d2ccbd;
+  cursor: not-allowed;
+}
+
+.kalender-kaki {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--warna-garis);
+  font-size: 10.5px;
+  color: var(--warna-redup);
+}
+
+.kalender-pintasan {
+  padding: 0;
+  background: transparent;
+  border: none;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--warna-aksen);
+  cursor: pointer;
+}
+
+.kalender-pintasan:hover {
+  text-decoration: underline;
 }
 
 /* ==========================================================================

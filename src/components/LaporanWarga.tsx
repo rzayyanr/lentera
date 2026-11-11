@@ -14,6 +14,9 @@ import {
 } from "../lib/layananLaporan";
 import { apakahSupabaseAktif } from "../lib/supabase";
 import Moderator from "./Moderator";
+import PemilihWilayah, { type ButirWilayah } from "./PemilihWilayah";
+import PemilihTanggal from "./PemilihTanggal";
+import { isoLokal } from "../lib/tanggal";
 
 export type { PenggunaPelapor };
 
@@ -33,7 +36,7 @@ const BULAN_PANJANG = [
   "Juli", "Agustus", "September", "Oktober", "November", "Desember"
 ];
 
-const TANGGAL_HARI_INI = new Date().toISOString().split("T")[0];
+const TANGGAL_HARI_INI = isoLokal(new Date());
 
 function formatTanggalLengkap(iso: string): string {
   if (!iso) return "";
@@ -216,6 +219,42 @@ export default function LaporanWarga({
     setModeKecamatanManual(false);
   }
 
+  // 510 kabupaten/kota diratakan jadi satu daftar; nama provinsi dipakai
+  // sebagai keterangan baris kedua supaya hasil cari tetap bisa dibedakan.
+  const butirKabupaten = useMemo(() => {
+    const hasil: ButirWilayah[] = [];
+    for (const prov of provinsiTerurut) {
+      for (const w of wilayahPerProvinsi.get(prov.kode) || []) {
+        hasil.push({ kode: w.kode, nama: w.nama, sub: prov.nama });
+      }
+    }
+    return hasil;
+  }, [provinsiTerurut, wilayahPerProvinsi]);
+
+  // Pemilih bekerja dengan kode BPS; formulir menyimpan nama wilayah.
+  const kodeKabupatenTerpilih = useMemo(
+    () => butirKabupaten.find((b) => b.nama === kabupaten)?.kode ?? "",
+    [butirKabupaten, kabupaten],
+  );
+
+  const butirKecamatan = useMemo(() => {
+    const hasil: ButirWilayah[] = daftarKecamatanTersedia.map((nama) => ({
+      kode: nama,
+      nama,
+    }));
+    hasil.push({ kode: "__manual__", nama: "Ketik kecamatan / desa lainnya" });
+    return hasil;
+  }, [daftarKecamatanTersedia]);
+
+  function handlePilihKecamatan(nilaiPilihan: string) {
+    if (nilaiPilihan === "__manual__") {
+      setModeKecamatanManual(true);
+      setKecamatan("");
+      return;
+    }
+    setKecamatan(nilaiPilihan);
+  }
+
   const muatRiwayat = useCallback(async (uid?: string) => {
     const targetUid = uid || pengguna?.id;
     if (!targetUid) return;
@@ -366,6 +405,21 @@ export default function LaporanWarga({
   async function handleKirimLaporan(e: React.FormEvent) {
     e.preventDefault();
 
+    // Ketiga kolom ini memakai pemilih kustom, jadi aturan `required` bawaan
+    // browser tidak berlaku lagi dan harus diperiksa di sini.
+    if (!kabupaten) {
+      setGalatKirim("Kabupaten / kota belum dipilih.");
+      return;
+    }
+    if (!kecamatan.trim()) {
+      setGalatKirim("Kecamatan / desa belum diisi.");
+      return;
+    }
+    if (!tanggalIso) {
+      setGalatKirim("Tanggal kejadian belum dipilih.");
+      return;
+    }
+
     if (!pengguna?.id) {
       setGalatKirim("Kamu wajib masuk ke akun terlebih dahulu sebelum mengirim laporan.");
       setTampilan("masuk");
@@ -469,26 +523,6 @@ export default function LaporanWarga({
             <p className="deskripsi-halaman-utama">
               Laporan warga tidak dicampur dengan data resmi. Setiap laporan wajib terhubung dengan akun warga yang sah agar ketertelusuran data terjaga dan dapat diverifikasi oleh moderator.
             </p>
-
-            {/* Indikator Penyimpanan Backend */}
-            <div style={{ marginBottom: 16 }}>
-              <span
-                className="badge-lapisan"
-                style={{
-                  background: apakahSupabaseAktif ? "#e6f4ea" : "#fef3c7",
-                  color: apakahSupabaseAktif ? "#137333" : "#92400e",
-                  border: `1px solid ${apakahSupabaseAktif ? "#a8dab5" : "#fcd34d"}`,
-                  fontSize: "11px",
-                  padding: "4px 8px",
-                  borderRadius: "4px",
-                  fontWeight: 600,
-                }}
-              >
-                {apakahSupabaseAktif
-                  ? "● Cloud Database Aktif (Supabase Auth & PostgreSQL)"
-                  : "○ Mode Lokal Terisolasi (LocalStorage)"}
-              </span>
-            </div>
 
             {/* Banner Peringatan Bukan Kanal Darurat */}
             <div className="banner-peringatan-darurat">
@@ -902,60 +936,45 @@ export default function LaporanWarga({
 
                 <div className="grid-dua-kolom-input">
                   <div className="kelompok-form">
-                    <label htmlFor="kabupaten-select" className="label-input-kapital">
+                    <label htmlFor="kabupaten-pemicu" className="label-input-kapital">
                       KABUPATEN / KOTA
                     </label>
-                    <select
-                      id="kabupaten-select"
-                      className="input-standar"
-                      value={kabupaten}
-                      onChange={(e) => handlePilihKabupaten(e.target.value)}
-                      required
-                    >
-                      <option value="">-- Pilih Kabupaten / Kota --</option>
-                      {provinsiTerurut.map((prov) => {
-                        const listKab = wilayahPerProvinsi.get(prov.kode) || [];
-                        if (listKab.length === 0) return null;
-                        return (
-                          <optgroup key={prov.kode} label={prov.nama}>
-                            {listKab.map((w) => (
-                              <option key={w.kode} value={w.nama}>
-                                {w.nama}
-                              </option>
-                            ))}
-                          </optgroup>
-                        );
-                      })}
-                    </select>
+                    <PemilihWilayah
+                      idAwalan="kabupaten"
+                      label="Kabupaten atau kota"
+                      placeholder="Pilih kabupaten / kota"
+                      butir={butirKabupaten}
+                      nilai={kodeKabupatenTerpilih}
+                      petunjukCari="Cari kabupaten, kota, atau provinsi"
+                      onPilih={(kode) => {
+                        const b = butirKabupaten.find((x) => x.kode === kode);
+                        if (b) handlePilihKabupaten(b.nama);
+                      }}
+                    />
                   </div>
 
                   <div className="kelompok-form">
-                    <label htmlFor="kecamatan-input-or-select" className="label-input-kapital">
+                    <label
+                      htmlFor={
+                        daftarKecamatanTersedia.length > 0 && !modeKecamatanManual
+                          ? "kecamatan-pemicu"
+                          : "kecamatan-input-or-select"
+                      }
+                      className="label-input-kapital"
+                    >
                       KECAMATAN / DESA
                     </label>
                     {daftarKecamatanTersedia.length > 0 && !modeKecamatanManual ? (
-                      <select
-                        id="kecamatan-input-or-select"
-                        className="input-standar"
-                        value={kecamatan}
-                        onChange={(e) => {
-                          if (e.target.value === "__manual__") {
-                            setModeKecamatanManual(true);
-                            setKecamatan("");
-                          } else {
-                            setKecamatan(e.target.value);
-                          }
-                        }}
-                        required
-                      >
-                        <option value="">-- Pilih Kecamatan / Desa --</option>
-                        {daftarKecamatanTersedia.map((item) => (
-                          <option key={item} value={item}>
-                            {item}
-                          </option>
-                        ))}
-                        <option value="__manual__">+ Ketik Kecamatan / Desa Lainnya (Manual)</option>
-                      </select>
+                      <PemilihWilayah
+                        idAwalan="kecamatan"
+                        label="Kecamatan atau desa"
+                        placeholder="Pilih kecamatan / desa"
+                        butir={butirKecamatan}
+                        nilai={kecamatan}
+                        tanpaCari={daftarKecamatanTersedia.length <= 7}
+                        petunjukCari="Cari kecamatan atau desa"
+                        onPilih={handlePilihKecamatan}
+                      />
                     ) : (
                       <div>
                         <input
@@ -1000,14 +1019,12 @@ export default function LaporanWarga({
                     <label htmlFor="tanggal-input" className="label-input-kapital">
                       TANGGAL KEJADIAN
                     </label>
-                    <input
+                    <PemilihTanggal
                       id="tanggal-input"
-                      type="date"
-                      className="input-standar"
-                      value={tanggalIso}
-                      max={TANGGAL_HARI_INI}
-                      onChange={(e) => setTanggalIso(e.target.value)}
-                      required
+                      label="Tanggal kejadian"
+                      nilai={tanggalIso}
+                      maks={TANGGAL_HARI_INI}
+                      onPilih={setTanggalIso}
                     />
                     {tanggalIso && (
                       <p style={{ margin: "4px 0 0", fontSize: "11.5px", color: "var(--warna-redup)" }}>
