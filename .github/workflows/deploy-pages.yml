@@ -1,0 +1,52 @@
+# Membangun demo dan menerbitkannya ke GitHub Pages.
+#
+# Situs disajikan di https://rzayyanr.github.io/lentera/, jadi build memakai
+# base "/lentera/". Tanpa base itu, seluruh berkas aset dan data akan diminta
+# dari akar domain dan berakhir 404.
+#
+# Cabang gh-pages ditulis ulang setiap kali main berubah; tidak ada commit
+# manual di sana.
+
+name: Deploy demo
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gh-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Pasang dependensi
+        run: npm ci
+
+      - name: Bangun aplikasi
+        run: npx vite build --base=/lentera/
+
+      # Berkas yang diawali garis bawah tidak boleh diabaikan Jekyll.
+      - name: Tambahkan .nojekyll
+        run: touch dist/.nojekyll
+
+      - name: Terbitkan ke cabang gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          force_orphan: true
+          commit_message: "Terbitkan build dari ${{ github.sha }}"
