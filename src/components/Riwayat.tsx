@@ -18,6 +18,7 @@ import {
   cakupanProvinsi,
   dampakProvinsi,
   fmt,
+  formatTanggal,
   jenisProvinsiUntuk,
   kejadianProvinsi,
   namaProvinsiRapi,
@@ -28,6 +29,8 @@ interface Props {
   siap: DataLentera | null;
   provAwal?: string;
   onPilihKejadian?: (id: string) => void;
+  /** Membuka tabel cakupan 38 provinsi di halaman Tentang. */
+  onBukaCakupan?: () => void;
 }
 
 /** Ukuran dampak yang ditampilkan di tabel tahunan. */
@@ -40,7 +43,12 @@ const UKURAN_TABEL = [
   "rumahRusakBerat",
 ];
 
-export default function Riwayat({ siap, provAwal = "35", onPilihKejadian }: Props) {
+export default function Riwayat({
+  siap,
+  provAwal = "35",
+  onPilihKejadian,
+  onBukaCakupan,
+}: Props) {
   const [prov, setProv] = useState<string>(provAwal);
   const [tab, setTab] = useState<"tahunan" | "kejadian">("tahunan");
 
@@ -275,12 +283,42 @@ export default function Riwayat({ siap, provAwal = "35", onPilihKejadian }: Prop
                   ))}
                 </ul>
               ) : (
-                <p className="catatan-jenis" style={{ padding: "0 20px 20px" }}>
-                  BNPB hanya menerbitkan sebaran jenis bencana pada tingkat nasional, bukan per
-                  provinsi. {namaProvinsi} juga belum menerbitkan log kejadian per tanggal, jadi
-                  sebaran jenisnya belum bisa dihitung. Angka nasionalnya ada di panel ringkasan
-                  pada halaman Peta.
-                </p>
+                <div className="dw-kosong-jenis">
+                  <p className="catatan-jenis" style={{ margin: 0 }}>
+                    BNPB hanya menerbitkan sebaran jenis bencana pada tingkat nasional, bukan per
+                    provinsi. {namaProvinsi} juga belum menerbitkan log kejadian per tanggal, jadi
+                    sebaran jenisnya belum bisa dihitung.
+                  </p>
+                  <dl className="cakupan-jenis">
+                    {cakupan.sumber && (
+                      <div className="baris-cakupan-pendek">
+                        <dt>Portal diperiksa</dt>
+                        <dd>{cakupan.sumber}</dd>
+                      </div>
+                    )}
+                    {cakupan.alasan && (
+                      <div className="baris-cakupan-pendek">
+                        <dt>Alasan</dt>
+                        <dd>{cakupan.alasan}</dd>
+                      </div>
+                    )}
+                    {siap.cakupan.diperiksa && (
+                      <div className="baris-cakupan-pendek">
+                        <dt>Diperiksa</dt>
+                        <dd>{formatTanggal(siap.cakupan.diperiksa)}</dd>
+                      </div>
+                    )}
+                  </dl>
+                  {onBukaCakupan && (
+                    <button
+                      type="button"
+                      className="tombol-tautan-aksen"
+                      onClick={onBukaCakupan}
+                    >
+                      <span>Lihat tabel cakupan 38 provinsi →</span>
+                    </button>
+                  )}
+                </div>
               )}
             </div>
 

@@ -3874,6 +3874,20 @@ body {
   }
 }
 
+/* Kartu jenis bencana saat provinsinya belum punya rincian */
+.dw-kosong-jenis {
+  padding: 4px 20px 20px;
+}
+
+.cakupan-jenis {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 14px 0 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--warna-garis-tipis);
+}
+
 /* Daftar jenis bencana per provinsi di halaman riwayat */
 .daftar-jenis-provinsi {
   list-style: none;

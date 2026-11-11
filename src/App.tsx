@@ -97,6 +97,10 @@ export default function App() {
   const [sedangMain, setSedangMain] = useState(false);
   const [lapisanTampak, setLapisanTampak] = useState(true);
   const [panelRingkasanTutup, setPanelRingkasanTutup] = useState(false);
+  // Sub-halaman Tentang yang dibuka dari halaman lain, mis. tabel cakupan.
+  const [subTentang, setSubTentang] = useState<
+    "utama" | "sumber" | "integritas" | "keterbatasan"
+  >("utama");
 
   const [halaman, setHalaman] = useState<HalamanTipe>(() => {
     const hal = new URLSearchParams(window.location.search).get("hal") as HalamanTipe | null;
@@ -722,6 +726,10 @@ export default function App() {
             setIdKejadian(id);
             setHalaman("kejadian");
           }}
+          onBukaCakupan={() => {
+            setSubTentang("sumber");
+            setHalaman("tentang");
+          }}
         />
       )}
 
@@ -758,7 +766,9 @@ export default function App() {
       )}
 
       {/* 8. Screens 12, 13, 14, 15: Tentang dan Sumber Data */}
-      {halaman === "tentang" && <Tentang siap={siap} />}
+      {halaman === "tentang" && (
+        <Tentang siap={siap} subHalamanAwal={subTentang} />
+      )}
 
       {/* 9. Screens 16, 17: Moderator (Internal) */}
       {halaman === "moderator" && (
