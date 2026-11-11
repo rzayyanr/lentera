@@ -1891,10 +1891,15 @@ body {
   }
 
   .grup-zoom-peta,
-  .baris-tombol-utilitas,
   .legenda-kartu,
   .penggeser {
     display: none;
+  }
+
+  /* Dua tombol utilitas tetap ada di ponsel: lapisan wilayah dan gaya peta
+     sekarang berupa tombol 44px, jadi tidak lagi menutupi peta. */
+  .baris-tombol-utilitas {
+    flex-direction: row;
   }
 
   .grid-penyaring-riwayat {
@@ -4757,19 +4762,62 @@ body {
   filter: brightness(0.62) saturate(0.85) contrast(1.05);
 }
 
-/* Pemilih gaya peta */
-.kartu-gaya-peta {
+/* Pemilih gaya peta: satu tombol persegi berisi contoh gaya aktif, menu
+   muncul hanya saat dibuka supaya peta tidak tertutup permanen. */
+.pemilih-gaya-peta {
+  position: relative;
+}
+
+.tombol-gaya-peta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.tombol-gaya-peta .contoh-gaya-peta {
+  width: 22px;
+  height: 13px;
+}
+
+/* Chevron kecil di bawah contoh gaya: tanda bahwa tombol ini membuka pilihan,
+   karena di ponsel tidak ada tooltip. */
+.tombol-gaya-peta::after {
+  content: "";
+  width: 4px;
+  height: 4px;
+  margin-top: 1px;
+  border-right: 1.3px solid var(--warna-redup);
+  border-bottom: 1.3px solid var(--warna-redup);
+  transform: rotate(45deg);
+  transition: transform 0.15s;
+}
+
+.tombol-gaya-peta[aria-expanded="true"]::after {
+  transform: rotate(225deg);
+}
+
+.tombol-gaya-peta[aria-expanded="true"] {
+  background: #f1ece0;
+  border-color: #c9c2b1;
+}
+
+.menu-gaya-peta {
+  position: absolute;
+  top: -4px;
+  left: calc(100% + 8px);
+  z-index: 600;
   display: flex;
   flex-direction: column;
   gap: 2px;
+  width: 176px;
   padding: 8px;
   background: var(--warna-kartu);
   border: 1px solid var(--warna-garis);
   border-radius: 12px;
-  box-shadow: var(--bayangan-kartu);
+  box-shadow: var(--bayangan-panel);
 }
 
-.gaya-peta-label {
+.menu-gaya-label {
   padding: 2px 4px 4px;
   font-size: 9px;
   font-weight: 700;
@@ -4798,7 +4846,7 @@ body {
   background: #f1ece0;
 }
 
-.gaya-peta-opsi[aria-pressed="true"] {
+.gaya-peta-opsi[aria-checked="true"] {
   background: var(--warna-aksen-muda);
   border-color: #bfd8d2;
   font-weight: 600;
@@ -4849,41 +4897,16 @@ body {
 }
 
 
-/* Di ponsel, pemilih gaya dipadatkan jadi satu baris ikon supaya peta tidak
-   terdorong. Nama gaya disembunyikan; judul tombol tetap ada untuk pembaca
-   layar dan tooltip. */
+/* Menu gaya dipasang di kanan tombolnya; pada layar sempit lebarnya
+   dipepetkan supaya tetap di dalam peta. */
 @media (max-width: 768px) {
-  .kartu-gaya-peta {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px;
-    padding: 6px;
-  }
-
-  .gaya-peta-label {
-    display: none;
+  .menu-gaya-peta {
+    width: 156px;
   }
 
   .gaya-peta-opsi {
-    flex: 1 1 45%;
-    justify-content: flex-start;
-    padding: 6px 8px;
     font-size: 11.5px;
-  }
-
-  .contoh-gaya-peta {
-    width: 22px;
-    height: 16px;
-  }
-
-  .gaya-peta-tanda {
-    font-size: 8px;
-  }
-
-  .gaya-peta-galat {
-    flex: 1 1 100%;
-    margin: 2px 0 0;
+    padding: 6px;
   }
 }
 

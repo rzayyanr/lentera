@@ -47,7 +47,11 @@ export default function KendaliKiri({
 }: Props) {
   const [kataKunci, setKataKunci] = useState("");
   const [bukaHasil, setBukaHasil] = useState(false);
+  const [bukaGaya, setBukaGaya] = useState(false);
   const wadahRef = useRef<HTMLDivElement | null>(null);
+  const wadahGayaRef = useRef<HTMLDivElement | null>(null);
+
+  const gayaAktif = PILIHAN_GAYA.find((g) => g.id === gaya) ?? PILIHAN_GAYA[0];
 
   const hasilSaring = kataKunci.trim().length >= 2
     ? daftarWilayah
@@ -63,9 +67,19 @@ export default function KendaliKiri({
       if (wadahRef.current && !wadahRef.current.contains(e.target as Node)) {
         setBukaHasil(false);
       }
+      if (wadahGayaRef.current && !wadahGayaRef.current.contains(e.target as Node)) {
+        setBukaGaya(false);
+      }
+    }
+    function tekanTombol(e: KeyboardEvent) {
+      if (e.key === "Escape") setBukaGaya(false);
     }
     document.addEventListener("mousedown", klikLuar);
-    return () => document.removeEventListener("mousedown", klikLuar);
+    document.addEventListener("keydown", tekanTombol);
+    return () => {
+      document.removeEventListener("mousedown", klikLuar);
+      document.removeEventListener("keydown", tekanTombol);
+    };
   }, []);
 
   return (
@@ -133,37 +147,7 @@ export default function KendaliKiri({
         )}
       </div>
 
-      {/* Pemilih gaya peta */}
-      <div className="kartu-gaya-peta" role="group" aria-label="Gaya peta">
-        <span className="gaya-peta-label">Gaya peta</span>
-        {PILIHAN_GAYA.map((g) => (
-          <button
-            key={g.id}
-            type="button"
-            className="gaya-peta-opsi"
-            aria-pressed={gaya === g.id}
-            onClick={() => onGantiGaya(g.id)}
-            title={
-              g.id === "satelit"
-                ? satelitGagal
-                  ? "Satelit tidak tersedia tanpa jaringan"
-                  : "Satelit membutuhkan internet"
-                : "Gaya " + g.nama.toLowerCase()
-            }
-          >
-            <span className={"contoh-gaya-peta " + g.id} aria-hidden="true" />
-            <span className="gaya-peta-nama">{g.nama}</span>
-            {g.online && <span className="gaya-peta-tanda">online</span>}
-          </button>
-        ))}
-        {satelitGagal && (
-          <p className="gaya-peta-galat">
-            Satelit butuh internet. Gaya kembali ke Padat.
-          </p>
-        )}
-      </div>
-
-      {/* Tombol lapisan wilayah */}
+      {/* Tombol lapisan wilayah + pemilih gaya peta */}
       <div className="baris-tombol-utilitas">
         <button
           type="button"
@@ -174,6 +158,55 @@ export default function KendaliKiri({
         >
           <img src={layersSvg} alt="" width="18" height="18" />
         </button>
+
+        <div className="pemilih-gaya-peta" ref={wadahGayaRef}>
+          <button
+            type="button"
+            className="tombol-ikon-peta tombol-gaya-peta"
+            onClick={() => setBukaGaya((buka) => !buka)}
+            aria-haspopup="menu"
+            aria-expanded={bukaGaya}
+            aria-label={"Gaya peta: " + gayaAktif.nama}
+            title={"Gaya peta: " + gayaAktif.nama}
+          >
+            <span className={"contoh-gaya-peta " + gayaAktif.id} aria-hidden="true" />
+          </button>
+
+          {bukaGaya && (
+            <div className="menu-gaya-peta" role="menu" aria-label="Gaya peta">
+              <span className="menu-gaya-label">Gaya peta</span>
+              {PILIHAN_GAYA.map((g) => (
+                <button
+                  key={g.id}
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={gaya === g.id}
+                  className="gaya-peta-opsi"
+                  onClick={() => {
+                    onGantiGaya(g.id);
+                    setBukaGaya(false);
+                  }}
+                  title={
+                    g.id === "satelit"
+                      ? satelitGagal
+                        ? "Satelit tidak tersedia tanpa jaringan"
+                        : "Satelit membutuhkan internet"
+                      : "Gaya " + g.nama.toLowerCase()
+                  }
+                >
+                  <span className={"contoh-gaya-peta " + g.id} aria-hidden="true" />
+                  <span className="gaya-peta-nama">{g.nama}</span>
+                  {g.online && <span className="gaya-peta-tanda">online</span>}
+                </button>
+              ))}
+              {satelitGagal && (
+                <p className="gaya-peta-galat">
+                  Satelit butuh internet. Gaya kembali ke Padat.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Kontrol Zoom vertikal */}
