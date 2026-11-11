@@ -11,6 +11,15 @@ interface Props {
   onKembaliKePeta?: () => void;
 }
 
+// Akun contoh untuk mempercepat pengujian. Ganti kredensial warga dengan akun
+// yang benar-benar terdaftar di Supabase Auth sebelum situs dipublikasikan.
+const AKUN_DEMO = {
+  warga: { email: "warga.demo@gmail.com", sandi: "warga12345" },
+  moderator: { email: "admin@gmail.com", sandi: "admin123" },
+} as const;
+
+type PeranDemo = keyof typeof AKUN_DEMO;
+
 export default function GerbangLogin({
   onBerhasilMasuk,
   onKembaliKePeta,
@@ -24,6 +33,15 @@ export default function GerbangLogin({
   const [ingatSaya, setIngatSaya] = useState(false);
   const [sedangProses, setSedangProses] = useState(false);
   const [galat, setGalat] = useState<string | null>(null);
+  const [demoAktif, setDemoAktif] = useState<PeranDemo | null>(null);
+
+  function isiAkunDemo(peran: PeranDemo) {
+    const akun = AKUN_DEMO[peran];
+    setEmail(akun.email);
+    setSandi(akun.sandi);
+    setGalat(null);
+    setDemoAktif(peran);
+  }
 
   async function handleMasuk(e: React.FormEvent) {
     e.preventDefault();
@@ -154,8 +172,18 @@ export default function GerbangLogin({
                 </p>
 
                 <form id="formMasuk" onSubmit={handleMasuk}>
-                  <div className="field">
-                    <label htmlFor="emailMasuk">EMAIL</label>
+                  <div className={`field${demoAktif ? " terisi" : ""}`}>
+                    <label htmlFor="emailMasuk">
+                      EMAIL
+                      {demoAktif && (
+                        <span className="tanda-isi">
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="m20 6-11 11-5-5" />
+                          </svg>
+                          terisi
+                        </span>
+                      )}
+                    </label>
                     <input
                       id="emailMasuk"
                       type="email"
@@ -163,11 +191,24 @@ export default function GerbangLogin({
                       placeholder="nama@email.com"
                       autoComplete="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setDemoAktif(null);
+                      }}
                     />
                   </div>
-                  <div className="field">
-                    <label htmlFor="sandiMasuk">SANDI</label>
+                  <div className={`field${demoAktif ? " terisi" : ""}`}>
+                    <label htmlFor="sandiMasuk">
+                      SANDI
+                      {demoAktif && (
+                        <span className="tanda-isi">
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="m20 6-11 11-5-5" />
+                          </svg>
+                          terisi
+                        </span>
+                      )}
+                    </label>
                     <div className="kotak-input-sandi">
                       <input
                         id="sandiMasuk"
@@ -176,7 +217,10 @@ export default function GerbangLogin({
                         placeholder="••••••••"
                         autoComplete="current-password"
                         value={sandi}
-                        onChange={(e) => setSandi(e.target.value)}
+                        onChange={(e) => {
+                          setSandi(e.target.value);
+                          setDemoAktif(null);
+                        }}
                       />
                       <button
                         type="button"
@@ -230,6 +274,49 @@ export default function GerbangLogin({
                   </button>
                 </form>
 
+                <div className="demo-gradien">
+                  <div className="gradien-dalam">
+                    <div className="gradien-kepala">
+                      <div>
+                        <span className="gradien-badge">Akun demo</span>
+                        <b>Masuk sebagai</b>
+                      </div>
+                      <span className="gradien-catatan">Terisi otomatis</span>
+                    </div>
+                    <div className="gradien-segmen" role="group" aria-label="Pilih akun demo">
+                      <button
+                        type="button"
+                        aria-pressed={demoAktif === "warga"}
+                        onClick={() => isiAkunDemo("warga")}
+                      >
+                        <span>Warga</span>
+                        <i>{AKUN_DEMO.warga.email}</i>
+                      </button>
+                      <button
+                        type="button"
+                        aria-pressed={demoAktif === "moderator"}
+                        onClick={() => isiAkunDemo("moderator")}
+                      >
+                        <span>Moderator</span>
+                        <i>{AKUN_DEMO.moderator.email}</i>
+                      </button>
+                    </div>
+                    <p className={`demo-status${demoAktif ? " ok" : ""}`} aria-live="polite">
+                      {demoAktif ? (
+                        <>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="m20 6-11 11-5-5" />
+                          </svg>
+                          Email dan sandi {demoAktif} terisi. Tekan Masuk untuk membuka{" "}
+                          {demoAktif === "warga" ? "halaman warga" : "pusat moderasi"}.
+                        </>
+                      ) : (
+                        "Belum ada akun dipilih."
+                      )}
+                    </p>
+                  </div>
+                </div>
+
                 <p className="tautan-tengah">
                   Belum punya akun?{" "}
                   <button
@@ -240,6 +327,7 @@ export default function GerbangLogin({
                     onClick={() => {
                       setMode("daftar");
                       setGalat(null);
+                      setDemoAktif(null);
                     }}
                   >
                     Daftar akun warga
@@ -362,6 +450,7 @@ export default function GerbangLogin({
                     onClick={() => {
                       setMode("masuk");
                       setGalat(null);
+                      setDemoAktif(null);
                     }}
                   >
                     Masuk di sini

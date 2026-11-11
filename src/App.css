@@ -5160,6 +5160,170 @@ body {
   max-width: 380px;
 }
 
+/* --- Isi cepat akun demo pada formulir masuk --- */
+.gate-form .field label .tanda-isi {
+  float: right;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: none;
+  color: var(--warna-aksen, #0e5c58);
+}
+
+.gate-form .field.terisi input {
+  border-color: var(--warna-aksen, #0e5c58);
+  box-shadow: 0 0 0 3px rgba(14, 92, 88, 0.13);
+  animation: kilatIsi 0.85s ease;
+}
+
+@keyframes kilatIsi {
+  from {
+    background: var(--warna-aksen-muda, #e8f1ee);
+  }
+  to {
+    background: #fff;
+  }
+}
+
+.demo-gradien {
+  margin-top: 16px;
+  padding: 1.5px;
+  border-radius: 11px;
+  background: linear-gradient(115deg, #0e5c58, #37a08f 46%, #d8b35c);
+  box-shadow: 0 4px 14px rgba(14, 92, 88, 0.15);
+}
+
+.gradien-dalam {
+  background: #fff;
+  border-radius: 9.5px;
+  padding: 12px 13px 10px;
+}
+
+.gradien-kepala {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 9px;
+}
+
+.gradien-kepala > div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.gradien-kepala b {
+  font-size: 12px;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.gradien-badge {
+  display: inline-block;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #fff;
+  white-space: nowrap;
+  background: linear-gradient(120deg, #0e5c58, #37a08f);
+  padding: 3px 6px;
+  border-radius: 4px;
+}
+
+.gradien-catatan {
+  font-size: 9.5px;
+  color: var(--warna-redup, #6c6a63);
+  white-space: nowrap;
+}
+
+.gradien-segmen {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  background: #f1ece0;
+  padding: 3px;
+  border-radius: 8px;
+}
+
+.gradien-segmen button {
+  border: 0;
+  background: transparent;
+  border-radius: 6px;
+  padding: 7px 9px;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.gradien-segmen button:hover {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.gradien-segmen button[aria-pressed="true"] {
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(60, 50, 30, 0.16);
+}
+
+.gradien-segmen button span {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--warna-tinta, #16181c);
+  line-height: 1.3;
+}
+
+.gradien-segmen button[aria-pressed="true"] span {
+  color: var(--warna-aksen, #0e5c58);
+}
+
+.gradien-segmen button i {
+  display: block;
+  font-style: normal;
+  font-size: 9px;
+  color: var(--warna-redup, #6c6a63);
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.demo-gradien .demo-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  min-height: 14px;
+  margin: 9px 0 0;
+  font-size: 10px;
+  line-height: 1.4;
+  color: #4f6b64;
+}
+
+.demo-gradien .demo-status svg {
+  flex: none;
+  margin-top: 1px;
+}
+
+.demo-gradien .demo-status.ok {
+  color: var(--warna-aksen, #0e5c58);
+  font-weight: 600;
+}
+
+@media (max-width: 560px) {
+  .gradien-segmen {
+    grid-template-columns: 1fr;
+  }
+  .gradien-catatan {
+    display: none;
+  }
+}
+
 .pesan-galat-auth {
   background: #fde8e8;
   border: 1px solid #f8b4b4;
