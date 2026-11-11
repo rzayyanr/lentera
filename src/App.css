@@ -4053,3 +4053,435 @@ body {
   }
 }
 
+/* ==========================================================================
+   VARIASI 1 — Gerbang Login Split-Screen & Chip Akun Topbar
+   ========================================================================== */
+
+/* --- Tombol & Tombol Ghost --- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 8px;
+  padding: 12px 22px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  text-decoration: none;
+  font-family: inherit;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-primary {
+  background: var(--warna-aksen, #0e5c58);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #0a4a47;
+}
+
+.btn-outline {
+  background: transparent;
+  border-color: var(--warna-garis, #e3ded2);
+  color: var(--warna-tinta, #16181c);
+}
+
+.btn-outline:hover {
+  background: var(--warna-panggung, #f4f0e6);
+  border-color: #cfc8b8;
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--warna-aksen, #0e5c58);
+  padding: 6px 10px;
+}
+
+.btn-ghost:hover {
+  background: var(--warna-aksen-muda, #e8f1ee);
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* --- Avatar & Chip Akun Topbar --- */
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--warna-aksen, #0e5c58);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  flex: 0 0 40px;
+}
+
+.avatar.kecil {
+  width: 32px;
+  height: 32px;
+  flex-basis: 32px;
+  font-size: 11.5px;
+}
+
+.akun-baris {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.akun-baris .nama {
+  font-size: 12.5px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--warna-tinta, #16181c);
+  line-height: 1.2;
+}
+
+.akun-baris .email {
+  font-size: 11px;
+  color: var(--warna-redup, #6c6a63);
+  margin: 2px 0 0;
+  line-height: 1.2;
+}
+
+.topbar-akun {
+  padding-left: 14px;
+  margin-left: 8px;
+  border-left: 1px solid var(--warna-garis, #e3ded2);
+}
+
+.topbar-akun-teks {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+@media (max-width: 900px) {
+  .topbar-akun-teks {
+    display: none;
+  }
+}
+
+.menu-ponsel-akun-baris {
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  background: var(--warna-panggung, #f4f0e6);
+  border-radius: 8px;
+}
+
+/* --- Gerbang Login Split-Screen --- */
+.gate-wrap {
+  flex: 1;
+  width: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+  /* Bilah atas mengapung (top: 24px + height: 66px = 90px). 116px memberi jarak 26px di bawah bilah atas */
+  padding: 116px 20px 60px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background-color: var(--warna-latar, #fbfaf6);
+}
+
+.gate-kontainer {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.gate-wrap .back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--warna-redup, #6c6a63);
+  text-decoration: none;
+  margin-bottom: 14px;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.gate-wrap .back:hover {
+  color: var(--warna-tinta, #16181c);
+}
+
+.gate-kartu {
+  display: grid;
+  grid-template-columns: 290px minmax(0, 1fr);
+  min-height: 440px;
+  background: #fff;
+  border: 1px solid var(--warna-garis, #e3ded2);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0px 6px 24px 0px rgba(60, 50, 30, 0.08);
+}
+
+.gate-visual {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 24px 24px 28px;
+  color: #eaf2ef;
+  background: linear-gradient(160deg, #0a3a37 0%, #0e5c58 55%, #08302e 100%);
+}
+
+.gate-visual .pola {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+.gate-visual .label {
+  position: relative;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.8;
+  margin: 0 0 6px;
+}
+
+.gate-visual h2 {
+  position: relative;
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin: 0;
+  max-width: 250px;
+  color: #fff;
+}
+
+.gate-visual .stat {
+  position: relative;
+  display: flex;
+  gap: 18px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(234, 242, 239, 0.22);
+}
+
+.gate-visual .stat b {
+  display: block;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  color: #fff;
+}
+
+.gate-visual .stat span {
+  font-size: 10px;
+  opacity: 0.72;
+}
+
+.gate-form {
+  padding: 28px 34px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.gate-form .brand-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--warna-tinta, #16181c);
+}
+
+.gate-form .brand-mini .brand-mark {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--warna-aksen, #0e5c58);
+  display: grid;
+  place-items: center;
+}
+
+.gate-form h1 {
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  margin: 0 0 6px;
+  color: var(--warna-tinta, #16181c);
+}
+
+.gate-form .lede {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--warna-redup, #6c6a63);
+  margin: 0 0 16px;
+  max-width: 380px;
+}
+
+.gate-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 11px;
+}
+
+.gate-form .field label {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--warna-tinta, #16181c);
+}
+
+.gate-form .field input {
+  width: 100%;
+  padding: 8px 11px;
+  border: 1px solid var(--warna-garis, #e3ded2);
+  border-radius: 7px;
+  background: #fff;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--warna-tinta, #16181c);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.gate-form .field input:focus {
+  border-color: var(--warna-aksen, #0e5c58);
+  box-shadow: 0 0 0 2.5px rgba(14, 92, 88, 0.1);
+}
+
+.tautan-baris {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11.5px;
+  color: var(--warna-redup, #6c6a63);
+  margin: 2px 0 14px;
+}
+
+.tautan-baris a,
+.tautan-aksen {
+  color: var(--warna-aksen, #0e5c58);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.tautan-baris a:hover,
+.tautan-aksen:hover {
+  text-decoration: underline;
+}
+
+.tautan-tengah {
+  text-align: center;
+  font-size: 12px;
+  color: var(--warna-redup, #6c6a63);
+  margin: 14px 0 0;
+}
+
+.catatan-privasi {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--warna-redup, #6c6a63);
+  margin: 12px 0 0;
+  max-width: 380px;
+}
+
+.pesan-galat-auth {
+  background: #fde8e8;
+  border: 1px solid #f8b4b4;
+  color: #9b1c1c;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+/* --- Toast Notifikasi --- */
+.toast-ambang {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translate(-50%, 0);
+  background: #16181c;
+  color: #f4f0e6;
+  padding: 12px 22px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 9999;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  animation: fadeUpToast 0.2s ease;
+  pointer-events: none;
+}
+
+@keyframes fadeUpToast {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@media (max-width: 768px) {
+  .gate-wrap {
+    padding: 88px 16px 48px;
+  }
+  .gate-kartu {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+  .gate-visual {
+    min-height: 160px;
+    padding: 20px;
+  }
+  .gate-visual h2 {
+    font-size: 15px;
+  }
+  .gate-visual .stat {
+    margin-top: 12px;
+    padding-top: 10px;
+    gap: 16px;
+  }
+  .gate-form {
+    padding: 24px 20px 28px;
+  }
+  .gate-form h1 {
+    font-size: 19px;
+  }
+}
+

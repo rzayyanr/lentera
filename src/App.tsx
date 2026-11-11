@@ -27,6 +27,12 @@ import TransparansiBantuan from "./components/TransparansiBantuan";
 import Tentang from "./components/Tentang";
 import Moderator from "./components/Moderator";
 import BandingkanWilayah from "./components/BandingkanWilayah";
+import GerbangLogin from "./components/GerbangLogin";
+import {
+  ambilSesiPelapor,
+  keluarPelapor,
+  type PenggunaPelapor,
+} from "./lib/layananLaporan";
 import PenggeserTahun from "./components/PenggeserTahun";
 import "./App.css";
 
@@ -131,6 +137,52 @@ export default function App() {
   }, []);
 
   const adalahPonsel = lebarLayar <= 768;
+
+  // State otentikasi pengguna global (Variasi 1 Mockup)
+  const [pengguna, setPengguna] = useState<PenggunaPelapor | null>(null);
+  const [pesanToast, setPesanToast] = useState<string | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function tampilkanToast(pesan: string) {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setPesanToast(pesan);
+    toastTimerRef.current = setTimeout(() => {
+      setPesanToast(null);
+    }, 3500);
+  }
+
+  // Muat sesi pengguna saat aplikasi dimuat
+  useEffect(() => {
+    let aktif = true;
+    ambilSesiPelapor().then((sesi) => {
+      if (aktif && sesi) {
+        setPengguna(sesi);
+      }
+    });
+    return () => {
+      aktif = false;
+    };
+  }, []);
+
+  function tanganiBerhasilMasuk(penggunaBaru: PenggunaPelapor) {
+    setPengguna(penggunaBaru);
+    if (penggunaBaru.peran === "moderator") {
+      setHalaman("moderator");
+      tampilkanToast(`Masuk sebagai ${penggunaBaru.nama} (Moderator). Membuka antrean moderasi...`);
+    } else {
+      setHalaman("lapor");
+      tampilkanToast(`Masuk sebagai ${penggunaBaru.nama} (Warga). Siap mengirim laporan.`);
+    }
+  }
+
+  async function tanganiKeluar() {
+    await keluarPelapor();
+    setPengguna(null);
+    tampilkanToast("Berhasil keluar dari akun");
+    if (halaman === "moderator" || halaman === "lapor") {
+      setHalaman("peta");
+    }
+  }
 
   useEffect(() => {
     let batal = false;
@@ -534,6 +586,8 @@ export default function App() {
           if (halaman !== "peta") setHalaman("peta");
           setTimeout(() => inputCariRef.current?.focus(), 100);
         }}
+        pengguna={pengguna}
+        onKeluar={tanganiKeluar}
       />
 
       {/* 2. Peta & Layar Utama (01 & 02) */}
@@ -679,12 +733,23 @@ export default function App() {
         />
       )}
 
-      {/* 6. Screens 06, 06a, 07, 08: Laporan Warga & Autentikasi Pelapor */}
+      {/* 6. Screens 06, 06a, 07, 08: Laporan Warga & Autentikasi Pelapor (Variasi 1) */}
       {(halaman === "lapor" || halaman === "masuk") && (
-        <LaporanWarga
-          subHalamanAwal={halaman === "masuk" ? "masuk" : "beranda"}
-          onKembaliKePeta={() => setHalaman("peta")}
-        />
+        !pengguna ? (
+          <GerbangLogin
+            onBerhasilMasuk={tanganiBerhasilMasuk}
+            onKembaliKePeta={() => setHalaman("peta")}
+          />
+        ) : pengguna.peran === "moderator" ? (
+          <Moderator />
+        ) : (
+          <LaporanWarga
+            subHalamanAwal={halaman === "masuk" ? "masuk" : "beranda"}
+            onKembaliKePeta={() => setHalaman("peta")}
+            penggunaSesi={pengguna}
+            onKeluar={tanganiKeluar}
+          />
+        )
       )}
 
       {/* 7. Screens 09, 10, 11: Transparansi Bantuan */}
@@ -696,10 +761,26 @@ export default function App() {
       {halaman === "tentang" && <Tentang siap={siap} />}
 
       {/* 9. Screens 16, 17: Moderator (Internal) */}
-      {halaman === "moderator" && <Moderator />}
+      {halaman === "moderator" && (
+        !pengguna ? (
+          <GerbangLogin
+            onBerhasilMasuk={tanganiBerhasilMasuk}
+            onKembaliKePeta={() => setHalaman("peta")}
+          />
+        ) : (
+          <Moderator />
+        )
+      )}
 
       {/* 10. Screen 18: Bandingkan Wilayah dan Tahun */}
       {halaman === "bandingkan" && <BandingkanWilayah siap={siap} />}
+
+      {/* Floating Toast Notification */}
+      {pesanToast && (
+        <div className="toast-ambang" role="status">
+          {pesanToast}
+        </div>
+      )}
     </div>
   );
 }

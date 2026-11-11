@@ -7,6 +7,7 @@ export interface PenggunaPelapor {
   telepon: string;
   instansi?: string;
   role?: "warga" | "relawan" | "moderator" | "admin";
+  peran?: "warga" | "moderator";
 }
 
 export interface ItemLaporan {
@@ -240,13 +241,15 @@ export async function ambilSesiPelapor(): Promise<PenggunaPelapor | null> {
           .eq("id", u.id)
           .maybeSingle();
 
+        const role = (prof?.role as PenggunaPelapor["role"]) || (meta.role as PenggunaPelapor["role"]) || peranDariEmail(u.email || "");
         return {
           id: u.id,
           nama: prof?.nama_lengkap || meta.nama || u.email?.split("@")[0] || "Warga",
           email: u.email || "",
           telepon: prof?.no_telepon || meta.telepon || "",
-          instansi: "Warga Terverifikasi",
-          role: (prof?.role as PenggunaPelapor["role"]) || (meta.role as PenggunaPelapor["role"]) || "warga",
+          instansi: role === "moderator" ? "Moderator Resmi" : "Warga Terverifikasi",
+          role,
+          peran: role === "moderator" ? "moderator" : "warga",
         };
       }
     } catch {
@@ -256,66 +259,117 @@ export async function ambilSesiPelapor(): Promise<PenggunaPelapor | null> {
 
   try {
     const saved = localStorage.getItem(KUNCI_PELAPOR_STORAGE);
-    if (saved) return JSON.parse(saved);
+    if (saved) {
+      const parsed = JSON.parse(saved) as PenggunaPelapor;
+      const peran = parsed.peran || (parsed.role === "moderator" ? "moderator" : peranDariEmail(parsed.email));
+      return {
+        ...parsed,
+        peran,
+        role: (parsed.role || peran) as PenggunaPelapor["role"],
+      };
+    }
   } catch {
     // abaikan
   }
   return null;
 }
 
+export function namaDariEmail(email: string): string {
+  const bersih = String(email).trim().toLowerCase();
+  if (bersih === "admin@gmail.com") return "Admin Lentera";
+  const dasar = bersih.split("@")[0].replace(/[._-]/g, " ").trim();
+  if (!dasar) return "Warga Lentera";
+  return dasar
+    .split(" ")
+    .filter(Boolean)
+    .map((k) => k.charAt(0).toUpperCase() + k.slice(1))
+    .join(" ");
+}
+
+export function inisial(nama: string): string {
+  return String(nama)
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((k) => k.charAt(0).toUpperCase())
+    .join("");
+}
+
+export function peranDariEmail(email: string): "moderator" | "warga" {
+  return String(email).trim().toLowerCase() === "admin@gmail.com" ? "moderator" : "warga";
+}
+
 export async function masukPelapor(
   email: string,
   sandi: string
 ): Promise<PenggunaPelapor> {
+  const emailBersih = email.trim().toLowerCase();
+  const adalahAdminDemo = emailBersih === "admin@gmail.com";
+
   if (apakahSupabaseAktif && supabase) {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password: sandi,
-    });
-    if (error) {
-      throw new Error(error.message);
-    }
-    const u = data.user;
-    if (!u) throw new Error("Gagal memperoleh sesi pengguna");
-
-    const { data: prof } = await supabase
-      .from("profil_pengguna")
-      .select("nama_lengkap, no_telepon, role")
-      .eq("id", u.id)
-      .maybeSingle();
-
-    const meta = u.user_metadata || {};
-    const profil: PenggunaPelapor = {
-      id: u.id,
-      nama: prof?.nama_lengkap || meta.nama || email.split("@")[0],
-      email: u.email || email,
-      telepon: prof?.no_telepon || meta.telepon || "",
-      instansi: "Warga Terverifikasi",
-      role: (prof?.role as PenggunaPelapor["role"]) || (meta.role as PenggunaPelapor["role"]) || "warga",
-    };
-
     try {
-      localStorage.setItem(KUNCI_PELAPOR_STORAGE, JSON.stringify(profil));
-    } catch {
-      // abaikan
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: emailBersih,
+        password: sandi,
+      });
+      if (!error && data?.user) {
+        const u = data.user;
+        const { data: prof } = await supabase
+          .from("profil_pengguna")
+          .select("nama_lengkap, no_telepon, role")
+          .eq("id", u.id)
+          .maybeSingle();
+
+        const meta = u.user_metadata || {};
+        const role =
+          adalahAdminDemo
+            ? "moderator"
+            : ((prof?.role as PenggunaPelapor["role"]) ||
+              (meta.role as PenggunaPelapor["role"]) ||
+              "warga");
+
+        const profil: PenggunaPelapor = {
+          id: u.id,
+          nama: prof?.nama_lengkap || meta.nama || (adalahAdminDemo ? "Admin Lentera" : namaDariEmail(emailBersih)),
+          email: u.email || emailBersih,
+          telepon: prof?.no_telepon || meta.telepon || "",
+          instansi: role === "moderator" ? "Moderator Resmi" : "Warga Terverifikasi",
+          role,
+          peran: role === "moderator" ? "moderator" : "warga",
+        };
+
+        try {
+          localStorage.setItem(KUNCI_PELAPOR_STORAGE, JSON.stringify(profil));
+        } catch {
+          // abaikan
+        }
+        return profil;
+      }
+      if (error && !adalahAdminDemo) {
+        throw new Error(error.message);
+      }
+    } catch (err) {
+      if (!adalahAdminDemo) throw err;
     }
-    return profil;
   }
   // Fallback lokal jika koneksi Supabase belum aktif (mode demo / offline)
-  const profilLokal: PenggunaPelapor = {
-    id: `warga-lokal-${Date.now()}`,
-    nama: email.split("@")[0] || "Warga",
-    email: email.trim(),
+  const role = adalahAdminDemo ? "moderator" : peranDariEmail(emailBersih);
+  const nama = adalahAdminDemo ? "Admin Lentera" : namaDariEmail(emailBersih);
+  const profil: PenggunaPelapor = {
+    id: adalahAdminDemo ? "demo-admin-id" : `warga-lokal-${Date.now()}`,
+    nama,
+    email: emailBersih,
     telepon: "08123456789",
-    instansi: "Warga Terverifikasi (Mode Demo)",
-    role: "warga",
+    instansi: role === "moderator" ? "Moderator Resmi" : "Warga Terverifikasi (Mode Demo)",
+    role,
+    peran: role === "moderator" ? "moderator" : "warga",
   };
   try {
-    localStorage.setItem(KUNCI_PELAPOR_STORAGE, JSON.stringify(profilLokal));
+    localStorage.setItem(KUNCI_PELAPOR_STORAGE, JSON.stringify(profil));
   } catch {
     // abaikan
   }
-  return profilLokal;
+  return profil;
 }
 
 export async function daftarPelapor(
@@ -324,55 +378,68 @@ export async function daftarPelapor(
   sandi: string,
   telepon: string
 ): Promise<PenggunaPelapor> {
+  const emailBersih = email.trim().toLowerCase();
+  const adalahAdminDemo = emailBersih === "admin@gmail.com";
+  const role = adalahAdminDemo ? "moderator" : "warga";
+
   if (apakahSupabaseAktif && supabase) {
-    const { data, error } = await supabase.auth.signUp({
-      email: email.trim(),
-      password: sandi,
-      options: {
-        data: {
-          nama: nama.trim(),
-          telepon: telepon.trim(),
-          role: "warga",
-        },
-      },
-    });
-    if (error) {
-      throw new Error(error.message);
-    }
-    const u = data.user;
-    if (!u) throw new Error("Gagal membuat akun");
-
-    const profil: PenggunaPelapor = {
-      id: u.id,
-      nama: nama.trim(),
-      email: email.trim(),
-      telepon: telepon.trim(),
-      instansi: "Warga Terverifikasi",
-      role: "warga",
-    };
-
     try {
-      localStorage.setItem(KUNCI_PELAPOR_STORAGE, JSON.stringify(profil));
-    } catch {
-      // abaikan
+      const { data, error } = await supabase.auth.signUp({
+        email: emailBersih,
+        password: sandi,
+        options: {
+          data: {
+            nama: nama.trim(),
+            telepon: telepon.trim(),
+            role,
+          },
+        },
+      });
+      if (error) {
+        throw new Error(error.message);
+      }
+      const u = data.user;
+      if (!u) throw new Error("Gagal membuat akun");
+
+      const profil: PenggunaPelapor = {
+        id: u.id,
+        nama: nama.trim(),
+        email: emailBersih,
+        telepon: telepon.trim(),
+        instansi: role === "moderator" ? "Moderator Resmi" : "Warga Terverifikasi",
+        role,
+      };
+
+      try {
+        localStorage.setItem(KUNCI_PELAPOR_STORAGE, JSON.stringify(profil));
+      } catch {
+        // abaikan
+      }
+      return profil;
+    } catch (err) {
+      if (!apakahSupabaseAktif) {
+        // lanjut fallback
+      } else {
+        throw err;
+      }
     }
-    return profil;
   }
   // Fallback lokal jika koneksi Supabase belum aktif (mode demo / offline)
-  const profilLokal: PenggunaPelapor = {
+  const profil: PenggunaPelapor = {
     id: `warga-lokal-${Date.now()}`,
-    nama: nama.trim() || email.split("@")[0] || "Warga",
-    email: email.trim(),
+    nama: nama.trim() || namaDariEmail(emailBersih),
+    email: emailBersih,
     telepon: telepon.trim() || "08123456789",
-    instansi: "Warga Terverifikasi (Mode Demo)",
-    role: "warga",
+    instansi: role === "moderator" ? "Moderator Resmi" : "Warga Terverifikasi (Mode Demo)",
+    role,
+    peran: role === "moderator" ? "moderator" : "warga",
   };
   try {
-    localStorage.setItem(KUNCI_PELAPOR_STORAGE, JSON.stringify(profilLokal));
+    localStorage.setItem(KUNCI_PELAPOR_STORAGE, JSON.stringify(profil));
   } catch {
     // abaikan
   }
-  return profilLokal;
+  return profil;
 }
 
 export async function keluarPelapor(): Promise<void> {

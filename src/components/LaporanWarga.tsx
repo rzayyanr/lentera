@@ -48,11 +48,15 @@ function formatTanggalLengkap(iso: string): string {
 interface Props {
   subHalamanAwal?: "beranda" | "masuk" | "kirim" | "status" | "riwayat";
   onKembaliKePeta?: () => void;
+  penggunaSesi?: PenggunaPelapor | null;
+  onKeluar?: () => void;
 }
 
 export default function LaporanWarga({
   subHalamanAwal = "beranda",
   onKembaliKePeta,
+  penggunaSesi,
+  onKeluar,
 }: Props) {
   const [tampilan, setTampilan] = useState<
     "beranda" | "masuk" | "kirim" | "status" | "riwayat"
@@ -118,6 +122,11 @@ export default function LaporanWarga({
 
   // Muat sesi pengguna saat komponen dimuat
   useEffect(() => {
+    if (penggunaSesi !== undefined) {
+      setPengguna(penggunaSesi);
+      setMemuatSesi(false);
+      return;
+    }
     let batal = false;
     ambilSesiPelapor().then((sesi) => {
       if (!batal) {
@@ -128,7 +137,7 @@ export default function LaporanWarga({
     return () => {
       batal = true;
     };
-  }, []);
+  }, [penggunaSesi]);
 
   // Muat data master wilayah dari sistem peta dan kecamatan kejadian
   useEffect(() => {
@@ -269,6 +278,7 @@ export default function LaporanWarga({
     setPengguna(null);
     setDaftarRiwayatSaya([]);
     setTampilan("beranda");
+    if (onKeluar) onKeluar();
   }
 
   async function handleMasuk(e: React.FormEvent) {
