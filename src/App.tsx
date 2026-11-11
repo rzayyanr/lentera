@@ -328,7 +328,7 @@ export default function App() {
       const gaya = gayaRef.current;
       const garisSaja = gaya === "garis";
       const isiOpasitas =
-        gaya === "relief" ? 0.58 : gaya === "satelit" ? 0.86 : 1;
+        gaya === "relief" ? 0.7 : gaya === "satelit" ? 0.86 : 1;
       jalur.setStyle({
         fillColor: warna,
         fillOpacity: garisSaja ? 0 : isiOpasitas,

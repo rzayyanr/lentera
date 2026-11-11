@@ -4733,11 +4733,11 @@ body {
 
 /* Relief: latar kontur lembut, tetap jalan tanpa jaringan. */
 .peta.gaya-relief {
-  background-color: #e7e2d4;
+  background-color: #e6dfcd;
   background-image:
-    repeating-linear-gradient(115deg, rgba(120, 110, 85, 0.1) 0 1px, transparent 1px 9px),
-    repeating-linear-gradient(25deg, rgba(120, 110, 85, 0.07) 0 1px, transparent 1px 13px),
-    radial-gradient(120% 90% at 30% 20%, #f2ecdd 0%, #e2dccb 60%, #d8d2c0 100%);
+    repeating-linear-gradient(115deg, rgba(108, 96, 68, 0.17) 0 1px, transparent 1px 8px),
+    repeating-linear-gradient(25deg, rgba(108, 96, 68, 0.11) 0 1px, transparent 1px 12px),
+    radial-gradient(120% 90% at 30% 20%, #f3edde 0%, #e4ddca 55%, #d5ceba 100%);
 }
 
 /* Garis: latar bersih, isi wilayah transparan. */
