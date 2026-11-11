@@ -125,7 +125,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 28px;
+  gap: 16px;
   /* Mengisi ruang antara logo dan tombol kanan, lalu isinya ditengahkan di
      ruang itu. Tanpa ini, di monitor lebar menu menempel ke satu sisi dan
      sisa ruang menganga di sebelahnya. */
@@ -158,10 +158,35 @@ body {
   color: var(--warna-redup);
   background: none;
   border: none;
-  padding: 6px 0;
+  /* Bantalan samping memberi ruang untuk latar hover; tanpa itu sorotan
+     menempel ke huruf pertama dan terlihat sesak. */
+  padding: 6px 10px;
   cursor: pointer;
-  transition: color 0.15s ease;
+  transition: color 0.18s ease;
   position: relative;
+  /* Agar lapisan latar hover bisa diletakkan di belakang teks tanpa ikut
+     menutupi bilah atas. */
+  isolation: isolate;
+}
+
+/* Latar hover: muncul dari sedikit lebih kecil lalu membesar, bukan langsung
+   berkedip seperti perubahan warna latar biasa. */
+.bilah-atas-item::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 7px;
+  background: #efe9dc;
+  opacity: 0;
+  transform: scale(0.92);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.bilah-atas-item:hover::before,
+.bilah-atas-item:focus-visible::before {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .bilah-atas-item:hover {
@@ -173,15 +198,27 @@ body {
   color: var(--warna-tinta);
 }
 
-.bilah-atas-item.aktif::after {
+/* Garis bawah hanya untuk item aktif dan tumbuh dari tengah, sehingga saat
+   menu berpindah garisnya memanjang, bukan berganti mendadak. Hover cukup
+   memakai latar; garis tambahan saat hover terlihat menggantung di luar pill. */
+.bilah-atas-item::after {
   content: "";
   position: absolute;
   bottom: -2px;
-  left: 0;
-  right: 0;
+  left: 10px;
+  right: 10px;
   height: 2px;
   background: var(--warna-aksen);
   border-radius: 1px;
+  transform: scaleX(0);
+  transform-origin: center;
+  opacity: 0;
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.18s ease;
+}
+
+.bilah-atas-item.aktif::after {
+  transform: scaleX(1);
+  opacity: 1;
 }
 
 .bilah-atas-item.nonaktif {
@@ -5841,3 +5878,59 @@ body {
   }
 }
 
+
+/* ==========================================================================
+   ANIMASI MASUK HALAMAN
+   Halaman berganti lewat conditional render, jadi elemen halaman terpasang
+   ulang setiap kali menu ditekan dan animasi ini berjalan dengan sendirinya
+   tanpa perlu kode tambahan di React.
+
+   Tanpa `animation-fill-mode`, transform dilepas kembali setelah animasi
+   selesai. Ini penting: transform yang menetap membuat elemen menjadi
+   containing block, sehingga anak berposisi fixed (lembar bawah di ponsel)
+   akan menempel ke elemen halaman, bukan ke jendela.
+
+   Halaman peta tidak ikut dianimasikan: Leaflet mengukur wadah tepat saat
+   dipasang, dan transform singkat pada induknya bisa membuat ukuran awal
+   meleset sehingga peta tidak terisi penuh.
+   ========================================================================== */
+
+@keyframes halaman-masuk {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.halaman-daftar-wilayah,
+.halaman-riwayat,
+.halaman-laporan-warga,
+.halaman-transparansi-bantuan,
+.halaman-bandingkan-wilayah,
+.halaman-tentang-data,
+.halaman-detail-kejadian,
+.halaman-moderator-laporan {
+  animation: halaman-masuk 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .halaman-daftar-wilayah,
+  .halaman-riwayat,
+  .halaman-laporan-warga,
+  .halaman-transparansi-bantuan,
+  .halaman-bandingkan-wilayah,
+  .halaman-tentang-data,
+  .halaman-detail-kejadian,
+  .halaman-moderator-laporan {
+    animation: none;
+  }
+
+  .bilah-atas-item::before,
+  .bilah-atas-item::after {
+    transition: none;
+  }
+}
