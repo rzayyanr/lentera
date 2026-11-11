@@ -645,7 +645,7 @@ export default function LaporanWarga({
                 <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                   <button
                     type="button"
-                    className="tombol-aksi-sekunder"
+                    className="tombol-aksi-utama"
                     onClick={() => {
                       handleCariStatus(kodeInput);
                       setTampilan("status");
