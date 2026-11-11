@@ -168,7 +168,11 @@ export default function App() {
   useEffect(() => {
     if (!siap) return;
     const kode = kodeAwal.current;
-    if (kode && siap.perKode.has(kode)) setDipilih(siap.perKode.get(kode) ?? null);
+    if (kode && siap.perKode.has(kode)) {
+      const w = siap.perKode.get(kode) ?? null;
+      setDipilih(w);
+      if (w) terbangTertunda.current = w;
+    }
   }, [siap]);
 
   // Sinkronisasi state ke parameter URL
@@ -483,6 +487,41 @@ export default function App() {
     terbangRef.current?.(w);
   }, [halaman]);
 
+  /* Kamera peta kembali ke ringkasan nasional ketika pilihan wilayah ditutup.
+     Titik pusat [-2.5, 118] disesuaikan dengan kotak bebas di kiri panel. */
+  const kembaliKeNasional = useCallback(() => {
+    setDipilih(null);
+    const m = peta.current;
+    if (!m) return;
+
+    const kurangiGerak =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const zoomNasional = adalahPonsel ? 3.75 : lebarLayar <= 1366 ? 4.5 : 4.75;
+    const pusatNasional = L.latLng(-2.5, 118);
+
+    const panelTerbuka = !adalahPonsel && !panelRingkasanTutup;
+    const lebarPanel = panelTerbuka
+      ? (document.querySelector<HTMLElement>(".panel-ringkasan-nasional, .panel-detail-wilayah")?.offsetWidth ?? 360) + 40
+      : 40;
+    const tepiKiri = adalahPonsel ? 16 : 40;
+    const tepiKanan = adalahPonsel ? 16 : lebarPanel;
+
+    const ukuranPeta = m.getSize();
+    const pusatKotakX = (tepiKiri + (ukuranPeta.x - tepiKanan)) / 2;
+    const geserX = ukuranPeta.x / 2 - pusatKotakX;
+
+    const pusatPiksel = m.project(pusatNasional, zoomNasional);
+    const tujuan = m.unproject(pusatPiksel.add(L.point(geserX, 0)), zoomNasional);
+
+    if (kurangiGerak) {
+      m.setView(tujuan, zoomNasional, { animate: false });
+    } else {
+      m.flyTo(tujuan, zoomNasional, { duration: 0.9, easeLinearity: 0.22 });
+    }
+  }, [adalahPonsel, lebarLayar, panelRingkasanTutup]);
+
   return (
     <div className={`aplikasi ${dipilih && !adalahPonsel ? "panel-terbuka" : ""}`}>
       {/* 1. Bilah Atas Global (Desktop & Mobile) */}
@@ -563,8 +602,8 @@ export default function App() {
                   tahun={tahun ?? 2024}
                   ukuran={ukuran}
                   onPilihTahun={pilihTahun}
-                  onKembali={() => setDipilih(null)}
-                  onTutup={() => setDipilih(null)}
+                  onKembali={kembaliKeNasional}
+                  onTutup={kembaliKeNasional}
                   onBukaRiwayatJatim={() => setHalaman("riwayat")}
                   onBukaTransparansi={() => setHalaman("bantuan")}
                 />
@@ -601,7 +640,7 @@ export default function App() {
                   ukuran={ukuran}
                   onPilihUkuran={(uk) => setUkuran(uk)}
                   onPilihTahun={pilihTahun}
-                  onTutup={() => setDipilih(null)}
+                  onTutup={kembaliKeNasional}
                 />
               )}
             </>

@@ -301,8 +301,21 @@ export async function masukPelapor(
     }
     return profil;
   }
-
-  throw new Error("Koneksi Supabase belum aktif. Pastikan .env.local terpasang.");
+  // Fallback lokal jika koneksi Supabase belum aktif (mode demo / offline)
+  const profilLokal: PenggunaPelapor = {
+    id: `warga-lokal-${Date.now()}`,
+    nama: email.split("@")[0] || "Warga",
+    email: email.trim(),
+    telepon: "08123456789",
+    instansi: "Warga Terverifikasi (Mode Demo)",
+    role: "warga",
+  };
+  try {
+    localStorage.setItem(KUNCI_PELAPOR_STORAGE, JSON.stringify(profilLokal));
+  } catch {
+    // abaikan
+  }
+  return profilLokal;
 }
 
 export async function daftarPelapor(
@@ -345,8 +358,21 @@ export async function daftarPelapor(
     }
     return profil;
   }
-
-  throw new Error("Koneksi Supabase belum aktif. Pastikan .env.local terpasang.");
+  // Fallback lokal jika koneksi Supabase belum aktif (mode demo / offline)
+  const profilLokal: PenggunaPelapor = {
+    id: `warga-lokal-${Date.now()}`,
+    nama: nama.trim() || email.split("@")[0] || "Warga",
+    email: email.trim(),
+    telepon: telepon.trim() || "08123456789",
+    instansi: "Warga Terverifikasi (Mode Demo)",
+    role: "warga",
+  };
+  try {
+    localStorage.setItem(KUNCI_PELAPOR_STORAGE, JSON.stringify(profilLokal));
+  } catch {
+    // abaikan
+  }
+  return profilLokal;
 }
 
 export async function keluarPelapor(): Promise<void> {
